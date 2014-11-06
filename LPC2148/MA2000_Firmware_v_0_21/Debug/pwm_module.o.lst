@@ -1,0 +1,514 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"pwm_module.c"
+  21              	.Ltext0:
+  22              		.file 1 "../pwm_module.c"
+ 1825              		.align	2
+ 1826              		.global	setPWM1Function
+ 1828              	setPWM1Function:
+ 1829              	.LFB0:
+   1:../pwm_module.c **** /*
+   2:../pwm_module.c ****  * pwm_module.c
+   3:../pwm_module.c ****  *
+   4:../pwm_module.c ****  *  Created on: 30/11/2012
+   5:../pwm_module.c ****  *      Author: Daniel T. G. Mariano
+   6:../pwm_module.c ****  *    Filename: pwm_module.c
+   7:../pwm_module.c ****  *     Version: 0.0
+   8:../pwm_module.c ****  * Description: PWM module developed to set the PWM Channels
+   9:../pwm_module.c ****  */
+  10:../pwm_module.c **** 
+  11:../pwm_module.c **** #include "pwm_module.h"
+  12:../pwm_module.c **** #include "LPC214x.h"
+  13:../pwm_module.c **** #include "cpu_init.h"
+  14:../pwm_module.c **** 
+  15:../pwm_module.c **** void setPWM1Function()
+  16:../pwm_module.c **** {
+ 1830              		.loc 1 16 0
+ 1831              		.cfi_startproc
+ 1832              		@ Function supports interworking.
+ 1833              		@ args = 0, pretend = 0, frame = 0
+ 1834              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1835              		@ link register save eliminated.
+ 1836 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 1837              	.LCFI0:
+ 1838              		.cfi_def_cfa_offset 4
+ 1839 0004 00B08DE2 		add	fp, sp, #0
+ 1840              		.cfi_offset 11, -4
+ 1841              	.LCFI1:
+ 1842              		.cfi_def_cfa_register 11
+  17:../pwm_module.c **** 	//Setting PWM1 function: Sets P0.0 with value 10 for Bits 1 and 0 (PINSEL0)
+  18:../pwm_module.c **** 	//P0.0 -> EXT1-1 -> Pin 25
+  19:../pwm_module.c **** 	PINSEL0 &= ~(3<<0);
+ 1843              		.loc 1 19 0
+ 1844 0008 0E32A0E3 		mov	r3, #-536870912
+ 1845 000c 0B3983E2 		add	r3, r3, #180224
+ 1846 0010 0E22A0E3 		mov	r2, #-536870912
+ 1847 0014 0B2982E2 		add	r2, r2, #180224
+ 1848 0018 002092E5 		ldr	r2, [r2, #0]
+ 1849 001c 0320C2E3 		bic	r2, r2, #3
+ 1850 0020 002083E5 		str	r2, [r3, #0]
+  20:../pwm_module.c **** 	PINSEL0 |=  (1<<1);
+ 1851              		.loc 1 20 0
+ 1852 0024 0E32A0E3 		mov	r3, #-536870912
+ 1853 0028 0B3983E2 		add	r3, r3, #180224
+ 1854 002c 0E22A0E3 		mov	r2, #-536870912
+ 1855 0030 0B2982E2 		add	r2, r2, #180224
+ 1856 0034 002092E5 		ldr	r2, [r2, #0]
+ 1857 0038 022082E3 		orr	r2, r2, #2
+ 1858 003c 002083E5 		str	r2, [r3, #0]
+  21:../pwm_module.c **** }
+ 1859              		.loc 1 21 0
+ 1860 0040 00D08BE2 		add	sp, fp, #0
+ 1861 0044 0008BDE8 		ldmfd	sp!, {fp}
+ 1862 0048 1EFF2FE1 		bx	lr
+ 1863              		.cfi_endproc
+ 1864              	.LFE0:
+ 1866              		.align	2
+ 1867              		.global	setPWM3Function
+ 1869              	setPWM3Function:
+ 1870              	.LFB1:
+  22:../pwm_module.c **** 
+  23:../pwm_module.c **** void setPWM3Function()
+  24:../pwm_module.c **** {
+ 1871              		.loc 1 24 0
+ 1872              		.cfi_startproc
+ 1873              		@ Function supports interworking.
+ 1874              		@ args = 0, pretend = 0, frame = 0
+ 1875              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1876              		@ link register save eliminated.
+ 1877 004c 04B02DE5 		str	fp, [sp, #-4]!
+ 1878              	.LCFI2:
+ 1879              		.cfi_def_cfa_offset 4
+ 1880 0050 00B08DE2 		add	fp, sp, #0
+ 1881              		.cfi_offset 11, -4
+ 1882              	.LCFI3:
+ 1883              		.cfi_def_cfa_register 11
+  25:../pwm_module.c **** 	//Setting PWM3 function: Sets P0.1 with value 10 for Bits 3 and 2 (PINSEL0)
+  26:../pwm_module.c **** 	//P0.1 -> EXT1-2 -> Pin 26
+  27:../pwm_module.c **** 	PINSEL0 &= ~(3<<2);
+ 1884              		.loc 1 27 0
+ 1885 0054 0E32A0E3 		mov	r3, #-536870912
+ 1886 0058 0B3983E2 		add	r3, r3, #180224
+ 1887 005c 0E22A0E3 		mov	r2, #-536870912
+ 1888 0060 0B2982E2 		add	r2, r2, #180224
+ 1889 0064 002092E5 		ldr	r2, [r2, #0]
+ 1890 0068 0C20C2E3 		bic	r2, r2, #12
+ 1891 006c 002083E5 		str	r2, [r3, #0]
+  28:../pwm_module.c **** 	PINSEL0 |=  (1<<3);
+ 1892              		.loc 1 28 0
+ 1893 0070 0E32A0E3 		mov	r3, #-536870912
+ 1894 0074 0B3983E2 		add	r3, r3, #180224
+ 1895 0078 0E22A0E3 		mov	r2, #-536870912
+ 1896 007c 0B2982E2 		add	r2, r2, #180224
+ 1897 0080 002092E5 		ldr	r2, [r2, #0]
+ 1898 0084 082082E3 		orr	r2, r2, #8
+ 1899 0088 002083E5 		str	r2, [r3, #0]
+  29:../pwm_module.c **** }
+ 1900              		.loc 1 29 0
+ 1901 008c 00D08BE2 		add	sp, fp, #0
+ 1902 0090 0008BDE8 		ldmfd	sp!, {fp}
+ 1903 0094 1EFF2FE1 		bx	lr
+ 1904              		.cfi_endproc
+ 1905              	.LFE1:
+ 1907              		.align	2
+ 1908              		.global	setPWM2Function
+ 1910              	setPWM2Function:
+ 1911              	.LFB2:
+  30:../pwm_module.c **** 
+  31:../pwm_module.c **** void setPWM2Function()
+  32:../pwm_module.c **** {
+ 1912              		.loc 1 32 0
+ 1913              		.cfi_startproc
+ 1914              		@ Function supports interworking.
+ 1915              		@ args = 0, pretend = 0, frame = 0
+ 1916              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1917              		@ link register save eliminated.
+ 1918 0098 04B02DE5 		str	fp, [sp, #-4]!
+ 1919              	.LCFI4:
+ 1920              		.cfi_def_cfa_offset 4
+ 1921 009c 00B08DE2 		add	fp, sp, #0
+ 1922              		.cfi_offset 11, -4
+ 1923              	.LCFI5:
+ 1924              		.cfi_def_cfa_register 11
+  33:../pwm_module.c **** 	//Setting PWM2 function: Sets P0.7 with value 10 for Bits 15 and 14 (PINSEL0)
+  34:../pwm_module.c **** 	//P0.7 -> EXT1-8 -> Pin 20
+  35:../pwm_module.c **** 	PINSEL0 &= ~(3<<14);
+ 1925              		.loc 1 35 0
+ 1926 00a0 0E32A0E3 		mov	r3, #-536870912
+ 1927 00a4 0B3983E2 		add	r3, r3, #180224
+ 1928 00a8 0E22A0E3 		mov	r2, #-536870912
+ 1929 00ac 0B2982E2 		add	r2, r2, #180224
+ 1930 00b0 002092E5 		ldr	r2, [r2, #0]
+ 1931 00b4 0329C2E3 		bic	r2, r2, #49152
+ 1932 00b8 002083E5 		str	r2, [r3, #0]
+  36:../pwm_module.c **** 	PINSEL0 |=  (1<<15);
+ 1933              		.loc 1 36 0
+ 1934 00bc 0E32A0E3 		mov	r3, #-536870912
+ 1935 00c0 0B3983E2 		add	r3, r3, #180224
+ 1936 00c4 0E22A0E3 		mov	r2, #-536870912
+ 1937 00c8 0B2982E2 		add	r2, r2, #180224
+ 1938 00cc 002092E5 		ldr	r2, [r2, #0]
+ 1939 00d0 022982E3 		orr	r2, r2, #32768
+ 1940 00d4 002083E5 		str	r2, [r3, #0]
+  37:../pwm_module.c **** }
+ 1941              		.loc 1 37 0
+ 1942 00d8 00D08BE2 		add	sp, fp, #0
+ 1943 00dc 0008BDE8 		ldmfd	sp!, {fp}
+ 1944 00e0 1EFF2FE1 		bx	lr
+ 1945              		.cfi_endproc
+ 1946              	.LFE2:
+ 1948              		.align	2
+ 1949              		.global	setPWM4Function
+ 1951              	setPWM4Function:
+ 1952              	.LFB3:
+  38:../pwm_module.c **** 
+  39:../pwm_module.c **** void setPWM4Function()
+  40:../pwm_module.c **** {
+ 1953              		.loc 1 40 0
+ 1954              		.cfi_startproc
+ 1955              		@ Function supports interworking.
+ 1956              		@ args = 0, pretend = 0, frame = 0
+ 1957              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1958              		@ link register save eliminated.
+ 1959 00e4 04B02DE5 		str	fp, [sp, #-4]!
+ 1960              	.LCFI6:
+ 1961              		.cfi_def_cfa_offset 4
+ 1962 00e8 00B08DE2 		add	fp, sp, #0
+ 1963              		.cfi_offset 11, -4
+ 1964              	.LCFI7:
+ 1965              		.cfi_def_cfa_register 11
+  41:../pwm_module.c **** 	//Setting PWM4 function: Sets P0.8 with value 10 for Bits 17 and 16 (PINSEL0)
+  42:../pwm_module.c **** 	//P0.8 -> EXT1-9 -> Pin 17
+  43:../pwm_module.c **** 	PINSEL0 &= ~(3<<16);
+ 1966              		.loc 1 43 0
+ 1967 00ec 0E32A0E3 		mov	r3, #-536870912
+ 1968 00f0 0B3983E2 		add	r3, r3, #180224
+ 1969 00f4 0E22A0E3 		mov	r2, #-536870912
+ 1970 00f8 0B2982E2 		add	r2, r2, #180224
+ 1971 00fc 002092E5 		ldr	r2, [r2, #0]
+ 1972 0100 0328C2E3 		bic	r2, r2, #196608
+ 1973 0104 002083E5 		str	r2, [r3, #0]
+  44:../pwm_module.c **** 	PINSEL0 |=  (1<<17);
+ 1974              		.loc 1 44 0
+ 1975 0108 0E32A0E3 		mov	r3, #-536870912
+ 1976 010c 0B3983E2 		add	r3, r3, #180224
+ 1977 0110 0E22A0E3 		mov	r2, #-536870912
+ 1978 0114 0B2982E2 		add	r2, r2, #180224
+ 1979 0118 002092E5 		ldr	r2, [r2, #0]
+ 1980 011c 022882E3 		orr	r2, r2, #131072
+ 1981 0120 002083E5 		str	r2, [r3, #0]
+  45:../pwm_module.c **** }
+ 1982              		.loc 1 45 0
+ 1983 0124 00D08BE2 		add	sp, fp, #0
+ 1984 0128 0008BDE8 		ldmfd	sp!, {fp}
+ 1985 012c 1EFF2FE1 		bx	lr
+ 1986              		.cfi_endproc
+ 1987              	.LFE3:
+ 1989              		.align	2
+ 1990              		.global	setPWM6Function
+ 1992              	setPWM6Function:
+ 1993              	.LFB4:
+  46:../pwm_module.c **** 
+  47:../pwm_module.c **** void setPWM6Function()
+  48:../pwm_module.c **** {
+ 1994              		.loc 1 48 0
+ 1995              		.cfi_startproc
+ 1996              		@ Function supports interworking.
+ 1997              		@ args = 0, pretend = 0, frame = 0
+ 1998              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1999              		@ link register save eliminated.
+ 2000 0130 04B02DE5 		str	fp, [sp, #-4]!
+ 2001              	.LCFI8:
+ 2002              		.cfi_def_cfa_offset 4
+ 2003 0134 00B08DE2 		add	fp, sp, #0
+ 2004              		.cfi_offset 11, -4
+ 2005              	.LCFI9:
+ 2006              		.cfi_def_cfa_register 11
+  49:../pwm_module.c **** 	//Setting PWM6 function: Sets P0.9 with value 10 for Bits 19 and 18 (PINSEL0)
+  50:../pwm_module.c **** 	//P0.9 -> EXT1-10 -> Pin 18
+  51:../pwm_module.c **** 	PINSEL0 &= ~(3<<18);
+ 2007              		.loc 1 51 0
+ 2008 0138 0E32A0E3 		mov	r3, #-536870912
+ 2009 013c 0B3983E2 		add	r3, r3, #180224
+ 2010 0140 0E22A0E3 		mov	r2, #-536870912
+ 2011 0144 0B2982E2 		add	r2, r2, #180224
+ 2012 0148 002092E5 		ldr	r2, [r2, #0]
+ 2013 014c 0327C2E3 		bic	r2, r2, #786432
+ 2014 0150 002083E5 		str	r2, [r3, #0]
+  52:../pwm_module.c **** 	PINSEL0 |=  (1<<19);
+ 2015              		.loc 1 52 0
+ 2016 0154 0E32A0E3 		mov	r3, #-536870912
+ 2017 0158 0B3983E2 		add	r3, r3, #180224
+ 2018 015c 0E22A0E3 		mov	r2, #-536870912
+ 2019 0160 0B2982E2 		add	r2, r2, #180224
+ 2020 0164 002092E5 		ldr	r2, [r2, #0]
+ 2021 0168 022782E3 		orr	r2, r2, #524288
+ 2022 016c 002083E5 		str	r2, [r3, #0]
+  53:../pwm_module.c **** }
+ 2023              		.loc 1 53 0
+ 2024 0170 00D08BE2 		add	sp, fp, #0
+ 2025 0174 0008BDE8 		ldmfd	sp!, {fp}
+ 2026 0178 1EFF2FE1 		bx	lr
+ 2027              		.cfi_endproc
+ 2028              	.LFE4:
+ 2030              		.align	2
+ 2031              		.global	setPWM5Function
+ 2033              	setPWM5Function:
+ 2034              	.LFB5:
+  54:../pwm_module.c **** 
+  55:../pwm_module.c **** void setPWM5Function()
+  56:../pwm_module.c **** {
+ 2035              		.loc 1 56 0
+ 2036              		.cfi_startproc
+ 2037              		@ Function supports interworking.
+ 2038              		@ args = 0, pretend = 0, frame = 0
+ 2039              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2040              		@ link register save eliminated.
+ 2041 017c 04B02DE5 		str	fp, [sp, #-4]!
+ 2042              	.LCFI10:
+ 2043              		.cfi_def_cfa_offset 4
+ 2044 0180 00B08DE2 		add	fp, sp, #0
+ 2045              		.cfi_offset 11, -4
+ 2046              	.LCFI11:
+ 2047              		.cfi_def_cfa_register 11
+  57:../pwm_module.c **** 	//Setting PWM5 function: Sets P0.21 with value 01 for Bits 11 and 10 (PINSEL1)
+  58:../pwm_module.c **** 	//P0.21 -> EXT1-22 -> Pin 6
+  59:../pwm_module.c **** 	PINSEL1 &= ~(1<<11);
+ 2048              		.loc 1 59 0
+ 2049 0184 4E32A0E3 		mov	r3, #-536870908
+ 2050 0188 0B3983E2 		add	r3, r3, #180224
+ 2051 018c 4E22A0E3 		mov	r2, #-536870908
+ 2052 0190 0B2982E2 		add	r2, r2, #180224
+ 2053 0194 002092E5 		ldr	r2, [r2, #0]
+ 2054 0198 022BC2E3 		bic	r2, r2, #2048
+ 2055 019c 002083E5 		str	r2, [r3, #0]
+  60:../pwm_module.c **** 	PINSEL1 |=  (1<<10);
+ 2056              		.loc 1 60 0
+ 2057 01a0 4E32A0E3 		mov	r3, #-536870908
+ 2058 01a4 0B3983E2 		add	r3, r3, #180224
+ 2059 01a8 4E22A0E3 		mov	r2, #-536870908
+ 2060 01ac 0B2982E2 		add	r2, r2, #180224
+ 2061 01b0 002092E5 		ldr	r2, [r2, #0]
+ 2062 01b4 012B82E3 		orr	r2, r2, #1024
+ 2063 01b8 002083E5 		str	r2, [r3, #0]
+  61:../pwm_module.c **** }
+ 2064              		.loc 1 61 0
+ 2065 01bc 00D08BE2 		add	sp, fp, #0
+ 2066 01c0 0008BDE8 		ldmfd	sp!, {fp}
+ 2067 01c4 1EFF2FE1 		bx	lr
+ 2068              		.cfi_endproc
+ 2069              	.LFE5:
+ 2071              		.align	2
+ 2072              		.global	setPWMModuleConfigs
+ 2074              	setPWMModuleConfigs:
+ 2075              	.LFB6:
+  62:../pwm_module.c **** 
+  63:../pwm_module.c **** void setPWMModuleConfigs()
+  64:../pwm_module.c **** {
+ 2076              		.loc 1 64 0
+ 2077              		.cfi_startproc
+ 2078              		@ Function supports interworking.
+ 2079              		@ args = 0, pretend = 0, frame = 0
+ 2080              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2081              		@ link register save eliminated.
+ 2082 01c8 04B02DE5 		str	fp, [sp, #-4]!
+ 2083              	.LCFI12:
+ 2084              		.cfi_def_cfa_offset 4
+ 2085 01cc 00B08DE2 		add	fp, sp, #0
+ 2086              		.cfi_offset 11, -4
+ 2087              	.LCFI13:
+ 2088              		.cfi_def_cfa_register 11
+  65:../pwm_module.c **** 	//PWM Timer Control Register. The PWMTCR is used to control the Timer
+  66:../pwm_module.c **** 	//Counter functions. The Timer Counter can be disabled or reset through
+  67:../pwm_module.c **** 	//the PWMTCR.
+  68:../pwm_module.c **** 	PWMTCR  |= (1<<1); // Reset PWM
+ 2089              		.loc 1 68 0
+ 2090 01d0 4E32A0E3 		mov	r3, #-536870908
+ 2091 01d4 053983E2 		add	r3, r3, #81920
+ 2092 01d8 4E22A0E3 		mov	r2, #-536870908
+ 2093 01dc 052982E2 		add	r2, r2, #81920
+ 2094 01e0 002092E5 		ldr	r2, [r2, #0]
+ 2095 01e4 022082E3 		orr	r2, r2, #2
+ 2096 01e8 002083E5 		str	r2, [r3, #0]
+  69:../pwm_module.c **** 
+  70:../pwm_module.c **** 	//PWM Match Register 0. PWMMR0 can be enabled through PWMMCR to
+  71:../pwm_module.c **** 	//reset the PWMTC, stop both the PWMTC and PWMPC, and/or generate
+  72:../pwm_module.c **** 	//an interrupt when it matches the PWMTC. In addition, a match between
+  73:../pwm_module.c **** 	//PWMMR0 and the PWMTC sets all PWM outputs that are in single-edge
+  74:../pwm_module.c **** 	//mode, and sets PWM1 if it is in double-edge mode.
+  75:../pwm_module.c **** 	PWMMR0  = 48000; //set PWM period (400uS -> 2,5khz)
+ 2097              		.loc 1 75 0
+ 2098 01ec 0E32A0E3 		mov	r3, #-536870912
+ 2099 01f0 053983E2 		add	r3, r3, #81920
+ 2100 01f4 183083E2 		add	r3, r3, #24
+ 2101 01f8 BB2CA0E3 		mov	r2, #47872
+ 2102 01fc 802082E2 		add	r2, r2, #128
+ 2103 0200 002083E5 		str	r2, [r3, #0]
+  76:../pwm_module.c **** 
+  77:../pwm_module.c **** 	//PWM Prescale Register. The PWMTC is incremented every PWMPR+1
+  78:../pwm_module.c **** 	//cycles of PCLK.
+  79:../pwm_module.c **** 	PWMPR   = 0;  // Prescale unable
+ 2104              		.loc 1 79 0
+ 2105 0204 CE32A0E3 		mov	r3, #-536870900
+ 2106 0208 053983E2 		add	r3, r3, #81920
+ 2107 020c 0020A0E3 		mov	r2, #0
+ 2108 0210 002083E5 		str	r2, [r3, #0]
+  80:../pwm_module.c **** 
+  81:../pwm_module.c **** 	//PWM Control Register. Enables PWM outputs and selects PWM channel
+  82:../pwm_module.c **** 	//types as either single edge or double edge controlled.
+  83:../pwm_module.c **** 	PWMPCR &= ~((1<<2)|(1<<4)|(1<<5));
+ 2109              		.loc 1 83 0
+ 2110 0214 0E32A0E3 		mov	r3, #-536870912
+ 2111 0218 053983E2 		add	r3, r3, #81920
+ 2112 021c 4C3083E2 		add	r3, r3, #76
+ 2113 0220 0E22A0E3 		mov	r2, #-536870912
+ 2114 0224 052982E2 		add	r2, r2, #81920
+ 2115 0228 4C2082E2 		add	r2, r2, #76
+ 2116 022c 002092E5 		ldr	r2, [r2, #0]
+ 2117 0230 3420C2E3 		bic	r2, r2, #52
+ 2118 0234 002083E5 		str	r2, [r3, #0]
+  84:../pwm_module.c **** 	PWMPCR |= ((1<<13)|(1<<12)|(1<<10)); // Sets PWM 2,4,5 as single edge output
+ 2119              		.loc 1 84 0
+ 2120 0238 0E32A0E3 		mov	r3, #-536870912
+ 2121 023c 053983E2 		add	r3, r3, #81920
+ 2122 0240 4C3083E2 		add	r3, r3, #76
+ 2123 0244 0E22A0E3 		mov	r2, #-536870912
+ 2124 0248 052982E2 		add	r2, r2, #81920
+ 2125 024c 4C2082E2 		add	r2, r2, #76
+ 2126 0250 002092E5 		ldr	r2, [r2, #0]
+ 2127 0254 0D2B82E3 		orr	r2, r2, #13312
+ 2128 0258 002083E5 		str	r2, [r3, #0]
+  85:../pwm_module.c **** 
+  86:../pwm_module.c **** 	//PWM Timer Control Register. The PWMTCR is used to control the Timer
+  87:../pwm_module.c **** 	//Counter functions. The Timer Counter can be disabled or reset through
+  88:../pwm_module.c **** 	//the PWMTCR.
+  89:../pwm_module.c **** 	PWMTCR  |= ((1<<0)|(1<<3)); // Counter and PWM enabled
+ 2129              		.loc 1 89 0
+ 2130 025c 4E32A0E3 		mov	r3, #-536870908
+ 2131 0260 053983E2 		add	r3, r3, #81920
+ 2132 0264 4E22A0E3 		mov	r2, #-536870908
+ 2133 0268 052982E2 		add	r2, r2, #81920
+ 2134 026c 002092E5 		ldr	r2, [r2, #0]
+ 2135 0270 092082E3 		orr	r2, r2, #9
+ 2136 0274 002083E5 		str	r2, [r3, #0]
+  90:../pwm_module.c **** 
+  91:../pwm_module.c **** 	//PWM Match Register 2. PWMMR2 can be enabled through PWMMCR to
+  92:../pwm_module.c **** 	//reset the PWMTC, stop both the PWMTC and PWMPC, and/or generate
+  93:../pwm_module.c **** 	//an interrupt when it matches the PWMTC. In addition, a match between
+  94:../pwm_module.c **** 	//PWMMR2 and the PWMTC clears PWM2 in either single-edge mode or
+  95:../pwm_module.c **** 	//double-edge mode, and sets PWM3 if it is in double-edge mode.
+  96:../pwm_module.c **** 	PWMMR2  = 12000; //Set PWM 2 Duty Cycle
+ 2137              		.loc 1 96 0
+ 2138 0278 0E32A0E3 		mov	r3, #-536870912
+ 2139 027c 053983E2 		add	r3, r3, #81920
+ 2140 0280 203083E2 		add	r3, r3, #32
+ 2141 0284 BB2DA0E3 		mov	r2, #11968
+ 2142 0288 202082E2 		add	r2, r2, #32
+ 2143 028c 002083E5 		str	r2, [r3, #0]
+  97:../pwm_module.c **** 
+  98:../pwm_module.c **** 	//PWM Match Register 4. PWMMR4 can be enabled through PWMMCR to
+  99:../pwm_module.c **** 	//reset the PWMTC, stop both the PWMTC and PWMPC, and/or generate
+ 100:../pwm_module.c **** 	//an interrupt when it matches the PWMTC. In addition, a match between
+ 101:../pwm_module.c **** 	//PWMMR4 and the PWMTC clears PWM4 in either single-edge mode or
+ 102:../pwm_module.c **** 	//double-edge mode, and sets PWM5 if it is in double-edge mode.
+ 103:../pwm_module.c **** 	PWMMR4  = 24000; //Set PWM 4 Duty Cycle
+ 2144              		.loc 1 103 0
+ 2145 0290 0E32A0E3 		mov	r3, #-536870912
+ 2146 0294 053983E2 		add	r3, r3, #81920
+ 2147 0298 403083E2 		add	r3, r3, #64
+ 2148 029c 5D2CA0E3 		mov	r2, #23808
+ 2149 02a0 C02082E2 		add	r2, r2, #192
+ 2150 02a4 002083E5 		str	r2, [r3, #0]
+ 104:../pwm_module.c **** 
+ 105:../pwm_module.c **** 	//PWM Match Register 5. PWMMR5 can be enabled through PWMMCR to
+ 106:../pwm_module.c **** 	//reset the PWMTC, stop both the PWMTC and PWMPC, and/or generate
+ 107:../pwm_module.c **** 	//an interrupt when it matches the PWMTC. In addition, a match between
+ 108:../pwm_module.c **** 	//PWMMR5 and the PWMTC clears PWM5 in either single-edge mode or
+ 109:../pwm_module.c **** 	//double-edge mode, and sets PWM6 if it is in double-edge mode.
+ 110:../pwm_module.c **** 	PWMMR5  = 36000; //Set PWM 5 Duty Cycle
+ 2151              		.loc 1 110 0
+ 2152 02a8 0E32A0E3 		mov	r3, #-536870912
+ 2153 02ac 053983E2 		add	r3, r3, #81920
+ 2154 02b0 443083E2 		add	r3, r3, #68
+ 2155 02b4 232BA0E3 		mov	r2, #35840
+ 2156 02b8 A02082E2 		add	r2, r2, #160
+ 2157 02bc 002083E5 		str	r2, [r3, #0]
+ 111:../pwm_module.c **** 
+ 112:../pwm_module.c **** 	//The PWM Match Control Register is used to control what operations are performed when
+ 113:../pwm_module.c **** 	//one of the PWM Match Registers matches the PWM Timer Counter.
+ 114:../pwm_module.c **** 	PWMMCR  = 0x0000003; // Reset on Match 0
+ 2158              		.loc 1 114 0
+ 2159 02c0 0E32A0E3 		mov	r3, #-536870912
+ 2160 02c4 053983E2 		add	r3, r3, #81920
+ 2161 02c8 143083E2 		add	r3, r3, #20
+ 2162 02cc 0320A0E3 		mov	r2, #3
+ 2163 02d0 002083E5 		str	r2, [r3, #0]
+ 115:../pwm_module.c **** }
+ 2164              		.loc 1 115 0
+ 2165 02d4 00D08BE2 		add	sp, fp, #0
+ 2166 02d8 0008BDE8 		ldmfd	sp!, {fp}
+ 2167 02dc 1EFF2FE1 		bx	lr
+ 2168              		.cfi_endproc
+ 2169              	.LFE6:
+ 2171              		.align	2
+ 2172              		.global	initializePWM
+ 2174              	initializePWM:
+ 2175              	.LFB7:
+ 116:../pwm_module.c **** 
+ 117:../pwm_module.c **** void initializePWM()
+ 118:../pwm_module.c **** {
+ 2176              		.loc 1 118 0
+ 2177              		.cfi_startproc
+ 2178              		@ Function supports interworking.
+ 2179              		@ args = 0, pretend = 0, frame = 0
+ 2180              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2181 02e0 00482DE9 		stmfd	sp!, {fp, lr}
+ 2182              	.LCFI14:
+ 2183              		.cfi_def_cfa_offset 8
+ 2184 02e4 04B08DE2 		add	fp, sp, #4
+ 2185              		.cfi_offset 14, -4
+ 2186              		.cfi_offset 11, -8
+ 2187              	.LCFI15:
+ 2188              		.cfi_def_cfa 11, 4
+ 119:../pwm_module.c **** 	setPWM2Function();
+ 2189              		.loc 1 119 0
+ 2190 02e8 FEFFFFEB 		bl	setPWM2Function
+ 120:../pwm_module.c **** 	setPWM4Function();
+ 2191              		.loc 1 120 0
+ 2192 02ec FEFFFFEB 		bl	setPWM4Function
+ 121:../pwm_module.c **** 	setPWM5Function();
+ 2193              		.loc 1 121 0
+ 2194 02f0 FEFFFFEB 		bl	setPWM5Function
+ 122:../pwm_module.c **** 	setPWMModuleConfigs();
+ 2195              		.loc 1 122 0
+ 2196 02f4 FEFFFFEB 		bl	setPWMModuleConfigs
+ 123:../pwm_module.c **** }
+ 2197              		.loc 1 123 0
+ 2198 02f8 04D04BE2 		sub	sp, fp, #4
+ 2199 02fc 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2200 0300 1EFF2FE1 		bx	lr
+ 2201              		.cfi_endproc
+ 2202              	.LFE7:
+ 2204              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 pwm_module.c
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:1825   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:1828   .text:00000000 setPWM1Function
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:1869   .text:0000004c setPWM3Function
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:1910   .text:00000098 setPWM2Function
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:1951   .text:000000e4 setPWM4Function
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:1992   .text:00000130 setPWM6Function
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:2033   .text:0000017c setPWM5Function
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:2074   .text:000001c8 setPWMModuleConfigs
+C:\Users\Daniel\AppData\Local\Temp\ccIF1fji.s:2174   .text:000002e0 initializePWM
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

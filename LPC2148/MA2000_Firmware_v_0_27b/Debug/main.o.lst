@@ -1,0 +1,1537 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"main.c"
+  21              	.Ltext0:
+  22              		.file 1 "../main.c"
+ 2721              		.align	2
+ 2724              	buffer:
+ 2725 0000 00000000 		.space	100
+ 2725      00000000 
+ 2725      00000000 
+ 2725      00000000 
+ 2725      00000000 
+ 2726              		.global	size
+ 2727              		.align	2
+ 2730              	size:
+ 2731 0064 00000000 		.space	4
+ 2732              		.global	data
+ 2733              		.align	2
+ 2736              	data:
+ 2737 0068 00000000 		.space	36
+ 2737      00000000 
+ 2737      00000000 
+ 2737      00000000 
+ 2737      00000000 
+ 2738              		.global	count
+ 2739              		.align	2
+ 2742              	count:
+ 2743 008c 00000000 		.space	4
+ 2744              		.global	sp_svm
+ 2745              		.align	2
+ 2748              	sp_svm:
+ 2749 0090 00000000 		.space	12
+ 2749      00000000 
+ 2749      00000000 
+ 2750              		.global	adc
+ 2751              		.align	2
+ 2754              	adc:
+ 2755 009c 00000000 		.space	12
+ 2755      00000000 
+ 2755      00000000 
+ 2756              		.global	sp
+ 2757              		.data
+ 2758              		.align	2
+ 2761              	sp:
+ 2762 0000 00020000 		.word	512
+ 2763 0004 00020000 		.word	512
+ 2764 0008 00020000 		.word	512
+ 2765              		.global	e
+ 2766              		.bss
+ 2767              		.align	2
+ 2770              	e:
+ 2771 00a8 00000000 		.space	12
+ 2771      00000000 
+ 2771      00000000 
+ 2772              		.global	kp
+ 2773              		.align	2
+ 2776              	kp:
+ 2777 00b4 00000000 		.space	12
+ 2777      00000000 
+ 2777      00000000 
+ 2778              		.global	ki
+ 2779              		.align	2
+ 2782              	ki:
+ 2783 00c0 00000000 		.space	12
+ 2783      00000000 
+ 2783      00000000 
+ 2784              		.global	kd
+ 2785              		.align	2
+ 2788              	kd:
+ 2789 00cc 00000000 		.space	12
+ 2789      00000000 
+ 2789      00000000 
+ 2790              		.global	saida
+ 2791              		.align	2
+ 2794              	saida:
+ 2795 00d8 00000000 		.space	12
+ 2795      00000000 
+ 2795      00000000 
+ 2796              		.global	PTerm
+ 2797              		.align	2
+ 2800              	PTerm:
+ 2801 00e4 00000000 		.space	12
+ 2801      00000000 
+ 2801      00000000 
+ 2802              		.global	PLimit
+ 2803              		.data
+ 2804              		.align	2
+ 2807              	PLimit:
+ 2808 000c FF7F0000 		.word	32767
+ 2809              		.global	ILimit
+ 2810              		.align	2
+ 2813              	ILimit:
+ 2814 0010 FF7F0000 		.word	32767
+ 2815              		.global	DLimit
+ 2816              		.align	2
+ 2819              	DLimit:
+ 2820 0014 FF7F0000 		.word	32767
+ 2821              		.global	Out_Limit
+ 2822              		.align	2
+ 2825              	Out_Limit:
+ 2826 0018 FF7F0000 		.word	32767
+ 2827              		.text
+ 2828              		.align	2
+ 2830              	feed:
+ 2831              	.LFB0:
+   1:../main.c     **** /*------------------------------------------------------------------------------------*/
+   2:../main.c     **** /*                                       HEADER                                       */
+   3:../main.c     **** /*------------------------------------------------------------------------------------*/
+   4:../main.c     **** /***************************************************************************************
+   5:../main.c     ****  *Project Name: MA2000 Firmware
+   6:../main.c     ****  *	   Version: 0.24
+   7:../main.c     ****  *   File Name: main.c
+   8:../main.c     ****  *  Created on: 19/03/2013
+   9:../main.c     ****  *      Author: Daniel Teodoro G. Mariano
+  10:../main.c     ****  *       Email: dtgm@uol.com.br
+  11:../main.c     ****  * Description: Firmware for LPC2148, to control the MA2000 robot, a mechanical arm
+  12:../main.c     ****  * 				with 6 degrees of freedom.
+  13:../main.c     ****  *
+  14:../main.c     ****  * 				The first three DOF's (1-Waist, 2-Shoulder, 3-Elbow) are controlled each
+  15:../main.c     ****  * 				one by a DC Motor with the following configurations: A PWM at 20000 Hz with
+  16:../main.c     ****  * 				variable Duty Cycle is assigned to the variable DOF_PWM_DC, according with
+  17:../main.c     ****  * 				the proportional control and two GPIO for controlling the inputs of the
+  18:../main.c     ****  * 				LPC6203 Full Bridge Driver.
+  19:../main.c     ****  *
+  20:../main.c     ****  * 				Each motor has a potentiometer connected to the motor shaft by a toothed
+  21:../main.c     ****  * 				belt, and this potentiometer provides a voltage signal proportional to the
+  22:../main.c     ****  * 				angular position of the motor. This signal is capture by an ADC channel
+  23:../main.c     ****  * 				and is assigned to the variable DOF_ADC_POT
+  24:../main.c     ****  *
+  25:../main.c     ****  * 				The proportional control is effected by the relationship of the variables
+  26:../main.c     ****  * 				DOF_ADC_POT and the setpoint position established by the user assigned to
+  27:../main.c     ****  * 				the variable DOF_SETPOINT.
+  28:../main.c     ****  *
+  29:../main.c     ****  * 				The others three DOF's (4-Pitch, 5-Yaw, 6-Roll) are controlled each one
+  30:../main.c     ****  * 				by a Servomotor with the following configurations: A PWM at 50 Hz with
+  31:../main.c     ****  * 				variable Duty Cycle (5%-10%) to control the servo.
+  32:../main.c     **** ***************************************************************************************/
+  33:../main.c     **** 
+  34:../main.c     **** /*------------------------------------------------------------------------------------*/
+  35:../main.c     **** /*                                PINS CONFIGURATION                                  */
+  36:../main.c     **** /*------------------------------------------------------------------------------------*/
+  37:../main.c     **** /***************************************************************************************
+  38:../main.c     **** * Pins		Function	  	LPC2148 	Connector
+  39:../main.c     **** * P0.7		PWM 2 (31)      EXT1-8		EXT1 20
+  40:../main.c     **** * P0.8		PWM 4 (31)      			EXT1 17
+  41:../main.c     **** * P0.21		PWM 5 (31)           		EXT1 9
+  42:../main.c     **** * P0.18		P0.18 (53)      EXT1-19		EXT1 7
+  43:../main.c     **** * P0.19		P0.19 (54)      EXT1-20		EXT1 8
+  44:../main.c     **** * P0.28		AD0.1 (13)      EXT2-1		EXT2 25
+  45:../main.c     **** * P0.29		AD0.2 (14)      EXT2-2		EXT2 26
+  46:../main.c     **** * P0.30		AD0.3 ()
+  47:../main.c     **** * P0.25		AD0.4
+  48:../main.c     **** *
+  49:../main.c     **** * 				  			+3.3V   	EXT2-4
+  50:../main.c     **** * 			      			GND     	EXT2-1 e EXT1-2
+  51:../main.c     **** ***************************************************************************************/
+  52:../main.c     **** 
+  53:../main.c     **** /*------------------------------------------------------------------------------------*/
+  54:../main.c     **** /*                                 	   INCLUDES                                       */
+  55:../main.c     **** /*------------------------------------------------------------------------------------*/
+  56:../main.c     **** #include <string.h>
+  57:../main.c     **** #include "LPC214x.h"
+  58:../main.c     **** #include "Modules/adc.h"
+  59:../main.c     **** #include "Modules/pwm.h"
+  60:../main.c     **** #include "Modules/gpio.h"
+  61:../main.c     **** #include "Modules/uart.h"
+  62:../main.c     **** #include "Modules/iprintf.h"
+  63:../main.c     **** #include "Modules/timer.h"
+  64:../main.c     **** 
+  65:../main.c     **** /*------------------------------------------------------------------------------------*/
+  66:../main.c     **** /*                                 	   DEFINES                                        */
+  67:../main.c     **** /*------------------------------------------------------------------------------------*/
+  68:../main.c     **** #define PWMSERVO_COUNT 4290
+  69:../main.c     **** #define PLOCK 0x400
+  70:../main.c     **** 
+  71:../main.c     **** /*------------------------------------------------------------------------------------*/
+  72:../main.c     **** /*                                Variable Declaration                                */
+  73:../main.c     **** /*------------------------------------------------------------------------------------*/
+  74:../main.c     **** 
+  75:../main.c     **** uint8_t buffer[100] = {0};					//Buffer Circular para dados da UART
+  76:../main.c     **** int size = 0;								//Variável para medir o tamanho do buffer da UART
+  77:../main.c     **** int data[9] = {0};							//Variável para armazenamento de dados da UART
+  78:../main.c     **** 
+  79:../main.c     **** int count = 0;								//Contador
+  80:../main.c     **** 
+  81:../main.c     **** uint32_t sp_svm[3] 	= {0};					//Set point para os GDL dos servomotores
+  82:../main.c     **** uint32_t adc[3] 	= {0}; 					//Sensor potenciométrico de cada GDL
+  83:../main.c     **** uint32_t sp[3] 		= {512,512,512};  		//Set point de cada GDL
+  84:../main.c     **** uint32_t e[3] 		= {0};					//Erro de cada GDL (e = sp - adc)
+  85:../main.c     **** uint32_t kp[3] 		= {0};					//Cte proporcional do PID
+  86:../main.c     **** uint32_t ki[3] 		= {0};					//Cte integrativa do PID
+  87:../main.c     **** uint32_t kd[3] 		= {0};					//Cte derivativa do PID
+  88:../main.c     **** uint32_t saida[3]	= {0};					//Saída do PID
+  89:../main.c     **** float PTerm[3]	= {0};
+  90:../main.c     **** 
+  91:../main.c     **** int PLimit = 0x7FFF;                    //Excursion Limit for Proportional component
+  92:../main.c     **** int ILimit = 0x7FFF;                    //Excursion limit for Integrative component
+  93:../main.c     **** int DLimit = 0x7FFF;                    //Excursion limit for Derivative component
+  94:../main.c     **** int Out_Limit = 0x7FFF;                    //Excursion limit for Output
+  95:../main.c     **** 
+  96:../main.c     **** /*------------------------------------------------------------------------------------*/
+  97:../main.c     **** /*                                     Initialization                                 */
+  98:../main.c     **** /*------------------------------------------------------------------------------------*/
+  99:../main.c     **** 
+ 100:../main.c     **** static void feed(void)
+ 101:../main.c     **** {
+ 2832              		.loc 1 101 0
+ 2833              		.cfi_startproc
+ 2834              		@ Function supports interworking.
+ 2835              		@ args = 0, pretend = 0, frame = 0
+ 2836              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2837              		@ link register save eliminated.
+ 2838 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 2839              	.LCFI0:
+ 2840              		.cfi_def_cfa_offset 4
+ 2841 0004 00B08DE2 		add	fp, sp, #0
+ 2842              		.cfi_offset 11, -4
+ 2843              	.LCFI1:
+ 2844              		.cfi_def_cfa_register 11
+ 102:../main.c     ****   PLLFEED = 0xAA;
+ 2845              		.loc 1 102 0
+ 2846 0008 0E32A0E3 		mov	r3, #-536870912
+ 2847 000c 7F3983E2 		add	r3, r3, #2080768
+ 2848 0010 8C3083E2 		add	r3, r3, #140
+ 2849 0014 AA20A0E3 		mov	r2, #170
+ 2850 0018 002083E5 		str	r2, [r3, #0]
+ 103:../main.c     ****   PLLFEED = 0x55;
+ 2851              		.loc 1 103 0
+ 2852 001c 0E32A0E3 		mov	r3, #-536870912
+ 2853 0020 7F3983E2 		add	r3, r3, #2080768
+ 2854 0024 8C3083E2 		add	r3, r3, #140
+ 2855 0028 5520A0E3 		mov	r2, #85
+ 2856 002c 002083E5 		str	r2, [r3, #0]
+ 104:../main.c     **** }
+ 2857              		.loc 1 104 0
+ 2858 0030 00D08BE2 		add	sp, fp, #0
+ 2859 0034 0008BDE8 		ldmfd	sp!, {fp}
+ 2860 0038 1EFF2FE1 		bx	lr
+ 2861              		.cfi_endproc
+ 2862              	.LFE0:
+ 2864              		.align	2
+ 2865              		.global	Limit_value_signed
+ 2867              	Limit_value_signed:
+ 2868              	.LFB1:
+ 105:../main.c     **** 
+ 106:../main.c     **** int Limit_value_signed ( int Variable, int Min_Value, int Max_Value)
+ 107:../main.c     **** {
+ 2869              		.loc 1 107 0
+ 2870              		.cfi_startproc
+ 2871              		@ Function supports interworking.
+ 2872              		@ args = 0, pretend = 0, frame = 16
+ 2873              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2874              		@ link register save eliminated.
+ 2875 003c 04B02DE5 		str	fp, [sp, #-4]!
+ 2876              	.LCFI2:
+ 2877              		.cfi_def_cfa_offset 4
+ 2878 0040 00B08DE2 		add	fp, sp, #0
+ 2879              		.cfi_offset 11, -4
+ 2880              	.LCFI3:
+ 2881              		.cfi_def_cfa_register 11
+ 2882 0044 14D04DE2 		sub	sp, sp, #20
+ 2883 0048 08000BE5 		str	r0, [fp, #-8]
+ 2884 004c 0C100BE5 		str	r1, [fp, #-12]
+ 2885 0050 10200BE5 		str	r2, [fp, #-16]
+ 108:../main.c     **** 	if (Variable < Min_Value)
+ 2886              		.loc 1 108 0
+ 2887 0054 08201BE5 		ldr	r2, [fp, #-8]
+ 2888 0058 0C301BE5 		ldr	r3, [fp, #-12]
+ 2889 005c 030052E1 		cmp	r2, r3
+ 2890 0060 010000AA 		bge	.L3
+ 109:../main.c     **** 	{Variable = Min_Value;}
+ 2891              		.loc 1 109 0
+ 2892 0064 0C301BE5 		ldr	r3, [fp, #-12]
+ 2893 0068 08300BE5 		str	r3, [fp, #-8]
+ 2894              	.L3:
+ 110:../main.c     **** 	if (Variable > Max_Value)
+ 2895              		.loc 1 110 0
+ 2896 006c 08201BE5 		ldr	r2, [fp, #-8]
+ 2897 0070 10301BE5 		ldr	r3, [fp, #-16]
+ 2898 0074 030052E1 		cmp	r2, r3
+ 2899 0078 010000DA 		ble	.L4
+ 111:../main.c     **** 	{Variable = Max_Value;}
+ 2900              		.loc 1 111 0
+ 2901 007c 10301BE5 		ldr	r3, [fp, #-16]
+ 2902 0080 08300BE5 		str	r3, [fp, #-8]
+ 2903              	.L4:
+ 112:../main.c     **** 	return Variable;
+ 2904              		.loc 1 112 0
+ 2905 0084 08301BE5 		ldr	r3, [fp, #-8]
+ 113:../main.c     **** }
+ 2906              		.loc 1 113 0
+ 2907 0088 0300A0E1 		mov	r0, r3
+ 2908 008c 00D08BE2 		add	sp, fp, #0
+ 2909 0090 0008BDE8 		ldmfd	sp!, {fp}
+ 2910 0094 1EFF2FE1 		bx	lr
+ 2911              		.cfi_endproc
+ 2912              	.LFE1:
+ 2914              		.align	2
+ 2915              		.global	Adjust_PWM_to_unsigned
+ 2917              	Adjust_PWM_to_unsigned:
+ 2918              	.LFB2:
+ 114:../main.c     **** 
+ 115:../main.c     **** int Adjust_PWM_to_unsigned(int Variable)
+ 116:../main.c     **** {
+ 2919              		.loc 1 116 0
+ 2920              		.cfi_startproc
+ 2921              		@ Function supports interworking.
+ 2922              		@ args = 0, pretend = 0, frame = 8
+ 2923              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2924              		@ link register save eliminated.
+ 2925 0098 04B02DE5 		str	fp, [sp, #-4]!
+ 2926              	.LCFI4:
+ 2927              		.cfi_def_cfa_offset 4
+ 2928 009c 00B08DE2 		add	fp, sp, #0
+ 2929              		.cfi_offset 11, -4
+ 2930              	.LCFI5:
+ 2931              		.cfi_def_cfa_register 11
+ 2932 00a0 0CD04DE2 		sub	sp, sp, #12
+ 2933 00a4 08000BE5 		str	r0, [fp, #-8]
+ 117:../main.c     **** 	if (Variable<0)
+ 2934              		.loc 1 117 0
+ 2935 00a8 08301BE5 		ldr	r3, [fp, #-8]
+ 2936 00ac 000053E3 		cmp	r3, #0
+ 2937 00b0 020000AA 		bge	.L6
+ 118:../main.c     **** 	{Variable = -Variable;}
+ 2938              		.loc 1 118 0
+ 2939 00b4 08301BE5 		ldr	r3, [fp, #-8]
+ 2940 00b8 003063E2 		rsb	r3, r3, #0
+ 2941 00bc 08300BE5 		str	r3, [fp, #-8]
+ 2942              	.L6:
+ 119:../main.c     **** 	return  Variable;
+ 2943              		.loc 1 119 0
+ 2944 00c0 08301BE5 		ldr	r3, [fp, #-8]
+ 120:../main.c     **** }
+ 2945              		.loc 1 120 0
+ 2946 00c4 0300A0E1 		mov	r0, r3
+ 2947 00c8 00D08BE2 		add	sp, fp, #0
+ 2948 00cc 0008BDE8 		ldmfd	sp!, {fp}
+ 2949 00d0 1EFF2FE1 		bx	lr
+ 2950              		.cfi_endproc
+ 2951              	.LFE2:
+ 2953              		.align	2
+ 2954              		.global	Initialize
+ 2956              	Initialize:
+ 2957              	.LFB3:
+ 121:../main.c     **** 
+ 122:../main.c     **** void Initialize(void)
+ 123:../main.c     **** {
+ 2958              		.loc 1 123 0
+ 2959              		.cfi_startproc
+ 2960              		@ Function supports interworking.
+ 2961              		@ args = 0, pretend = 0, frame = 0
+ 2962              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2963 00d4 00482DE9 		stmfd	sp!, {fp, lr}
+ 2964              	.LCFI6:
+ 2965              		.cfi_def_cfa_offset 8
+ 2966 00d8 04B08DE2 		add	fp, sp, #4
+ 2967              		.cfi_offset 14, -4
+ 2968              		.cfi_offset 11, -8
+ 2969              	.LCFI7:
+ 2970              		.cfi_def_cfa 11, 4
+ 124:../main.c     **** 
+ 125:../main.c     **** 	PLLCFG = 0x24; //Configura o multiplicador PLL para 4 e o divisor para 2
+ 2971              		.loc 1 125 0
+ 2972 00dc 0E32A0E3 		mov	r3, #-536870912
+ 2973 00e0 7F3983E2 		add	r3, r3, #2080768
+ 2974 00e4 843083E2 		add	r3, r3, #132
+ 2975 00e8 2420A0E3 		mov	r2, #36
+ 2976 00ec 002083E5 		str	r2, [r3, #0]
+ 126:../main.c     ****              	   //Assim com o cristal de 12MHz temos um CCLK = 48MHz e um FCCO = 192MHz
+ 127:../main.c     ****     feed();
+ 2977              		.loc 1 127 0
+ 2978 00f0 C2FFFFEB 		bl	feed
+ 128:../main.c     **** 
+ 129:../main.c     ****     PLLCON = 0x01; //Habilita o bloco PLL
+ 2979              		.loc 1 129 0
+ 2980 00f4 0E32A0E3 		mov	r3, #-536870912
+ 2981 00f8 7F3983E2 		add	r3, r3, #2080768
+ 2982 00fc 803083E2 		add	r3, r3, #128
+ 2983 0100 0120A0E3 		mov	r2, #1
+ 2984 0104 002083E5 		str	r2, [r3, #0]
+ 130:../main.c     ****     feed();      //Para que as alterações anteriores tenham efeito
+ 2985              		.loc 1 130 0
+ 2986 0108 BCFFFFEB 		bl	feed
+ 131:../main.c     **** 
+ 132:../main.c     ****     while(!(PLLSTAT & PLOCK)) ; //Garante que a alteração anterior teve efeito uma vez que quando
+ 2987              		.loc 1 132 0
+ 2988 010c 0000A0E1 		mov	r0, r0	@ nop
+ 2989              	.L8:
+ 2990              		.loc 1 132 0 is_stmt 0 discriminator 1
+ 2991 0110 0E32A0E3 		mov	r3, #-536870912
+ 2992 0114 7F3983E2 		add	r3, r3, #2080768
+ 2993 0118 883083E2 		add	r3, r3, #136
+ 2994 011c 003093E5 		ldr	r3, [r3, #0]
+ 2995 0120 013B03E2 		and	r3, r3, #1024
+ 2996 0124 000053E3 		cmp	r3, #0
+ 2997 0128 F8FFFF0A 		beq	.L8
+ 133:../main.c     ****                     //o bit PLOCK do reg. PLLSTAT vale zero ouve um bloqueio no PLL que
+ 134:../main.c     ****                     //ocorre logo após a modificação dos registradores
+ 135:../main.c     **** 
+ 136:../main.c     ****     PLLCON = 0x03; //Depois de habilitado resta conectá-lo a fonte de clock para que comece o traba
+ 2998              		.loc 1 136 0 is_stmt 1
+ 2999 012c 0E32A0E3 		mov	r3, #-536870912
+ 3000 0130 7F3983E2 		add	r3, r3, #2080768
+ 3001 0134 803083E2 		add	r3, r3, #128
+ 3002 0138 0320A0E3 		mov	r2, #3
+ 3003 013c 002083E5 		str	r2, [r3, #0]
+ 137:../main.c     ****     feed();        //Necessário para que as alterações anteriores tenham efeito
+ 3004              		.loc 1 137 0
+ 3005 0140 AEFFFFEB 		bl	feed
+ 138:../main.c     **** 
+ 139:../main.c     ****     MAMCR = 0x02;  //Habilita todas as funções do Módulo acelerador de memória
+ 3006              		.loc 1 139 0
+ 3007 0144 0E32A0E3 		mov	r3, #-536870912
+ 3008 0148 7F3983E2 		add	r3, r3, #2080768
+ 3009 014c 0220A0E3 		mov	r2, #2
+ 3010 0150 002083E5 		str	r2, [r3, #0]
+ 140:../main.c     ****     MAMTIM = 0x04;  //O ciclo de busca do MAM tem duração de 4 ciclos
+ 3011              		.loc 1 140 0
+ 3012 0154 4E32A0E3 		mov	r3, #-536870908
+ 3013 0158 7F3983E2 		add	r3, r3, #2080768
+ 3014 015c 0420A0E3 		mov	r2, #4
+ 3015 0160 002083E5 		str	r2, [r3, #0]
+ 141:../main.c     ****     VPBDIV = 0x01;  //Clock dos periféricos igual ao clock do Sistema
+ 3016              		.loc 1 141 0
+ 3017 0164 0E32A0E3 		mov	r3, #-536870912
+ 3018 0168 7F3983E2 		add	r3, r3, #2080768
+ 3019 016c 013C83E2 		add	r3, r3, #256
+ 3020 0170 0120A0E3 		mov	r2, #1
+ 3021 0174 002083E5 		str	r2, [r3, #0]
+ 142:../main.c     **** 
+ 143:../main.c     ****     ADC_Init(ADC_CLK);
+ 3022              		.loc 1 143 0
+ 3023 0178 3D09A0E3 		mov	r0, #999424
+ 3024 017c 090D80E2 		add	r0, r0, #576
+ 3025 0180 FEFFFFEB 		bl	ADC_Init
+ 144:../main.c     ****     UART_Init(0,9600);
+ 3026              		.loc 1 144 0
+ 3027 0184 0000A0E3 		mov	r0, #0
+ 3028 0188 961DA0E3 		mov	r1, #9600
+ 3029 018c FEFFFFEB 		bl	UART_Init
+ 145:../main.c     ****     PWM_Init();
+ 3030              		.loc 1 145 0
+ 3031 0190 FEFFFFEB 		bl	PWM_Init
+ 146:../main.c     ****     GPIO_Init();
+ 3032              		.loc 1 146 0
+ 3033 0194 FEFFFFEB 		bl	GPIO_Init
+ 147:../main.c     ****     //	Timer_Init();
+ 148:../main.c     ****     //	Timer_RegisterCallback(PWM_InterruptControl);
+ 149:../main.c     ****     //	Timer_Enable();
+ 150:../main.c     **** }
+ 3034              		.loc 1 150 0
+ 3035 0198 04D04BE2 		sub	sp, fp, #4
+ 3036 019c 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 3037 01a0 1EFF2FE1 		bx	lr
+ 3038              		.cfi_endproc
+ 3039              	.LFE3:
+ 3041              		.align	2
+ 3042              		.global	delay
+ 3044              	delay:
+ 3045              	.LFB4:
+ 151:../main.c     **** 
+ 152:../main.c     **** /*------------------------------------------------------------------------------------*/
+ 153:../main.c     **** /*                               FUNCTIONS  IMPLEMENTATION                            */
+ 154:../main.c     **** /*------------------------------------------------------------------------------------*/
+ 155:../main.c     **** 
+ 156:../main.c     **** void delay(uint32_t x)
+ 157:../main.c     **** {
+ 3046              		.loc 1 157 0
+ 3047              		.cfi_startproc
+ 3048              		@ Function supports interworking.
+ 3049              		@ args = 0, pretend = 0, frame = 16
+ 3050              		@ frame_needed = 1, uses_anonymous_args = 0
+ 3051              		@ link register save eliminated.
+ 3052 01a4 04B02DE5 		str	fp, [sp, #-4]!
+ 3053              	.LCFI8:
+ 3054              		.cfi_def_cfa_offset 4
+ 3055 01a8 00B08DE2 		add	fp, sp, #0
+ 3056              		.cfi_offset 11, -4
+ 3057              	.LCFI9:
+ 3058              		.cfi_def_cfa_register 11
+ 3059 01ac 14D04DE2 		sub	sp, sp, #20
+ 3060 01b0 10000BE5 		str	r0, [fp, #-16]
+ 3061              	.LBB2:
+ 158:../main.c     ****   for(int i = 0; i < x; i++)
+ 3062              		.loc 1 158 0
+ 3063 01b4 0030A0E3 		mov	r3, #0
+ 3064 01b8 08300BE5 		str	r3, [fp, #-8]
+ 3065 01bc 090000EA 		b	.L10
+ 3066              	.L11:
+ 159:../main.c     ****   {
+ 160:../main.c     ****     asm volatile ("NOP");
+ 3067              		.loc 1 160 0 discriminator 2
+ 3068              	@ 160 "../main.c" 1
+ 3069 01c0 0000A0E1 		NOP
+ 3070              	@ 0 "" 2
+ 161:../main.c     ****     asm volatile ("NOP");
+ 3071              		.loc 1 161 0 discriminator 2
+ 3072              	@ 161 "../main.c" 1
+ 3073 01c4 0000A0E1 		NOP
+ 3074              	@ 0 "" 2
+ 162:../main.c     ****     asm volatile ("NOP");
+ 3075              		.loc 1 162 0 discriminator 2
+ 3076              	@ 162 "../main.c" 1
+ 3077 01c8 0000A0E1 		NOP
+ 3078              	@ 0 "" 2
+ 163:../main.c     ****     asm volatile ("NOP");
+ 3079              		.loc 1 163 0 discriminator 2
+ 3080              	@ 163 "../main.c" 1
+ 3081 01cc 0000A0E1 		NOP
+ 3082              	@ 0 "" 2
+ 164:../main.c     ****     asm volatile ("NOP");
+ 3083              		.loc 1 164 0 discriminator 2
+ 3084              	@ 164 "../main.c" 1
+ 3085 01d0 0000A0E1 		NOP
+ 3086              	@ 0 "" 2
+ 165:../main.c     ****     asm volatile ("NOP");
+ 3087              		.loc 1 165 0 discriminator 2
+ 3088              	@ 165 "../main.c" 1
+ 3089 01d4 0000A0E1 		NOP
+ 3090              	@ 0 "" 2
+ 166:../main.c     ****     asm volatile ("NOP");
+ 3091              		.loc 1 166 0 discriminator 2
+ 3092              	@ 166 "../main.c" 1
+ 3093 01d8 0000A0E1 		NOP
+ 3094              	@ 0 "" 2
+ 158:../main.c     ****   for(int i = 0; i < x; i++)
+ 3095              		.loc 1 158 0 discriminator 2
+ 3096 01dc 08301BE5 		ldr	r3, [fp, #-8]
+ 3097 01e0 013083E2 		add	r3, r3, #1
+ 3098 01e4 08300BE5 		str	r3, [fp, #-8]
+ 3099              	.L10:
+ 158:../main.c     ****   for(int i = 0; i < x; i++)
+ 3100              		.loc 1 158 0 is_stmt 0 discriminator 1
+ 3101 01e8 08201BE5 		ldr	r2, [fp, #-8]
+ 3102 01ec 10301BE5 		ldr	r3, [fp, #-16]
+ 3103 01f0 030052E1 		cmp	r2, r3
+ 3104 01f4 F1FFFF3A 		bcc	.L11
+ 3105              	.LBE2:
+ 167:../main.c     ****   }
+ 168:../main.c     **** }
+ 3106              		.loc 1 168 0 is_stmt 1
+ 3107 01f8 00D08BE2 		add	sp, fp, #0
+ 3108 01fc 0008BDE8 		ldmfd	sp!, {fp}
+ 3109 0200 1EFF2FE1 		bx	lr
+ 3110              		.cfi_endproc
+ 3111              	.LFE4:
+ 3113              		.align	2
+ 3114              		.global	ReceivingData
+ 3116              	ReceivingData:
+ 3117              	.LFB5:
+ 169:../main.c     **** 
+ 170:../main.c     **** void ReceivingData(void)
+ 171:../main.c     **** {
+ 3118              		.loc 1 171 0
+ 3119              		.cfi_startproc
+ 3120              		@ Function supports interworking.
+ 3121              		@ args = 0, pretend = 0, frame = 0
+ 3122              		@ frame_needed = 1, uses_anonymous_args = 0
+ 3123 0204 00482DE9 		stmfd	sp!, {fp, lr}
+ 3124              	.LCFI10:
+ 3125              		.cfi_def_cfa_offset 8
+ 3126 0208 04B08DE2 		add	fp, sp, #4
+ 3127              		.cfi_offset 14, -4
+ 3128              		.cfi_offset 11, -8
+ 3129              	.LCFI11:
+ 3130              		.cfi_def_cfa 11, 4
+ 172:../main.c     **** 	size = UART_GetNumberAvailableElements();
+ 3131              		.loc 1 172 0
+ 3132 020c FEFFFFEB 		bl	UART_GetNumberAvailableElements
+ 3133 0210 0020A0E1 		mov	r2, r0
+ 3134 0214 F0309FE5 		ldr	r3, .L14
+ 3135 0218 002083E5 		str	r2, [r3, #0]
+ 173:../main.c     **** 	if(size>=36)
+ 3136              		.loc 1 173 0
+ 3137 021c E8309FE5 		ldr	r3, .L14
+ 3138 0220 003093E5 		ldr	r3, [r3, #0]
+ 3139 0224 230053E3 		cmp	r3, #35
+ 3140 0228 340000DA 		ble	.L12
+ 174:../main.c     **** 	{
+ 175:../main.c     **** 		UART_ReceiveBuffer(0,buffer,36);
+ 3141              		.loc 1 175 0
+ 3142 022c 0000A0E3 		mov	r0, #0
+ 3143 0230 D8109FE5 		ldr	r1, .L14+4
+ 3144 0234 2420A0E3 		mov	r2, #36
+ 3145 0238 FEFFFFEB 		bl	UART_ReceiveBuffer
+ 176:../main.c     **** 	  	memcpy(data,buffer,sizeof(int)*9);
+ 3146              		.loc 1 176 0
+ 3147 023c D0009FE5 		ldr	r0, .L14+8
+ 3148 0240 C8109FE5 		ldr	r1, .L14+4
+ 3149 0244 2420A0E3 		mov	r2, #36
+ 3150 0248 FEFFFFEB 		bl	memcpy
+ 177:../main.c     **** 	  	sp[0] = data[0];	  	sp[1] = data[1];	  	sp[2] = data[2];
+ 3151              		.loc 1 177 0
+ 3152 024c C0309FE5 		ldr	r3, .L14+8
+ 3153 0250 003093E5 		ldr	r3, [r3, #0]
+ 3154 0254 0320A0E1 		mov	r2, r3
+ 3155 0258 B8309FE5 		ldr	r3, .L14+12
+ 3156 025c 002083E5 		str	r2, [r3, #0]
+ 3157 0260 AC309FE5 		ldr	r3, .L14+8
+ 3158 0264 043093E5 		ldr	r3, [r3, #4]
+ 3159 0268 0320A0E1 		mov	r2, r3
+ 3160 026c A4309FE5 		ldr	r3, .L14+12
+ 3161 0270 042083E5 		str	r2, [r3, #4]
+ 3162 0274 98309FE5 		ldr	r3, .L14+8
+ 3163 0278 083093E5 		ldr	r3, [r3, #8]
+ 3164 027c 0320A0E1 		mov	r2, r3
+ 3165 0280 90309FE5 		ldr	r3, .L14+12
+ 3166 0284 082083E5 		str	r2, [r3, #8]
+ 178:../main.c     **** 	  	kp[0] = data[3];	  	kp[1] = data[4];	  	kp[2] = data[5];
+ 3167              		.loc 1 178 0
+ 3168 0288 84309FE5 		ldr	r3, .L14+8
+ 3169 028c 0C3093E5 		ldr	r3, [r3, #12]
+ 3170 0290 0320A0E1 		mov	r2, r3
+ 3171 0294 80309FE5 		ldr	r3, .L14+16
+ 3172 0298 002083E5 		str	r2, [r3, #0]
+ 3173 029c 70309FE5 		ldr	r3, .L14+8
+ 3174 02a0 103093E5 		ldr	r3, [r3, #16]
+ 3175 02a4 0320A0E1 		mov	r2, r3
+ 3176 02a8 6C309FE5 		ldr	r3, .L14+16
+ 3177 02ac 042083E5 		str	r2, [r3, #4]
+ 3178 02b0 5C309FE5 		ldr	r3, .L14+8
+ 3179 02b4 143093E5 		ldr	r3, [r3, #20]
+ 3180 02b8 0320A0E1 		mov	r2, r3
+ 3181 02bc 58309FE5 		ldr	r3, .L14+16
+ 3182 02c0 082083E5 		str	r2, [r3, #8]
+ 179:../main.c     **** 	  	ki[0] = data[6];	  	ki[1] = data[7];	  	ki[2] = data[8];
+ 3183              		.loc 1 179 0
+ 3184 02c4 48309FE5 		ldr	r3, .L14+8
+ 3185 02c8 183093E5 		ldr	r3, [r3, #24]
+ 3186 02cc 0320A0E1 		mov	r2, r3
+ 3187 02d0 48309FE5 		ldr	r3, .L14+20
+ 3188 02d4 002083E5 		str	r2, [r3, #0]
+ 3189 02d8 34309FE5 		ldr	r3, .L14+8
+ 3190 02dc 1C3093E5 		ldr	r3, [r3, #28]
+ 3191 02e0 0320A0E1 		mov	r2, r3
+ 3192 02e4 34309FE5 		ldr	r3, .L14+20
+ 3193 02e8 042083E5 		str	r2, [r3, #4]
+ 3194 02ec 20309FE5 		ldr	r3, .L14+8
+ 3195 02f0 203093E5 		ldr	r3, [r3, #32]
+ 3196 02f4 0320A0E1 		mov	r2, r3
+ 3197 02f8 20309FE5 		ldr	r3, .L14+20
+ 3198 02fc 082083E5 		str	r2, [r3, #8]
+ 3199              	.L12:
+ 180:../main.c     **** //	  	kd[0] = data[9];	  	kd[1] = data[10];	  	kd[2] = data[11];
+ 181:../main.c     **** 	}
+ 182:../main.c     **** }
+ 3200              		.loc 1 182 0
+ 3201 0300 04D04BE2 		sub	sp, fp, #4
+ 3202 0304 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 3203 0308 1EFF2FE1 		bx	lr
+ 3204              	.L15:
+ 3205              		.align	2
+ 3206              	.L14:
+ 3207 030c 00000000 		.word	size
+ 3208 0310 00000000 		.word	buffer
+ 3209 0314 00000000 		.word	data
+ 3210 0318 00000000 		.word	sp
+ 3211 031c 00000000 		.word	kp
+ 3212 0320 00000000 		.word	ki
+ 3213              		.cfi_endproc
+ 3214              	.LFE5:
+ 3216              		.align	2
+ 3217              		.global	ReadingADC
+ 3219              	ReadingADC:
+ 3220              	.LFB6:
+ 183:../main.c     **** 
+ 184:../main.c     **** void ReadingADC(void)
+ 185:../main.c     **** {
+ 3221              		.loc 1 185 0
+ 3222              		.cfi_startproc
+ 3223              		@ Function supports interworking.
+ 3224              		@ args = 0, pretend = 0, frame = 0
+ 3225              		@ frame_needed = 1, uses_anonymous_args = 0
+ 3226 0324 00482DE9 		stmfd	sp!, {fp, lr}
+ 3227              	.LCFI12:
+ 3228              		.cfi_def_cfa_offset 8
+ 3229 0328 04B08DE2 		add	fp, sp, #4
+ 3230              		.cfi_offset 14, -4
+ 3231              		.cfi_offset 11, -8
+ 3232              	.LCFI13:
+ 3233              		.cfi_def_cfa 11, 4
+ 186:../main.c     **** 	adc[0] = ADC0Read(3);	delay(10);
+ 3234              		.loc 1 186 0
+ 3235 032c 0300A0E3 		mov	r0, #3
+ 3236 0330 FEFFFFEB 		bl	ADC0Read
+ 3237 0334 0020A0E1 		mov	r2, r0
+ 3238 0338 14309FE5 		ldr	r3, .L17
+ 3239 033c 002083E5 		str	r2, [r3, #0]
+ 3240 0340 0A00A0E3 		mov	r0, #10
+ 3241 0344 FEFFFFEB 		bl	delay
+ 187:../main.c     **** 	//adc[1] = ADC0Read(1);	delay(10);
+ 188:../main.c     **** 	//adc[2] = ADC0Read(2);	delay(10);
+ 189:../main.c     **** }
+ 3242              		.loc 1 189 0
+ 3243 0348 04D04BE2 		sub	sp, fp, #4
+ 3244 034c 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 3245 0350 1EFF2FE1 		bx	lr
+ 3246              	.L18:
+ 3247              		.align	2
+ 3248              	.L17:
+ 3249 0354 00000000 		.word	adc
+ 3250              		.cfi_endproc
+ 3251              	.LFE6:
+ 3253              		.global	__aeabi_ui2d
+ 3254              		.global	__aeabi_ddiv
+ 3255              		.global	__aeabi_d2f
+ 3256              		.global	__aeabi_fcmplt
+ 3257              		.global	__aeabi_f2iz
+ 3258              		.global	__aeabi_i2f
+ 3259              		.global	__aeabi_f2uiz
+ 3260              		.align	2
+ 3261              		.global	PIDController
+ 3263              	PIDController:
+ 3264              	.LFB7:
+ 190:../main.c     **** 
+ 191:../main.c     **** void PIDController(void)
+ 192:../main.c     **** {
+ 3265              		.loc 1 192 0
+ 3266              		.cfi_startproc
+ 3267              		@ Function supports interworking.
+ 3268              		@ args = 0, pretend = 0, frame = 0
+ 3269              		@ frame_needed = 1, uses_anonymous_args = 0
+ 3270 0358 18482DE9 		stmfd	sp!, {r3, r4, fp, lr}
+ 3271              	.LCFI14:
+ 3272              		.cfi_def_cfa_offset 16
+ 3273 035c 0CB08DE2 		add	fp, sp, #12
+ 3274              		.cfi_offset 14, -4
+ 3275              		.cfi_offset 11, -8
+ 3276              		.cfi_offset 4, -12
+ 3277              		.cfi_offset 3, -16
+ 3278              	.LCFI15:
+ 3279              		.cfi_def_cfa 11, 4
+ 193:../main.c     **** 	//**************DOF 1**************//
+ 194:../main.c     **** 	if((sp[0]>adc[0]) || adc[0] < 50)
+ 3280              		.loc 1 194 0
+ 3281 0360 88369FE5 		ldr	r3, .L38
+ 3282 0364 002093E5 		ldr	r2, [r3, #0]
+ 3283 0368 84369FE5 		ldr	r3, .L38+4
+ 3284 036c 003093E5 		ldr	r3, [r3, #0]
+ 3285 0370 030052E1 		cmp	r2, r3
+ 3286 0374 0300008A 		bhi	.L20
+ 3287              		.loc 1 194 0 is_stmt 0 discriminator 1
+ 3288 0378 74369FE5 		ldr	r3, .L38+4
+ 3289 037c 003093E5 		ldr	r3, [r3, #0]
+ 3290 0380 310053E3 		cmp	r3, #49
+ 3291 0384 0700008A 		bhi	.L21
+ 3292              	.L20:
+ 195:../main.c     **** 	{	IOCLR0 = (1<<23); 	IOSET0 = (1<<22);	}
+ 3293              		.loc 1 195 0 is_stmt 1
+ 3294 0388 CE32A0E3 		mov	r3, #-536870900
+ 3295 038c 0A3983E2 		add	r3, r3, #163840
+ 3296 0390 0225A0E3 		mov	r2, #8388608
+ 3297 0394 002083E5 		str	r2, [r3, #0]
+ 3298 0398 4E32A0E3 		mov	r3, #-536870908
+ 3299 039c 0A3983E2 		add	r3, r3, #163840
+ 3300 03a0 0125A0E3 		mov	r2, #4194304
+ 3301 03a4 002083E5 		str	r2, [r3, #0]
+ 3302              	.L21:
+ 196:../main.c     **** 	if((sp[0]<adc[0]) || adc[0] > 1000)
+ 3303              		.loc 1 196 0
+ 3304 03a8 40369FE5 		ldr	r3, .L38
+ 3305 03ac 002093E5 		ldr	r2, [r3, #0]
+ 3306 03b0 3C369FE5 		ldr	r3, .L38+4
+ 3307 03b4 003093E5 		ldr	r3, [r3, #0]
+ 3308 03b8 030052E1 		cmp	r2, r3
+ 3309 03bc 0300003A 		bcc	.L22
+ 3310              		.loc 1 196 0 is_stmt 0 discriminator 1
+ 3311 03c0 2C369FE5 		ldr	r3, .L38+4
+ 3312 03c4 003093E5 		ldr	r3, [r3, #0]
+ 3313 03c8 FA0F53E3 		cmp	r3, #1000
+ 3314 03cc 0700009A 		bls	.L23
+ 3315              	.L22:
+ 197:../main.c     **** 	{	IOCLR0 = (1<<22);	IOSET0 = (1<<23);	}
+ 3316              		.loc 1 197 0 is_stmt 1
+ 3317 03d0 CE32A0E3 		mov	r3, #-536870900
+ 3318 03d4 0A3983E2 		add	r3, r3, #163840
+ 3319 03d8 0125A0E3 		mov	r2, #4194304
+ 3320 03dc 002083E5 		str	r2, [r3, #0]
+ 3321 03e0 4E32A0E3 		mov	r3, #-536870908
+ 3322 03e4 0A3983E2 		add	r3, r3, #163840
+ 3323 03e8 0225A0E3 		mov	r2, #8388608
+ 3324 03ec 002083E5 		str	r2, [r3, #0]
+ 3325              	.L23:
+ 198:../main.c     **** 
+ 199:../main.c     **** 	e[0] = sp[0] - adc[0];
+ 3326              		.loc 1 199 0
+ 3327 03f0 F8359FE5 		ldr	r3, .L38
+ 3328 03f4 002093E5 		ldr	r2, [r3, #0]
+ 3329 03f8 F4359FE5 		ldr	r3, .L38+4
+ 3330 03fc 003093E5 		ldr	r3, [r3, #0]
+ 3331 0400 022063E0 		rsb	r2, r3, r2
+ 3332 0404 EC359FE5 		ldr	r3, .L38+8
+ 3333 0408 002083E5 		str	r2, [r3, #0]
+ 200:../main.c     **** 
+ 201:../main.c     **** 	//proportional term
+ 202:../main.c     **** 	PTerm[0] = (kp[0] * e[0])/10.0;
+ 3334              		.loc 1 202 0
+ 3335 040c E8359FE5 		ldr	r3, .L38+12
+ 3336 0410 003093E5 		ldr	r3, [r3, #0]
+ 3337 0414 DC259FE5 		ldr	r2, .L38+8
+ 3338 0418 002092E5 		ldr	r2, [r2, #0]
+ 3339 041c 920303E0 		mul	r3, r2, r3
+ 3340 0420 0300A0E1 		mov	r0, r3
+ 3341 0424 FEFFFFEB 		bl	__aeabi_ui2d
+ 3342 0428 0030A0E1 		mov	r3, r0
+ 3343 042c 0140A0E1 		mov	r4, r1
+ 3344 0430 0300A0E1 		mov	r0, r3
+ 3345 0434 0410A0E1 		mov	r1, r4
+ 3346 0438 0020A0E3 		mov	r2, #0
+ 3347 043c 0131A0E3 		mov	r3, #1073741824
+ 3348 0440 093783E2 		add	r3, r3, #2359296
+ 3349 0444 FEFFFFEB 		bl	__aeabi_ddiv
+ 3350 0448 0030A0E1 		mov	r3, r0
+ 3351 044c 0140A0E1 		mov	r4, r1
+ 3352 0450 0300A0E1 		mov	r0, r3
+ 3353 0454 0410A0E1 		mov	r1, r4
+ 3354 0458 FEFFFFEB 		bl	__aeabi_d2f
+ 3355 045c 0020A0E1 		mov	r2, r0
+ 3356 0460 98359FE5 		ldr	r3, .L38+16
+ 3357 0464 002083E5 		str	r2, [r3, #0]	@ float
+ 203:../main.c     **** 	if (e[0] > 0)
+ 3358              		.loc 1 203 0
+ 3359 0468 88359FE5 		ldr	r3, .L38+8
+ 3360 046c 003093E5 		ldr	r3, [r3, #0]
+ 3361 0470 000053E3 		cmp	r3, #0
+ 3362 0474 1100000A 		beq	.L24
+ 204:../main.c     **** 	{    if (PTerm[0] < 0) { PTerm[0] = 0x7FFF;}    }
+ 3363              		.loc 1 204 0
+ 3364 0478 80359FE5 		ldr	r3, .L38+16
+ 3365 047c 003093E5 		ldr	r3, [r3, #0]	@ float
+ 3366 0480 0120A0E3 		mov	r2, #1
+ 3367 0484 0240A0E1 		mov	r4, r2
+ 3368 0488 0300A0E1 		mov	r0, r3
+ 3369 048c 70159FE5 		ldr	r1, .L38+20	@ float
+ 3370 0490 FEFFFFEB 		bl	__aeabi_fcmplt
+ 3371 0494 0030A0E1 		mov	r3, r0
+ 3372 0498 000053E3 		cmp	r3, #0
+ 3373 049c 0100001A 		bne	.L25
+ 3374 04a0 0030A0E3 		mov	r3, #0
+ 3375 04a4 0340A0E1 		mov	r4, r3
+ 3376              	.L25:
+ 3377 04a8 FF3004E2 		and	r3, r4, #255
+ 3378 04ac 000053E3 		cmp	r3, #0
+ 3379 04b0 0200000A 		beq	.L24
+ 3380              		.loc 1 204 0 is_stmt 0 discriminator 1
+ 3381 04b4 44359FE5 		ldr	r3, .L38+16
+ 3382 04b8 48259FE5 		ldr	r2, .L38+24	@ float
+ 3383 04bc 002083E5 		str	r2, [r3, #0]	@ float
+ 3384              	.L24:
+ 205:../main.c     **** 	if (e[0] < 0)
+ 206:../main.c     **** 	{    if (PTerm[0] > 0) { PTerm[0] = 0x8000;}    }
+ 207:../main.c     **** 	PTerm[0] = Limit_value_signed(PTerm[0], -1023 , 1023);
+ 3385              		.loc 1 207 0 is_stmt 1
+ 3386 04c0 38359FE5 		ldr	r3, .L38+16
+ 3387 04c4 003093E5 		ldr	r3, [r3, #0]	@ float
+ 3388 04c8 0300A0E1 		mov	r0, r3
+ 3389 04cc FEFFFFEB 		bl	__aeabi_f2iz
+ 3390 04d0 0030A0E1 		mov	r3, r0
+ 3391 04d4 0300A0E1 		mov	r0, r3
+ 3392 04d8 FF1FE0E3 		mvn	r1, #1020
+ 3393 04dc 021041E2 		sub	r1, r1, #2
+ 3394 04e0 FF2FA0E3 		mov	r2, #1020
+ 3395 04e4 032082E2 		add	r2, r2, #3
+ 3396 04e8 FEFFFFEB 		bl	Limit_value_signed
+ 3397 04ec 0030A0E1 		mov	r3, r0
+ 3398 04f0 0300A0E1 		mov	r0, r3
+ 3399 04f4 FEFFFFEB 		bl	__aeabi_i2f
+ 3400 04f8 0020A0E1 		mov	r2, r0
+ 3401 04fc FC349FE5 		ldr	r3, .L38+16
+ 3402 0500 002083E5 		str	r2, [r3, #0]	@ float
+ 208:../main.c     **** 
+ 209:../main.c     **** 	saida[0] = PTerm[0];
+ 3403              		.loc 1 209 0
+ 3404 0504 F4349FE5 		ldr	r3, .L38+16
+ 3405 0508 003093E5 		ldr	r3, [r3, #0]	@ float
+ 3406 050c 0300A0E1 		mov	r0, r3
+ 3407 0510 FEFFFFEB 		bl	__aeabi_f2uiz
+ 3408 0514 0020A0E1 		mov	r2, r0
+ 3409 0518 EC349FE5 		ldr	r3, .L38+28
+ 3410 051c 002083E5 		str	r2, [r3, #0]
+ 210:../main.c     **** 	saida[0] = Limit_value_signed(saida[0],-1023, 1023);
+ 3411              		.loc 1 210 0
+ 3412 0520 E4349FE5 		ldr	r3, .L38+28
+ 3413 0524 003093E5 		ldr	r3, [r3, #0]
+ 3414 0528 0300A0E1 		mov	r0, r3
+ 3415 052c FF1FE0E3 		mvn	r1, #1020
+ 3416 0530 021041E2 		sub	r1, r1, #2
+ 3417 0534 FF2FA0E3 		mov	r2, #1020
+ 3418 0538 032082E2 		add	r2, r2, #3
+ 3419 053c FEFFFFEB 		bl	Limit_value_signed
+ 3420 0540 0030A0E1 		mov	r3, r0
+ 3421 0544 0320A0E1 		mov	r2, r3
+ 3422 0548 BC349FE5 		ldr	r3, .L38+28
+ 3423 054c 002083E5 		str	r2, [r3, #0]
+ 211:../main.c     **** 	saida[0] = Adjust_PWM_to_unsigned(saida[0]);
+ 3424              		.loc 1 211 0
+ 3425 0550 B4349FE5 		ldr	r3, .L38+28
+ 3426 0554 003093E5 		ldr	r3, [r3, #0]
+ 3427 0558 0300A0E1 		mov	r0, r3
+ 3428 055c FEFFFFEB 		bl	Adjust_PWM_to_unsigned
+ 3429 0560 0030A0E1 		mov	r3, r0
+ 3430 0564 0320A0E1 		mov	r2, r3
+ 3431 0568 9C349FE5 		ldr	r3, .L38+28
+ 3432 056c 002083E5 		str	r2, [r3, #0]
+ 212:../main.c     **** 
+ 213:../main.c     **** 	setDutyCycle(5,saida[0]);  //DOF 1
+ 3433              		.loc 1 213 0
+ 3434 0570 94349FE5 		ldr	r3, .L38+28
+ 3435 0574 003093E5 		ldr	r3, [r3, #0]
+ 3436 0578 0500A0E3 		mov	r0, #5
+ 3437 057c 0310A0E1 		mov	r1, r3
+ 3438 0580 FEFFFFEB 		bl	setDutyCycle
+ 214:../main.c     **** 
+ 215:../main.c     **** 	//**************DOF 2**************//
+ 216:../main.c     **** 	if((sp[1]>adc[1]) || adc[1] < 50)
+ 3439              		.loc 1 216 0
+ 3440 0584 64349FE5 		ldr	r3, .L38
+ 3441 0588 042093E5 		ldr	r2, [r3, #4]
+ 3442 058c 60349FE5 		ldr	r3, .L38+4
+ 3443 0590 043093E5 		ldr	r3, [r3, #4]
+ 3444 0594 030052E1 		cmp	r2, r3
+ 3445 0598 0300008A 		bhi	.L26
+ 3446              		.loc 1 216 0 is_stmt 0 discriminator 1
+ 3447 059c 50349FE5 		ldr	r3, .L38+4
+ 3448 05a0 043093E5 		ldr	r3, [r3, #4]
+ 3449 05a4 310053E3 		cmp	r3, #49
+ 3450 05a8 0700008A 		bhi	.L27
+ 3451              	.L26:
+ 217:../main.c     **** 	{	IOCLR0 = (1<<17);	IOSET0 = (1<<19);	}
+ 3452              		.loc 1 217 0 is_stmt 1
+ 3453 05ac CE32A0E3 		mov	r3, #-536870900
+ 3454 05b0 0A3983E2 		add	r3, r3, #163840
+ 3455 05b4 0228A0E3 		mov	r2, #131072
+ 3456 05b8 002083E5 		str	r2, [r3, #0]
+ 3457 05bc 4E32A0E3 		mov	r3, #-536870908
+ 3458 05c0 0A3983E2 		add	r3, r3, #163840
+ 3459 05c4 0227A0E3 		mov	r2, #524288
+ 3460 05c8 002083E5 		str	r2, [r3, #0]
+ 3461              	.L27:
+ 218:../main.c     **** 	if((sp[1]<adc[1]) || adc[1] > 1000)
+ 3462              		.loc 1 218 0
+ 3463 05cc 1C349FE5 		ldr	r3, .L38
+ 3464 05d0 042093E5 		ldr	r2, [r3, #4]
+ 3465 05d4 18349FE5 		ldr	r3, .L38+4
+ 3466 05d8 043093E5 		ldr	r3, [r3, #4]
+ 3467 05dc 030052E1 		cmp	r2, r3
+ 3468 05e0 0300003A 		bcc	.L28
+ 3469              		.loc 1 218 0 is_stmt 0 discriminator 1
+ 3470 05e4 08349FE5 		ldr	r3, .L38+4
+ 3471 05e8 043093E5 		ldr	r3, [r3, #4]
+ 3472 05ec FA0F53E3 		cmp	r3, #1000
+ 3473 05f0 0700009A 		bls	.L29
+ 3474              	.L28:
+ 219:../main.c     **** 	{	IOCLR0 = (1<<19);	IOSET0 = (1<<17);	}
+ 3475              		.loc 1 219 0 is_stmt 1
+ 3476 05f4 CE32A0E3 		mov	r3, #-536870900
+ 3477 05f8 0A3983E2 		add	r3, r3, #163840
+ 3478 05fc 0227A0E3 		mov	r2, #524288
+ 3479 0600 002083E5 		str	r2, [r3, #0]
+ 3480 0604 4E32A0E3 		mov	r3, #-536870908
+ 3481 0608 0A3983E2 		add	r3, r3, #163840
+ 3482 060c 0228A0E3 		mov	r2, #131072
+ 3483 0610 002083E5 		str	r2, [r3, #0]
+ 3484              	.L29:
+ 220:../main.c     **** 
+ 221:../main.c     **** 	e[1] = sp[1] - adc[1];
+ 3485              		.loc 1 221 0
+ 3486 0614 D4339FE5 		ldr	r3, .L38
+ 3487 0618 042093E5 		ldr	r2, [r3, #4]
+ 3488 061c D0339FE5 		ldr	r3, .L38+4
+ 3489 0620 043093E5 		ldr	r3, [r3, #4]
+ 3490 0624 022063E0 		rsb	r2, r3, r2
+ 3491 0628 C8339FE5 		ldr	r3, .L38+8
+ 3492 062c 042083E5 		str	r2, [r3, #4]
+ 222:../main.c     **** 
+ 223:../main.c     **** 	//proportional term
+ 224:../main.c     **** 	PTerm[1] = (kp[1] * e[1])/10.0;
+ 3493              		.loc 1 224 0
+ 3494 0630 C4339FE5 		ldr	r3, .L38+12
+ 3495 0634 043093E5 		ldr	r3, [r3, #4]
+ 3496 0638 B8239FE5 		ldr	r2, .L38+8
+ 3497 063c 042092E5 		ldr	r2, [r2, #4]
+ 3498 0640 920303E0 		mul	r3, r2, r3
+ 3499 0644 0300A0E1 		mov	r0, r3
+ 3500 0648 FEFFFFEB 		bl	__aeabi_ui2d
+ 3501 064c 0030A0E1 		mov	r3, r0
+ 3502 0650 0140A0E1 		mov	r4, r1
+ 3503 0654 0300A0E1 		mov	r0, r3
+ 3504 0658 0410A0E1 		mov	r1, r4
+ 3505 065c 0020A0E3 		mov	r2, #0
+ 3506 0660 0131A0E3 		mov	r3, #1073741824
+ 3507 0664 093783E2 		add	r3, r3, #2359296
+ 3508 0668 FEFFFFEB 		bl	__aeabi_ddiv
+ 3509 066c 0030A0E1 		mov	r3, r0
+ 3510 0670 0140A0E1 		mov	r4, r1
+ 3511 0674 0300A0E1 		mov	r0, r3
+ 3512 0678 0410A0E1 		mov	r1, r4
+ 3513 067c FEFFFFEB 		bl	__aeabi_d2f
+ 3514 0680 0020A0E1 		mov	r2, r0
+ 3515 0684 74339FE5 		ldr	r3, .L38+16
+ 3516 0688 042083E5 		str	r2, [r3, #4]	@ float
+ 225:../main.c     **** 	if (e[1] > 0)
+ 3517              		.loc 1 225 0
+ 3518 068c 64339FE5 		ldr	r3, .L38+8
+ 3519 0690 043093E5 		ldr	r3, [r3, #4]
+ 3520 0694 000053E3 		cmp	r3, #0
+ 3521 0698 1100000A 		beq	.L30
+ 226:../main.c     **** 	{    if (PTerm[1] < 0) { PTerm[1] = 0x7FFF;}    }
+ 3522              		.loc 1 226 0
+ 3523 069c 5C339FE5 		ldr	r3, .L38+16
+ 3524 06a0 043093E5 		ldr	r3, [r3, #4]	@ float
+ 3525 06a4 0120A0E3 		mov	r2, #1
+ 3526 06a8 0240A0E1 		mov	r4, r2
+ 3527 06ac 0300A0E1 		mov	r0, r3
+ 3528 06b0 4C139FE5 		ldr	r1, .L38+20	@ float
+ 3529 06b4 FEFFFFEB 		bl	__aeabi_fcmplt
+ 3530 06b8 0030A0E1 		mov	r3, r0
+ 3531 06bc 000053E3 		cmp	r3, #0
+ 3532 06c0 0100001A 		bne	.L31
+ 3533 06c4 0030A0E3 		mov	r3, #0
+ 3534 06c8 0340A0E1 		mov	r4, r3
+ 3535              	.L31:
+ 3536 06cc FF3004E2 		and	r3, r4, #255
+ 3537 06d0 000053E3 		cmp	r3, #0
+ 3538 06d4 0200000A 		beq	.L30
+ 3539              		.loc 1 226 0 is_stmt 0 discriminator 1
+ 3540 06d8 20339FE5 		ldr	r3, .L38+16
+ 3541 06dc 24239FE5 		ldr	r2, .L38+24	@ float
+ 3542 06e0 042083E5 		str	r2, [r3, #4]	@ float
+ 3543              	.L30:
+ 227:../main.c     **** 	if (e[1] < 0)
+ 228:../main.c     **** 	{    if (PTerm[1] > 0) { PTerm[1] = 0x8000;}    }
+ 229:../main.c     **** 	PTerm[1] = Limit_value_signed(PTerm[1], -PLimit , PLimit);
+ 3544              		.loc 1 229 0 is_stmt 1
+ 3545 06e4 14339FE5 		ldr	r3, .L38+16
+ 3546 06e8 043093E5 		ldr	r3, [r3, #4]	@ float
+ 3547 06ec 0300A0E1 		mov	r0, r3
+ 3548 06f0 FEFFFFEB 		bl	__aeabi_f2iz
+ 3549 06f4 0010A0E1 		mov	r1, r0
+ 3550 06f8 10339FE5 		ldr	r3, .L38+32
+ 3551 06fc 003093E5 		ldr	r3, [r3, #0]
+ 3552 0700 002063E2 		rsb	r2, r3, #0
+ 3553 0704 04339FE5 		ldr	r3, .L38+32
+ 3554 0708 003093E5 		ldr	r3, [r3, #0]
+ 3555 070c 0100A0E1 		mov	r0, r1
+ 3556 0710 0210A0E1 		mov	r1, r2
+ 3557 0714 0320A0E1 		mov	r2, r3
+ 3558 0718 FEFFFFEB 		bl	Limit_value_signed
+ 3559 071c 0030A0E1 		mov	r3, r0
+ 3560 0720 0300A0E1 		mov	r0, r3
+ 3561 0724 FEFFFFEB 		bl	__aeabi_i2f
+ 3562 0728 0020A0E1 		mov	r2, r0
+ 3563 072c CC329FE5 		ldr	r3, .L38+16
+ 3564 0730 042083E5 		str	r2, [r3, #4]	@ float
+ 230:../main.c     **** 
+ 231:../main.c     **** 	saida[1] = PTerm[1];
+ 3565              		.loc 1 231 0
+ 3566 0734 C4329FE5 		ldr	r3, .L38+16
+ 3567 0738 043093E5 		ldr	r3, [r3, #4]	@ float
+ 3568 073c 0300A0E1 		mov	r0, r3
+ 3569 0740 FEFFFFEB 		bl	__aeabi_f2uiz
+ 3570 0744 0020A0E1 		mov	r2, r0
+ 3571 0748 BC329FE5 		ldr	r3, .L38+28
+ 3572 074c 042083E5 		str	r2, [r3, #4]
+ 232:../main.c     **** 	saida[1] = Limit_value_signed(saida[1],-1023,1023);
+ 3573              		.loc 1 232 0
+ 3574 0750 B4329FE5 		ldr	r3, .L38+28
+ 3575 0754 043093E5 		ldr	r3, [r3, #4]
+ 3576 0758 0300A0E1 		mov	r0, r3
+ 3577 075c FF1FE0E3 		mvn	r1, #1020
+ 3578 0760 021041E2 		sub	r1, r1, #2
+ 3579 0764 FF2FA0E3 		mov	r2, #1020
+ 3580 0768 032082E2 		add	r2, r2, #3
+ 3581 076c FEFFFFEB 		bl	Limit_value_signed
+ 3582 0770 0030A0E1 		mov	r3, r0
+ 3583 0774 0320A0E1 		mov	r2, r3
+ 3584 0778 8C329FE5 		ldr	r3, .L38+28
+ 3585 077c 042083E5 		str	r2, [r3, #4]
+ 233:../main.c     **** 	saida[1] = Adjust_PWM_to_unsigned(saida[1]);
+ 3586              		.loc 1 233 0
+ 3587 0780 84329FE5 		ldr	r3, .L38+28
+ 3588 0784 043093E5 		ldr	r3, [r3, #4]
+ 3589 0788 0300A0E1 		mov	r0, r3
+ 3590 078c FEFFFFEB 		bl	Adjust_PWM_to_unsigned
+ 3591 0790 0030A0E1 		mov	r3, r0
+ 3592 0794 0320A0E1 		mov	r2, r3
+ 3593 0798 6C329FE5 		ldr	r3, .L38+28
+ 3594 079c 042083E5 		str	r2, [r3, #4]
+ 234:../main.c     **** 
+ 235:../main.c     **** 	setDutyCycle(5,saida[1]);  //DOF 1
+ 3595              		.loc 1 235 0
+ 3596 07a0 64329FE5 		ldr	r3, .L38+28
+ 3597 07a4 043093E5 		ldr	r3, [r3, #4]
+ 3598 07a8 0500A0E3 		mov	r0, #5
+ 3599 07ac 0310A0E1 		mov	r1, r3
+ 3600 07b0 FEFFFFEB 		bl	setDutyCycle
+ 236:../main.c     **** 
+ 237:../main.c     **** 	//**************DOF 3**************//
+ 238:../main.c     **** 	if(sp[2]>adc[2] || adc[2] < 50)
+ 3601              		.loc 1 238 0
+ 3602 07b4 34329FE5 		ldr	r3, .L38
+ 3603 07b8 082093E5 		ldr	r2, [r3, #8]
+ 3604 07bc 30329FE5 		ldr	r3, .L38+4
+ 3605 07c0 083093E5 		ldr	r3, [r3, #8]
+ 3606 07c4 030052E1 		cmp	r2, r3
+ 3607 07c8 0300008A 		bhi	.L32
+ 3608              		.loc 1 238 0 is_stmt 0 discriminator 1
+ 3609 07cc 20329FE5 		ldr	r3, .L38+4
+ 3610 07d0 083093E5 		ldr	r3, [r3, #8]
+ 3611 07d4 310053E3 		cmp	r3, #49
+ 3612 07d8 0700008A 		bhi	.L33
+ 3613              	.L32:
+ 239:../main.c     **** 	{	IOCLR0 = (1<<6); 	IOSET0 = (1<<9);	}
+ 3614              		.loc 1 239 0 is_stmt 1
+ 3615 07dc CE32A0E3 		mov	r3, #-536870900
+ 3616 07e0 0A3983E2 		add	r3, r3, #163840
+ 3617 07e4 4020A0E3 		mov	r2, #64
+ 3618 07e8 002083E5 		str	r2, [r3, #0]
+ 3619 07ec 4E32A0E3 		mov	r3, #-536870908
+ 3620 07f0 0A3983E2 		add	r3, r3, #163840
+ 3621 07f4 022CA0E3 		mov	r2, #512
+ 3622 07f8 002083E5 		str	r2, [r3, #0]
+ 3623              	.L33:
+ 240:../main.c     **** 	if((sp[2]<adc[2]) || adc[2] > 1000)
+ 3624              		.loc 1 240 0
+ 3625 07fc EC319FE5 		ldr	r3, .L38
+ 3626 0800 082093E5 		ldr	r2, [r3, #8]
+ 3627 0804 E8319FE5 		ldr	r3, .L38+4
+ 3628 0808 083093E5 		ldr	r3, [r3, #8]
+ 3629 080c 030052E1 		cmp	r2, r3
+ 3630 0810 0300003A 		bcc	.L34
+ 3631              		.loc 1 240 0 is_stmt 0 discriminator 1
+ 3632 0814 D8319FE5 		ldr	r3, .L38+4
+ 3633 0818 083093E5 		ldr	r3, [r3, #8]
+ 3634 081c FA0F53E3 		cmp	r3, #1000
+ 3635 0820 0700009A 		bls	.L35
+ 3636              	.L34:
+ 241:../main.c     **** 	{	IOCLR0 = (1<<9);	IOSET0 = (1<<6);	}
+ 3637              		.loc 1 241 0 is_stmt 1
+ 3638 0824 CE32A0E3 		mov	r3, #-536870900
+ 3639 0828 0A3983E2 		add	r3, r3, #163840
+ 3640 082c 022CA0E3 		mov	r2, #512
+ 3641 0830 002083E5 		str	r2, [r3, #0]
+ 3642 0834 4E32A0E3 		mov	r3, #-536870908
+ 3643 0838 0A3983E2 		add	r3, r3, #163840
+ 3644 083c 4020A0E3 		mov	r2, #64
+ 3645 0840 002083E5 		str	r2, [r3, #0]
+ 3646              	.L35:
+ 242:../main.c     **** 
+ 243:../main.c     **** 	e[2] = sp[2] - adc[2];
+ 3647              		.loc 1 243 0
+ 3648 0844 A4319FE5 		ldr	r3, .L38
+ 3649 0848 082093E5 		ldr	r2, [r3, #8]
+ 3650 084c A0319FE5 		ldr	r3, .L38+4
+ 3651 0850 083093E5 		ldr	r3, [r3, #8]
+ 3652 0854 022063E0 		rsb	r2, r3, r2
+ 3653 0858 98319FE5 		ldr	r3, .L38+8
+ 3654 085c 082083E5 		str	r2, [r3, #8]
+ 244:../main.c     **** 
+ 245:../main.c     **** 	//proportional term
+ 246:../main.c     **** 	PTerm[2] = (kp[2] * e[2])/10.0;
+ 3655              		.loc 1 246 0
+ 3656 0860 94319FE5 		ldr	r3, .L38+12
+ 3657 0864 083093E5 		ldr	r3, [r3, #8]
+ 3658 0868 88219FE5 		ldr	r2, .L38+8
+ 3659 086c 082092E5 		ldr	r2, [r2, #8]
+ 3660 0870 920303E0 		mul	r3, r2, r3
+ 3661 0874 0300A0E1 		mov	r0, r3
+ 3662 0878 FEFFFFEB 		bl	__aeabi_ui2d
+ 3663 087c 0030A0E1 		mov	r3, r0
+ 3664 0880 0140A0E1 		mov	r4, r1
+ 3665 0884 0300A0E1 		mov	r0, r3
+ 3666 0888 0410A0E1 		mov	r1, r4
+ 3667 088c 0020A0E3 		mov	r2, #0
+ 3668 0890 0131A0E3 		mov	r3, #1073741824
+ 3669 0894 093783E2 		add	r3, r3, #2359296
+ 3670 0898 FEFFFFEB 		bl	__aeabi_ddiv
+ 3671 089c 0030A0E1 		mov	r3, r0
+ 3672 08a0 0140A0E1 		mov	r4, r1
+ 3673 08a4 0300A0E1 		mov	r0, r3
+ 3674 08a8 0410A0E1 		mov	r1, r4
+ 3675 08ac FEFFFFEB 		bl	__aeabi_d2f
+ 3676 08b0 0020A0E1 		mov	r2, r0
+ 3677 08b4 44319FE5 		ldr	r3, .L38+16
+ 3678 08b8 082083E5 		str	r2, [r3, #8]	@ float
+ 247:../main.c     **** 	if (e[0] > 0)
+ 3679              		.loc 1 247 0
+ 3680 08bc 34319FE5 		ldr	r3, .L38+8
+ 3681 08c0 003093E5 		ldr	r3, [r3, #0]
+ 3682 08c4 000053E3 		cmp	r3, #0
+ 3683 08c8 1100000A 		beq	.L36
+ 248:../main.c     **** 	{    if (PTerm[2] < 0) { PTerm[2] = 0x7FFF;}    }
+ 3684              		.loc 1 248 0
+ 3685 08cc 2C319FE5 		ldr	r3, .L38+16
+ 3686 08d0 083093E5 		ldr	r3, [r3, #8]	@ float
+ 3687 08d4 0120A0E3 		mov	r2, #1
+ 3688 08d8 0240A0E1 		mov	r4, r2
+ 3689 08dc 0300A0E1 		mov	r0, r3
+ 3690 08e0 1C119FE5 		ldr	r1, .L38+20	@ float
+ 3691 08e4 FEFFFFEB 		bl	__aeabi_fcmplt
+ 3692 08e8 0030A0E1 		mov	r3, r0
+ 3693 08ec 000053E3 		cmp	r3, #0
+ 3694 08f0 0100001A 		bne	.L37
+ 3695 08f4 0030A0E3 		mov	r3, #0
+ 3696 08f8 0340A0E1 		mov	r4, r3
+ 3697              	.L37:
+ 3698 08fc FF3004E2 		and	r3, r4, #255
+ 3699 0900 000053E3 		cmp	r3, #0
+ 3700 0904 0200000A 		beq	.L36
+ 3701              		.loc 1 248 0 is_stmt 0 discriminator 1
+ 3702 0908 F0309FE5 		ldr	r3, .L38+16
+ 3703 090c F4209FE5 		ldr	r2, .L38+24	@ float
+ 3704 0910 082083E5 		str	r2, [r3, #8]	@ float
+ 3705              	.L36:
+ 249:../main.c     **** 	if (e[2] < 0)
+ 250:../main.c     **** 	{    if (PTerm[2] > 0) { PTerm[2] = 0x8000;}    }
+ 251:../main.c     **** 	PTerm[2] = Limit_value_signed(PTerm[2], -PLimit , PLimit);
+ 3706              		.loc 1 251 0 is_stmt 1
+ 3707 0914 E4309FE5 		ldr	r3, .L38+16
+ 3708 0918 083093E5 		ldr	r3, [r3, #8]	@ float
+ 3709 091c 0300A0E1 		mov	r0, r3
+ 3710 0920 FEFFFFEB 		bl	__aeabi_f2iz
+ 3711 0924 0010A0E1 		mov	r1, r0
+ 3712 0928 E0309FE5 		ldr	r3, .L38+32
+ 3713 092c 003093E5 		ldr	r3, [r3, #0]
+ 3714 0930 002063E2 		rsb	r2, r3, #0
+ 3715 0934 D4309FE5 		ldr	r3, .L38+32
+ 3716 0938 003093E5 		ldr	r3, [r3, #0]
+ 3717 093c 0100A0E1 		mov	r0, r1
+ 3718 0940 0210A0E1 		mov	r1, r2
+ 3719 0944 0320A0E1 		mov	r2, r3
+ 3720 0948 FEFFFFEB 		bl	Limit_value_signed
+ 3721 094c 0030A0E1 		mov	r3, r0
+ 3722 0950 0300A0E1 		mov	r0, r3
+ 3723 0954 FEFFFFEB 		bl	__aeabi_i2f
+ 3724 0958 0020A0E1 		mov	r2, r0
+ 3725 095c 9C309FE5 		ldr	r3, .L38+16
+ 3726 0960 082083E5 		str	r2, [r3, #8]	@ float
+ 252:../main.c     **** 
+ 253:../main.c     **** 	saida[2] = PTerm[2];
+ 3727              		.loc 1 253 0
+ 3728 0964 94309FE5 		ldr	r3, .L38+16
+ 3729 0968 083093E5 		ldr	r3, [r3, #8]	@ float
+ 3730 096c 0300A0E1 		mov	r0, r3
+ 3731 0970 FEFFFFEB 		bl	__aeabi_f2uiz
+ 3732 0974 0020A0E1 		mov	r2, r0
+ 3733 0978 8C309FE5 		ldr	r3, .L38+28
+ 3734 097c 082083E5 		str	r2, [r3, #8]
+ 254:../main.c     **** 	saida[2] = Limit_value_signed(saida[2],-1023,1023);
+ 3735              		.loc 1 254 0
+ 3736 0980 84309FE5 		ldr	r3, .L38+28
+ 3737 0984 083093E5 		ldr	r3, [r3, #8]
+ 3738 0988 0300A0E1 		mov	r0, r3
+ 3739 098c FF1FE0E3 		mvn	r1, #1020
+ 3740 0990 021041E2 		sub	r1, r1, #2
+ 3741 0994 FF2FA0E3 		mov	r2, #1020
+ 3742 0998 032082E2 		add	r2, r2, #3
+ 3743 099c FEFFFFEB 		bl	Limit_value_signed
+ 3744 09a0 0030A0E1 		mov	r3, r0
+ 3745 09a4 0320A0E1 		mov	r2, r3
+ 3746 09a8 5C309FE5 		ldr	r3, .L38+28
+ 3747 09ac 082083E5 		str	r2, [r3, #8]
+ 255:../main.c     **** 	saida[2] = Adjust_PWM_to_unsigned(saida[2]);
+ 3748              		.loc 1 255 0
+ 3749 09b0 54309FE5 		ldr	r3, .L38+28
+ 3750 09b4 083093E5 		ldr	r3, [r3, #8]
+ 3751 09b8 0300A0E1 		mov	r0, r3
+ 3752 09bc FEFFFFEB 		bl	Adjust_PWM_to_unsigned
+ 3753 09c0 0030A0E1 		mov	r3, r0
+ 3754 09c4 0320A0E1 		mov	r2, r3
+ 3755 09c8 3C309FE5 		ldr	r3, .L38+28
+ 3756 09cc 082083E5 		str	r2, [r3, #8]
+ 256:../main.c     **** 
+ 257:../main.c     **** 	setDutyCycle(2,saida[2]);  //DOF 1
+ 3757              		.loc 1 257 0
+ 3758 09d0 34309FE5 		ldr	r3, .L38+28
+ 3759 09d4 083093E5 		ldr	r3, [r3, #8]
+ 3760 09d8 0200A0E3 		mov	r0, #2
+ 3761 09dc 0310A0E1 		mov	r1, r3
+ 3762 09e0 FEFFFFEB 		bl	setDutyCycle
+ 258:../main.c     **** }
+ 3763              		.loc 1 258 0
+ 3764 09e4 0CD04BE2 		sub	sp, fp, #12
+ 3765 09e8 1848BDE8 		ldmfd	sp!, {r3, r4, fp, lr}
+ 3766 09ec 1EFF2FE1 		bx	lr
+ 3767              	.L39:
+ 3768              		.align	2
+ 3769              	.L38:
+ 3770 09f0 00000000 		.word	sp
+ 3771 09f4 00000000 		.word	adc
+ 3772 09f8 00000000 		.word	e
+ 3773 09fc 00000000 		.word	kp
+ 3774 0a00 00000000 		.word	PTerm
+ 3775 0a04 00000000 		.word	0
+ 3776 0a08 00FEFF46 		.word	1191181824
+ 3777 0a0c 00000000 		.word	saida
+ 3778 0a10 00000000 		.word	PLimit
+ 3779              		.cfi_endproc
+ 3780              	.LFE7:
+ 3782              		.section	.rodata
+ 3783              		.align	2
+ 3784              	.LC0:
+ 3785 0000 312D2025 		.ascii	"1- %d  %d  \015\012\000"
+ 3785      64202025 
+ 3785      6420200D 
+ 3785      0A00
+ 3786 000e 0000     		.align	2
+ 3787              	.LC1:
+ 3788 0010 322D2025 		.ascii	"2- %d  %d  \015\012\000"
+ 3788      64202025 
+ 3788      6420200D 
+ 3788      0A00
+ 3789 001e 0000     		.align	2
+ 3790              	.LC2:
+ 3791 0020 332D2025 		.ascii	"3- %d  %d  \015\012\000"
+ 3791      64202025 
+ 3791      6420200D 
+ 3791      0A00
+ 3792 002e 0000     		.text
+ 3793              		.align	2
+ 3794              		.global	SendingData
+ 3796              	SendingData:
+ 3797              	.LFB8:
+ 259:../main.c     **** 
+ 260:../main.c     **** void SendingData(void)
+ 261:../main.c     **** {
+ 3798              		.loc 1 261 0
+ 3799              		.cfi_startproc
+ 3800              		@ Function supports interworking.
+ 3801              		@ args = 0, pretend = 0, frame = 0
+ 3802              		@ frame_needed = 1, uses_anonymous_args = 0
+ 3803 0a14 00482DE9 		stmfd	sp!, {fp, lr}
+ 3804              	.LCFI16:
+ 3805              		.cfi_def_cfa_offset 8
+ 3806 0a18 04B08DE2 		add	fp, sp, #4
+ 3807              		.cfi_offset 14, -4
+ 3808              		.cfi_offset 11, -8
+ 3809              	.LCFI17:
+ 3810              		.cfi_def_cfa 11, 4
+ 262:../main.c     **** 	if(count>=5000)
+ 3811              		.loc 1 262 0
+ 3812 0a1c 9C309FE5 		ldr	r3, .L42
+ 3813 0a20 002093E5 		ldr	r2, [r3, #0]
+ 3814 0a24 4E3DA0E3 		mov	r3, #4992
+ 3815 0a28 073083E2 		add	r3, r3, #7
+ 3816 0a2c 030052E1 		cmp	r2, r3
+ 3817 0a30 1A0000DA 		ble	.L41
+ 263:../main.c     **** 	{
+ 264:../main.c     **** 		iprintf("1- %d  %d  \r\n", e[0], saida[0]);
+ 3818              		.loc 1 264 0
+ 3819 0a34 88309FE5 		ldr	r3, .L42+4
+ 3820 0a38 002093E5 		ldr	r2, [r3, #0]
+ 3821 0a3c 84309FE5 		ldr	r3, .L42+8
+ 3822 0a40 003093E5 		ldr	r3, [r3, #0]
+ 3823 0a44 80009FE5 		ldr	r0, .L42+12
+ 3824 0a48 0210A0E1 		mov	r1, r2
+ 3825 0a4c 0320A0E1 		mov	r2, r3
+ 3826 0a50 FEFFFFEB 		bl	iprintf
+ 265:../main.c     **** 		iprintf("2- %d  %d  \r\n", e[1], saida[1]);
+ 3827              		.loc 1 265 0
+ 3828 0a54 68309FE5 		ldr	r3, .L42+4
+ 3829 0a58 042093E5 		ldr	r2, [r3, #4]
+ 3830 0a5c 64309FE5 		ldr	r3, .L42+8
+ 3831 0a60 043093E5 		ldr	r3, [r3, #4]
+ 3832 0a64 64009FE5 		ldr	r0, .L42+16
+ 3833 0a68 0210A0E1 		mov	r1, r2
+ 3834 0a6c 0320A0E1 		mov	r2, r3
+ 3835 0a70 FEFFFFEB 		bl	iprintf
+ 266:../main.c     **** 		iprintf("3- %d  %d  \r\n", e[2], saida[2]);
+ 3836              		.loc 1 266 0
+ 3837 0a74 48309FE5 		ldr	r3, .L42+4
+ 3838 0a78 082093E5 		ldr	r2, [r3, #8]
+ 3839 0a7c 44309FE5 		ldr	r3, .L42+8
+ 3840 0a80 083093E5 		ldr	r3, [r3, #8]
+ 3841 0a84 48009FE5 		ldr	r0, .L42+20
+ 3842 0a88 0210A0E1 		mov	r1, r2
+ 3843 0a8c 0320A0E1 		mov	r2, r3
+ 3844 0a90 FEFFFFEB 		bl	iprintf
+ 267:../main.c     **** 		count=0;
+ 3845              		.loc 1 267 0
+ 3846 0a94 24309FE5 		ldr	r3, .L42
+ 3847 0a98 0020A0E3 		mov	r2, #0
+ 3848 0a9c 002083E5 		str	r2, [r3, #0]
+ 3849              	.L41:
+ 268:../main.c     **** 	}
+ 269:../main.c     **** 	count++;
+ 3850              		.loc 1 269 0
+ 3851 0aa0 18309FE5 		ldr	r3, .L42
+ 3852 0aa4 003093E5 		ldr	r3, [r3, #0]
+ 3853 0aa8 012083E2 		add	r2, r3, #1
+ 3854 0aac 0C309FE5 		ldr	r3, .L42
+ 3855 0ab0 002083E5 		str	r2, [r3, #0]
+ 270:../main.c     **** }
+ 3856              		.loc 1 270 0
+ 3857 0ab4 04D04BE2 		sub	sp, fp, #4
+ 3858 0ab8 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 3859 0abc 1EFF2FE1 		bx	lr
+ 3860              	.L43:
+ 3861              		.align	2
+ 3862              	.L42:
+ 3863 0ac0 00000000 		.word	count
+ 3864 0ac4 00000000 		.word	e
+ 3865 0ac8 00000000 		.word	saida
+ 3866 0acc 00000000 		.word	.LC0
+ 3867 0ad0 10000000 		.word	.LC1
+ 3868 0ad4 20000000 		.word	.LC2
+ 3869              		.cfi_endproc
+ 3870              	.LFE8:
+ 3872              		.align	2
+ 3873              		.global	main
+ 3875              	main:
+ 3876              	.LFB9:
+ 271:../main.c     **** 
+ 272:../main.c     **** 
+ 273:../main.c     **** /***************************************************************************************
+ 274:../main.c     ****  * Function Name: main(void)
+ 275:../main.c     ****  * 		 	Type: Integer
+ 276:../main.c     ****  *	  Parameters:
+ 277:../main.c     ****  * 		 Returns: 0
+ 278:../main.c     ****  * 	 Description: Main function for firmware
+ 279:../main.c     **** ***************************************************************************************/
+ 280:../main.c     **** int main (void)
+ 281:../main.c     **** {
+ 3877              		.loc 1 281 0
+ 3878              		.cfi_startproc
+ 3879              		@ Function supports interworking.
+ 3880              		@ args = 0, pretend = 0, frame = 0
+ 3881              		@ frame_needed = 1, uses_anonymous_args = 0
+ 3882 0ad8 00482DE9 		stmfd	sp!, {fp, lr}
+ 3883              	.LCFI18:
+ 3884              		.cfi_def_cfa_offset 8
+ 3885 0adc 04B08DE2 		add	fp, sp, #4
+ 3886              		.cfi_offset 14, -4
+ 3887              		.cfi_offset 11, -8
+ 3888              	.LCFI19:
+ 3889              		.cfi_def_cfa 11, 4
+ 282:../main.c     **** 	Initialize();
+ 3890              		.loc 1 282 0
+ 3891 0ae0 FEFFFFEB 		bl	Initialize
+ 3892              	.L45:
+ 283:../main.c     **** 	while(1)
+ 284:../main.c     **** 	{
+ 285:../main.c     **** 		IOCLR0 = (1<<9);	IOSET0 = (1<<6);
+ 3893              		.loc 1 285 0 discriminator 1
+ 3894 0ae4 CE32A0E3 		mov	r3, #-536870900
+ 3895 0ae8 0A3983E2 		add	r3, r3, #163840
+ 3896 0aec 022CA0E3 		mov	r2, #512
+ 3897 0af0 002083E5 		str	r2, [r3, #0]
+ 3898 0af4 4E32A0E3 		mov	r3, #-536870908
+ 3899 0af8 0A3983E2 		add	r3, r3, #163840
+ 3900 0afc 4020A0E3 		mov	r2, #64
+ 3901 0b00 002083E5 		str	r2, [r3, #0]
+ 286:../main.c     **** 		setDutyCycle(2,1000);  //DOF 1
+ 3902              		.loc 1 286 0 discriminator 1
+ 3903 0b04 0200A0E3 		mov	r0, #2
+ 3904 0b08 FA1FA0E3 		mov	r1, #1000
+ 3905 0b0c FEFFFFEB 		bl	setDutyCycle
+ 287:../main.c     **** //		ReceivingData();
+ 288:../main.c     **** //		ReadingADC();
+ 289:../main.c     **** //		PIDController();
+ 290:../main.c     **** //		SendingData();
+ 291:../main.c     **** 	}
+ 3906              		.loc 1 291 0 discriminator 1
+ 3907 0b10 F3FFFFEA 		b	.L45
+ 3908              		.cfi_endproc
+ 3909              	.LFE9:
+ 3911              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2724   .bss:00000000 buffer
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2721   .bss:00000000 $d
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2730   .bss:00000064 size
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2736   .bss:00000068 data
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2742   .bss:0000008c count
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2748   .bss:00000090 sp_svm
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2754   .bss:0000009c adc
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2761   .data:00000000 sp
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2758   .data:00000000 $d
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2770   .bss:000000a8 e
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2776   .bss:000000b4 kp
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2782   .bss:000000c0 ki
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2788   .bss:000000cc kd
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2794   .bss:000000d8 saida
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2800   .bss:000000e4 PTerm
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2807   .data:0000000c PLimit
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2813   .data:00000010 ILimit
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2819   .data:00000014 DLimit
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2825   .data:00000018 Out_Limit
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2828   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2830   .text:00000000 feed
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2867   .text:0000003c Limit_value_signed
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2917   .text:00000098 Adjust_PWM_to_unsigned
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:2956   .text:000000d4 Initialize
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3044   .text:000001a4 delay
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3116   .text:00000204 ReceivingData
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3207   .text:0000030c $d
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3216   .text:00000324 $a
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3219   .text:00000324 ReadingADC
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3249   .text:00000354 $d
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3260   .text:00000358 $a
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3263   .text:00000358 PIDController
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3770   .text:000009f0 $d
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3783   .rodata:00000000 $d
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3793   .text:00000a14 $a
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3796   .text:00000a14 SendingData
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3863   .text:00000ac0 $d
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3872   .text:00000ad8 $a
+C:\Users\Daniel\AppData\Local\Temp\cc12cl3i.s:3875   .text:00000ad8 main
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+ADC_Init
+UART_Init
+PWM_Init
+GPIO_Init
+UART_GetNumberAvailableElements
+UART_ReceiveBuffer
+memcpy
+ADC0Read
+__aeabi_ui2d
+__aeabi_ddiv
+__aeabi_d2f
+__aeabi_fcmplt
+__aeabi_f2iz
+__aeabi_i2f
+__aeabi_f2uiz
+setDutyCycle
+iprintf

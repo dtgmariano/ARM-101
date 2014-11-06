@@ -1,0 +1,1014 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"iprintf.c"
+  21              	.Ltext0:
+  22              		.file 1 "../Modules/iprintf.c"
+ 929              		.align	2
+ 931              	printchar:
+ 932              	.LFB0:
+   1:../Modules/iprintf.c **** /*
+   2:../Modules/iprintf.c **** 	Copyright 2001, 2002 Georges Menie (www.menie.org)
+   3:../Modules/iprintf.c **** 	stdarg version contributed by Christian Ettinger
+   4:../Modules/iprintf.c **** 
+   5:../Modules/iprintf.c ****     This program is free software; you can redistribute it and/or modify
+   6:../Modules/iprintf.c ****     it under the terms of the GNU Lesser General Public License as published by
+   7:../Modules/iprintf.c ****     the Free Software Foundation; either version 2 of the License, or
+   8:../Modules/iprintf.c ****     (at your option) any later version.
+   9:../Modules/iprintf.c **** 
+  10:../Modules/iprintf.c ****     This program is distributed in the hope that it will be useful,
+  11:../Modules/iprintf.c ****     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12:../Modules/iprintf.c ****     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13:../Modules/iprintf.c ****     GNU Lesser General Public License for more details.
+  14:../Modules/iprintf.c **** 
+  15:../Modules/iprintf.c ****     You should have received a copy of the GNU Lesser General Public License
+  16:../Modules/iprintf.c ****     along with this program; if not, write to the Free Software
+  17:../Modules/iprintf.c ****     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  18:../Modules/iprintf.c **** */
+  19:../Modules/iprintf.c **** 
+  20:../Modules/iprintf.c **** /*
+  21:../Modules/iprintf.c **** 	putchar is the only external dependency for this file,
+  22:../Modules/iprintf.c **** 	if you have a working putchar, leave it commented out.
+  23:../Modules/iprintf.c **** 	If not, uncomment the define below and
+  24:../Modules/iprintf.c **** 	replace outbyte(c) by your own function call.
+  25:../Modules/iprintf.c **** 
+  26:../Modules/iprintf.c **** #define putchar(c) outbyte(c)
+  27:../Modules/iprintf.c **** */
+  28:../Modules/iprintf.c **** 
+  29:../Modules/iprintf.c **** #include <stdarg.h>
+  30:../Modules/iprintf.c **** #include "iprintf.h"
+  31:../Modules/iprintf.c **** #include "Modules/uart.h"
+  32:../Modules/iprintf.c **** 
+  33:../Modules/iprintf.c **** int iprintf(const char *format, ...);
+  34:../Modules/iprintf.c **** int isprintf(char *out, const char *format, ...);
+  35:../Modules/iprintf.c **** 
+  36:../Modules/iprintf.c **** static void printchar(char **str, int c)
+  37:../Modules/iprintf.c **** {
+ 933              		.loc 1 37 0
+ 934              		.cfi_startproc
+ 935              		@ Function supports interworking.
+ 936              		@ args = 0, pretend = 0, frame = 8
+ 937              		@ frame_needed = 1, uses_anonymous_args = 0
+ 938 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 939              	.LCFI0:
+ 940              		.cfi_def_cfa_offset 8
+ 941 0004 04B08DE2 		add	fp, sp, #4
+ 942              		.cfi_offset 14, -4
+ 943              		.cfi_offset 11, -8
+ 944              	.LCFI1:
+ 945              		.cfi_def_cfa 11, 4
+ 946 0008 08D04DE2 		sub	sp, sp, #8
+ 947 000c 08000BE5 		str	r0, [fp, #-8]
+ 948 0010 0C100BE5 		str	r1, [fp, #-12]
+  38:../Modules/iprintf.c **** 	if (str) {
+ 949              		.loc 1 38 0
+ 950 0014 08301BE5 		ldr	r3, [fp, #-8]
+ 951 0018 000053E3 		cmp	r3, #0
+ 952 001c 0A00000A 		beq	.L2
+  39:../Modules/iprintf.c **** 		**str = c;
+ 953              		.loc 1 39 0
+ 954 0020 08301BE5 		ldr	r3, [fp, #-8]
+ 955 0024 003093E5 		ldr	r3, [r3, #0]
+ 956 0028 0C201BE5 		ldr	r2, [fp, #-12]
+ 957 002c FF2002E2 		and	r2, r2, #255
+ 958 0030 0020C3E5 		strb	r2, [r3, #0]
+  40:../Modules/iprintf.c **** 		++(*str);
+ 959              		.loc 1 40 0
+ 960 0034 08301BE5 		ldr	r3, [fp, #-8]
+ 961 0038 003093E5 		ldr	r3, [r3, #0]
+ 962 003c 012083E2 		add	r2, r3, #1
+ 963 0040 08301BE5 		ldr	r3, [fp, #-8]
+ 964 0044 002083E5 		str	r2, [r3, #0]
+ 965 0048 030000EA 		b	.L1
+ 966              	.L2:
+  41:../Modules/iprintf.c **** 	}
+  42:../Modules/iprintf.c **** 	else
+  43:../Modules/iprintf.c **** 	{
+  44:../Modules/iprintf.c **** 		UART_putc(c);
+ 967              		.loc 1 44 0
+ 968 004c 0C301BE5 		ldr	r3, [fp, #-12]
+ 969 0050 FF3003E2 		and	r3, r3, #255
+ 970 0054 0300A0E1 		mov	r0, r3
+ 971 0058 FEFFFFEB 		bl	UART_putc
+ 972              	.L1:
+  45:../Modules/iprintf.c **** 	}
+  46:../Modules/iprintf.c **** }
+ 973              		.loc 1 46 0
+ 974 005c 04D04BE2 		sub	sp, fp, #4
+ 975 0060 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 976 0064 1EFF2FE1 		bx	lr
+ 977              		.cfi_endproc
+ 978              	.LFE0:
+ 980              		.align	2
+ 982              	prints:
+ 983              	.LFB1:
+  47:../Modules/iprintf.c **** 
+  48:../Modules/iprintf.c **** #define PAD_RIGHT 1
+  49:../Modules/iprintf.c **** #define PAD_ZERO 2
+  50:../Modules/iprintf.c **** 
+  51:../Modules/iprintf.c **** static int prints(char **out, const char *string, int width, int pad)
+  52:../Modules/iprintf.c **** {
+ 984              		.loc 1 52 0
+ 985              		.cfi_startproc
+ 986              		@ Function supports interworking.
+ 987              		@ args = 0, pretend = 0, frame = 16
+ 988              		@ frame_needed = 1, uses_anonymous_args = 0
+ 989 0068 F0482DE9 		stmfd	sp!, {r4, r5, r6, r7, fp, lr}
+ 990              	.LCFI2:
+ 991              		.cfi_def_cfa_offset 24
+ 992 006c 14B08DE2 		add	fp, sp, #20
+ 993              		.cfi_offset 14, -4
+ 994              		.cfi_offset 11, -8
+ 995              		.cfi_offset 7, -12
+ 996              		.cfi_offset 6, -16
+ 997              		.cfi_offset 5, -20
+ 998              		.cfi_offset 4, -24
+ 999              	.LCFI3:
+ 1000              		.cfi_def_cfa 11, 4
+ 1001 0070 10D04DE2 		sub	sp, sp, #16
+ 1002 0074 18000BE5 		str	r0, [fp, #-24]
+ 1003 0078 1C100BE5 		str	r1, [fp, #-28]
+ 1004 007c 20200BE5 		str	r2, [fp, #-32]
+ 1005 0080 24300BE5 		str	r3, [fp, #-36]
+  53:../Modules/iprintf.c **** 	register int pc = 0, padchar = ' ';
+ 1006              		.loc 1 53 0
+ 1007 0084 0040A0E3 		mov	r4, #0
+ 1008 0088 2060A0E3 		mov	r6, #32
+  54:../Modules/iprintf.c **** 
+  55:../Modules/iprintf.c **** 	if (width > 0) {
+ 1009              		.loc 1 55 0
+ 1010 008c 20301BE5 		ldr	r3, [fp, #-32]
+ 1011 0090 000053E3 		cmp	r3, #0
+ 1012 0094 150000DA 		ble	.L5
+ 1013              	.LBB2:
+  56:../Modules/iprintf.c **** 		register int len = 0;
+ 1014              		.loc 1 56 0
+ 1015 0098 0050A0E3 		mov	r5, #0
+  57:../Modules/iprintf.c **** 		register const char *ptr;
+  58:../Modules/iprintf.c **** 		for (ptr = string; *ptr; ++ptr) ++len;
+ 1016              		.loc 1 58 0
+ 1017 009c 1C701BE5 		ldr	r7, [fp, #-28]
+ 1018 00a0 010000EA 		b	.L6
+ 1019              	.L7:
+ 1020              		.loc 1 58 0 is_stmt 0 discriminator 2
+ 1021 00a4 015085E2 		add	r5, r5, #1
+ 1022 00a8 017087E2 		add	r7, r7, #1
+ 1023              	.L6:
+ 1024              		.loc 1 58 0 discriminator 1
+ 1025 00ac 0030D7E5 		ldrb	r3, [r7, #0]	@ zero_extendqisi2
+ 1026 00b0 000053E3 		cmp	r3, #0
+ 1027 00b4 FAFFFF1A 		bne	.L7
+  59:../Modules/iprintf.c **** 		if (len >= width) width = 0;
+ 1028              		.loc 1 59 0 is_stmt 1
+ 1029 00b8 20301BE5 		ldr	r3, [fp, #-32]
+ 1030 00bc 030055E1 		cmp	r5, r3
+ 1031 00c0 020000BA 		blt	.L8
+ 1032              		.loc 1 59 0 is_stmt 0 discriminator 1
+ 1033 00c4 0030A0E3 		mov	r3, #0
+ 1034 00c8 20300BE5 		str	r3, [fp, #-32]
+ 1035 00cc 020000EA 		b	.L9
+ 1036              	.L8:
+  60:../Modules/iprintf.c **** 		else width -= len;
+ 1037              		.loc 1 60 0 is_stmt 1
+ 1038 00d0 20301BE5 		ldr	r3, [fp, #-32]
+ 1039 00d4 033065E0 		rsb	r3, r5, r3
+ 1040 00d8 20300BE5 		str	r3, [fp, #-32]
+ 1041              	.L9:
+  61:../Modules/iprintf.c **** 		if (pad & PAD_ZERO) padchar = '0';
+ 1042              		.loc 1 61 0
+ 1043 00dc 24301BE5 		ldr	r3, [fp, #-36]
+ 1044 00e0 023003E2 		and	r3, r3, #2
+ 1045 00e4 000053E3 		cmp	r3, #0
+ 1046 00e8 0000000A 		beq	.L5
+ 1047              		.loc 1 61 0 is_stmt 0 discriminator 1
+ 1048 00ec 3060A0E3 		mov	r6, #48
+ 1049              	.L5:
+ 1050              	.LBE2:
+  62:../Modules/iprintf.c **** 	}
+  63:../Modules/iprintf.c **** 	if (!(pad & PAD_RIGHT)) {
+ 1051              		.loc 1 63 0 is_stmt 1
+ 1052 00f0 24301BE5 		ldr	r3, [fp, #-36]
+ 1053 00f4 013003E2 		and	r3, r3, #1
+ 1054 00f8 000053E3 		cmp	r3, #0
+ 1055 00fc 1500001A 		bne	.L17
+  64:../Modules/iprintf.c **** 		for ( ; width > 0; --width) {
+ 1056              		.loc 1 64 0
+ 1057 0100 060000EA 		b	.L11
+ 1058              	.L12:
+  65:../Modules/iprintf.c **** 			printchar (out, padchar);
+ 1059              		.loc 1 65 0 discriminator 2
+ 1060 0104 18001BE5 		ldr	r0, [fp, #-24]
+ 1061 0108 0610A0E1 		mov	r1, r6
+ 1062 010c BBFFFFEB 		bl	printchar
+  66:../Modules/iprintf.c **** 			++pc;
+ 1063              		.loc 1 66 0 discriminator 2
+ 1064 0110 014084E2 		add	r4, r4, #1
+  64:../Modules/iprintf.c **** 		for ( ; width > 0; --width) {
+ 1065              		.loc 1 64 0 discriminator 2
+ 1066 0114 20301BE5 		ldr	r3, [fp, #-32]
+ 1067 0118 013043E2 		sub	r3, r3, #1
+ 1068 011c 20300BE5 		str	r3, [fp, #-32]
+ 1069              	.L11:
+  64:../Modules/iprintf.c **** 		for ( ; width > 0; --width) {
+ 1070              		.loc 1 64 0 is_stmt 0 discriminator 1
+ 1071 0120 20301BE5 		ldr	r3, [fp, #-32]
+ 1072 0124 000053E3 		cmp	r3, #0
+ 1073 0128 F5FFFFCA 		bgt	.L12
+  67:../Modules/iprintf.c **** 		}
+  68:../Modules/iprintf.c **** 	}
+  69:../Modules/iprintf.c **** 	for ( ; *string ; ++string) {
+ 1074              		.loc 1 69 0 is_stmt 1
+ 1075 012c 0A0000EA 		b	.L13
+ 1076              	.L14:
+  70:../Modules/iprintf.c **** 		printchar (out, *string);
+ 1077              		.loc 1 70 0 discriminator 2
+ 1078 0130 1C301BE5 		ldr	r3, [fp, #-28]
+ 1079 0134 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1080 0138 18001BE5 		ldr	r0, [fp, #-24]
+ 1081 013c 0310A0E1 		mov	r1, r3
+ 1082 0140 AEFFFFEB 		bl	printchar
+  71:../Modules/iprintf.c **** 		++pc;
+ 1083              		.loc 1 71 0 discriminator 2
+ 1084 0144 014084E2 		add	r4, r4, #1
+  69:../Modules/iprintf.c **** 	for ( ; *string ; ++string) {
+ 1085              		.loc 1 69 0 discriminator 2
+ 1086 0148 1C301BE5 		ldr	r3, [fp, #-28]
+ 1087 014c 013083E2 		add	r3, r3, #1
+ 1088 0150 1C300BE5 		str	r3, [fp, #-28]
+ 1089 0154 000000EA 		b	.L13
+ 1090              	.L17:
+  69:../Modules/iprintf.c **** 	for ( ; *string ; ++string) {
+ 1091              		.loc 1 69 0 is_stmt 0
+ 1092 0158 0000A0E1 		mov	r0, r0	@ nop
+ 1093              	.L13:
+  69:../Modules/iprintf.c **** 	for ( ; *string ; ++string) {
+ 1094              		.loc 1 69 0 discriminator 1
+ 1095 015c 1C301BE5 		ldr	r3, [fp, #-28]
+ 1096 0160 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1097 0164 000053E3 		cmp	r3, #0
+ 1098 0168 F0FFFF1A 		bne	.L14
+  72:../Modules/iprintf.c **** 	}
+  73:../Modules/iprintf.c **** 	for ( ; width > 0; --width) {
+ 1099              		.loc 1 73 0 is_stmt 1
+ 1100 016c 060000EA 		b	.L15
+ 1101              	.L16:
+  74:../Modules/iprintf.c **** 		printchar (out, padchar);
+ 1102              		.loc 1 74 0 discriminator 2
+ 1103 0170 18001BE5 		ldr	r0, [fp, #-24]
+ 1104 0174 0610A0E1 		mov	r1, r6
+ 1105 0178 A0FFFFEB 		bl	printchar
+  75:../Modules/iprintf.c **** 		++pc;
+ 1106              		.loc 1 75 0 discriminator 2
+ 1107 017c 014084E2 		add	r4, r4, #1
+  73:../Modules/iprintf.c **** 	for ( ; width > 0; --width) {
+ 1108              		.loc 1 73 0 discriminator 2
+ 1109 0180 20301BE5 		ldr	r3, [fp, #-32]
+ 1110 0184 013043E2 		sub	r3, r3, #1
+ 1111 0188 20300BE5 		str	r3, [fp, #-32]
+ 1112              	.L15:
+  73:../Modules/iprintf.c **** 	for ( ; width > 0; --width) {
+ 1113              		.loc 1 73 0 is_stmt 0 discriminator 1
+ 1114 018c 20301BE5 		ldr	r3, [fp, #-32]
+ 1115 0190 000053E3 		cmp	r3, #0
+ 1116 0194 F5FFFFCA 		bgt	.L16
+  76:../Modules/iprintf.c **** 	}
+  77:../Modules/iprintf.c **** 
+  78:../Modules/iprintf.c **** 	return pc;
+ 1117              		.loc 1 78 0 is_stmt 1
+ 1118 0198 0430A0E1 		mov	r3, r4
+  79:../Modules/iprintf.c **** }
+ 1119              		.loc 1 79 0
+ 1120 019c 0300A0E1 		mov	r0, r3
+ 1121 01a0 14D04BE2 		sub	sp, fp, #20
+ 1122 01a4 F048BDE8 		ldmfd	sp!, {r4, r5, r6, r7, fp, lr}
+ 1123 01a8 1EFF2FE1 		bx	lr
+ 1124              		.cfi_endproc
+ 1125              	.LFE1:
+ 1127              		.global	__aeabi_uidivmod
+ 1128              		.global	__aeabi_uidiv
+ 1129              		.align	2
+ 1131              	printi:
+ 1132              	.LFB2:
+  80:../Modules/iprintf.c **** 
+  81:../Modules/iprintf.c **** /* the following should be enough for 32 bit int */
+  82:../Modules/iprintf.c **** #define PRINT_BUF_LEN 12
+  83:../Modules/iprintf.c **** 
+  84:../Modules/iprintf.c **** static int printi(char **out, int i, int b, int sg, int width, int pad, int letbase)
+  85:../Modules/iprintf.c **** {
+ 1133              		.loc 1 85 0
+ 1134              		.cfi_startproc
+ 1135              		@ Function supports interworking.
+ 1136              		@ args = 12, pretend = 0, frame = 32
+ 1137              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1138 01ac F0492DE9 		stmfd	sp!, {r4, r5, r6, r7, r8, fp, lr}
+ 1139              	.LCFI4:
+ 1140              		.cfi_def_cfa_offset 28
+ 1141 01b0 18B08DE2 		add	fp, sp, #24
+ 1142              		.cfi_offset 14, -4
+ 1143              		.cfi_offset 11, -8
+ 1144              		.cfi_offset 8, -12
+ 1145              		.cfi_offset 7, -16
+ 1146              		.cfi_offset 6, -20
+ 1147              		.cfi_offset 5, -24
+ 1148              		.cfi_offset 4, -28
+ 1149              	.LCFI5:
+ 1150              		.cfi_def_cfa 11, 4
+ 1151 01b4 24D04DE2 		sub	sp, sp, #36
+ 1152 01b8 30000BE5 		str	r0, [fp, #-48]
+ 1153 01bc 34100BE5 		str	r1, [fp, #-52]
+ 1154 01c0 38200BE5 		str	r2, [fp, #-56]
+ 1155 01c4 3C300BE5 		str	r3, [fp, #-60]
+  86:../Modules/iprintf.c **** 	char print_buf[PRINT_BUF_LEN];
+  87:../Modules/iprintf.c **** 	register char *s;
+  88:../Modules/iprintf.c **** 	register int t, neg = 0, pc = 0;
+ 1156              		.loc 1 88 0
+ 1157 01c8 0080A0E3 		mov	r8, #0
+ 1158 01cc 0070A0E3 		mov	r7, #0
+  89:../Modules/iprintf.c **** 	register unsigned int u = i;
+ 1159              		.loc 1 89 0
+ 1160 01d0 34501BE5 		ldr	r5, [fp, #-52]
+  90:../Modules/iprintf.c **** 
+  91:../Modules/iprintf.c **** 	if (i == 0) {
+ 1161              		.loc 1 91 0
+ 1162 01d4 34301BE5 		ldr	r3, [fp, #-52]
+ 1163 01d8 000053E3 		cmp	r3, #0
+ 1164 01dc 0B00001A 		bne	.L19
+  92:../Modules/iprintf.c **** 		print_buf[0] = '0';
+ 1165              		.loc 1 92 0
+ 1166 01e0 3030A0E3 		mov	r3, #48
+ 1167 01e4 28304BE5 		strb	r3, [fp, #-40]
+  93:../Modules/iprintf.c **** 		print_buf[1] = '\0';
+ 1168              		.loc 1 93 0
+ 1169 01e8 0030A0E3 		mov	r3, #0
+ 1170 01ec 27304BE5 		strb	r3, [fp, #-39]
+  94:../Modules/iprintf.c **** 		return prints (out, print_buf, width, pad);
+ 1171              		.loc 1 94 0
+ 1172 01f0 28304BE2 		sub	r3, fp, #40
+ 1173 01f4 30001BE5 		ldr	r0, [fp, #-48]
+ 1174 01f8 0310A0E1 		mov	r1, r3
+ 1175 01fc 04209BE5 		ldr	r2, [fp, #4]
+ 1176 0200 08309BE5 		ldr	r3, [fp, #8]
+ 1177 0204 97FFFFEB 		bl	prints
+ 1178 0208 0030A0E1 		mov	r3, r0
+ 1179 020c 440000EA 		b	.L20
+ 1180              	.L19:
+  95:../Modules/iprintf.c **** 	}
+  96:../Modules/iprintf.c **** 
+  97:../Modules/iprintf.c **** 	if (sg && b == 10 && i < 0) {
+ 1181              		.loc 1 97 0
+ 1182 0210 3C301BE5 		ldr	r3, [fp, #-60]
+ 1183 0214 000053E3 		cmp	r3, #0
+ 1184 0218 0900000A 		beq	.L21
+ 1185              		.loc 1 97 0 is_stmt 0 discriminator 1
+ 1186 021c 38301BE5 		ldr	r3, [fp, #-56]
+ 1187 0220 0A0053E3 		cmp	r3, #10
+ 1188 0224 0600001A 		bne	.L21
+ 1189 0228 34301BE5 		ldr	r3, [fp, #-52]
+ 1190 022c 000053E3 		cmp	r3, #0
+ 1191 0230 030000AA 		bge	.L21
+  98:../Modules/iprintf.c **** 		neg = 1;
+ 1192              		.loc 1 98 0 is_stmt 1
+ 1193 0234 0180A0E3 		mov	r8, #1
+  99:../Modules/iprintf.c **** 		u = -i;
+ 1194              		.loc 1 99 0
+ 1195 0238 34301BE5 		ldr	r3, [fp, #-52]
+ 1196 023c 003063E2 		rsb	r3, r3, #0
+ 1197 0240 0350A0E1 		mov	r5, r3
+ 1198              	.L21:
+ 100:../Modules/iprintf.c **** 	}
+ 101:../Modules/iprintf.c **** 
+ 102:../Modules/iprintf.c **** 	s = print_buf + PRINT_BUF_LEN-1;
+ 1199              		.loc 1 102 0
+ 1200 0244 28304BE2 		sub	r3, fp, #40
+ 1201 0248 0B4083E2 		add	r4, r3, #11
+ 103:../Modules/iprintf.c **** 	*s = '\0';
+ 1202              		.loc 1 103 0
+ 1203 024c 0030A0E3 		mov	r3, #0
+ 1204 0250 0030C4E5 		strb	r3, [r4, #0]
+ 104:../Modules/iprintf.c **** 
+ 105:../Modules/iprintf.c **** 	while (u) {
+ 1205              		.loc 1 105 0
+ 1206 0254 150000EA 		b	.L22
+ 1207              	.L24:
+ 106:../Modules/iprintf.c **** 		t = u % b;
+ 1208              		.loc 1 106 0
+ 1209 0258 38301BE5 		ldr	r3, [fp, #-56]
+ 1210 025c 0500A0E1 		mov	r0, r5
+ 1211 0260 0310A0E1 		mov	r1, r3
+ 1212 0264 FEFFFFEB 		bl	__aeabi_uidivmod
+ 1213 0268 0130A0E1 		mov	r3, r1
+ 1214 026c 0360A0E1 		mov	r6, r3
+ 107:../Modules/iprintf.c **** 		if( t >= 10 )
+ 1215              		.loc 1 107 0
+ 1216 0270 090056E3 		cmp	r6, #9
+ 1217 0274 020000DA 		ble	.L23
+ 108:../Modules/iprintf.c **** 			t += letbase - '0' - 10;
+ 1218              		.loc 1 108 0
+ 1219 0278 0C309BE5 		ldr	r3, [fp, #12]
+ 1220 027c 3A3043E2 		sub	r3, r3, #58
+ 1221 0280 036086E0 		add	r6, r6, r3
+ 1222              	.L23:
+ 109:../Modules/iprintf.c **** 		*--s = t + '0';
+ 1223              		.loc 1 109 0
+ 1224 0284 014044E2 		sub	r4, r4, #1
+ 1225 0288 FF3006E2 		and	r3, r6, #255
+ 1226 028c 303083E2 		add	r3, r3, #48
+ 1227 0290 FF3003E2 		and	r3, r3, #255
+ 1228 0294 0030C4E5 		strb	r3, [r4, #0]
+ 110:../Modules/iprintf.c **** 		u /= b;
+ 1229              		.loc 1 110 0
+ 1230 0298 38301BE5 		ldr	r3, [fp, #-56]
+ 1231 029c 0500A0E1 		mov	r0, r5
+ 1232 02a0 0310A0E1 		mov	r1, r3
+ 1233 02a4 FEFFFFEB 		bl	__aeabi_uidiv
+ 1234 02a8 0030A0E1 		mov	r3, r0
+ 1235 02ac 0350A0E1 		mov	r5, r3
+ 1236              	.L22:
+ 105:../Modules/iprintf.c **** 	while (u) {
+ 1237              		.loc 1 105 0 discriminator 1
+ 1238 02b0 000055E3 		cmp	r5, #0
+ 1239 02b4 E7FFFF1A 		bne	.L24
+ 111:../Modules/iprintf.c **** 	}
+ 112:../Modules/iprintf.c **** 
+ 113:../Modules/iprintf.c **** 	if (neg) {
+ 1240              		.loc 1 113 0
+ 1241 02b8 000058E3 		cmp	r8, #0
+ 1242 02bc 1100000A 		beq	.L25
+ 114:../Modules/iprintf.c **** 		if( width && (pad & PAD_ZERO) ) {
+ 1243              		.loc 1 114 0
+ 1244 02c0 04309BE5 		ldr	r3, [fp, #4]
+ 1245 02c4 000053E3 		cmp	r3, #0
+ 1246 02c8 0B00000A 		beq	.L26
+ 1247              		.loc 1 114 0 is_stmt 0 discriminator 1
+ 1248 02cc 08309BE5 		ldr	r3, [fp, #8]
+ 1249 02d0 023003E2 		and	r3, r3, #2
+ 1250 02d4 000053E3 		cmp	r3, #0
+ 1251 02d8 0700000A 		beq	.L26
+ 115:../Modules/iprintf.c **** 			printchar (out, '-');
+ 1252              		.loc 1 115 0 is_stmt 1
+ 1253 02dc 30001BE5 		ldr	r0, [fp, #-48]
+ 1254 02e0 2D10A0E3 		mov	r1, #45
+ 1255 02e4 45FFFFEB 		bl	printchar
+ 116:../Modules/iprintf.c **** 			++pc;
+ 1256              		.loc 1 116 0
+ 1257 02e8 017087E2 		add	r7, r7, #1
+ 117:../Modules/iprintf.c **** 			--width;
+ 1258              		.loc 1 117 0
+ 1259 02ec 04309BE5 		ldr	r3, [fp, #4]
+ 1260 02f0 013043E2 		sub	r3, r3, #1
+ 1261 02f4 04308BE5 		str	r3, [fp, #4]
+ 1262 02f8 020000EA 		b	.L25
+ 1263              	.L26:
+ 118:../Modules/iprintf.c **** 		}
+ 119:../Modules/iprintf.c **** 		else {
+ 120:../Modules/iprintf.c **** 			*--s = '-';
+ 1264              		.loc 1 120 0
+ 1265 02fc 014044E2 		sub	r4, r4, #1
+ 1266 0300 2D30A0E3 		mov	r3, #45
+ 1267 0304 0030C4E5 		strb	r3, [r4, #0]
+ 1268              	.L25:
+ 121:../Modules/iprintf.c **** 		}
+ 122:../Modules/iprintf.c **** 	}
+ 123:../Modules/iprintf.c **** 
+ 124:../Modules/iprintf.c **** 	return pc + prints (out, s, width, pad);
+ 1269              		.loc 1 124 0
+ 1270 0308 30001BE5 		ldr	r0, [fp, #-48]
+ 1271 030c 0410A0E1 		mov	r1, r4
+ 1272 0310 04209BE5 		ldr	r2, [fp, #4]
+ 1273 0314 08309BE5 		ldr	r3, [fp, #8]
+ 1274 0318 52FFFFEB 		bl	prints
+ 1275 031c 0030A0E1 		mov	r3, r0
+ 1276 0320 073083E0 		add	r3, r3, r7
+ 1277              	.L20:
+ 125:../Modules/iprintf.c **** }
+ 1278              		.loc 1 125 0
+ 1279 0324 0300A0E1 		mov	r0, r3
+ 1280 0328 18D04BE2 		sub	sp, fp, #24
+ 1281 032c F049BDE8 		ldmfd	sp!, {r4, r5, r6, r7, r8, fp, lr}
+ 1282 0330 1EFF2FE1 		bx	lr
+ 1283              		.cfi_endproc
+ 1284              	.LFE2:
+ 1286              		.section	.rodata
+ 1287              		.align	2
+ 1288              	.LC0:
+ 1289 0000 286E756C 		.ascii	"(null)\000"
+ 1289      6C2900
+ 1290 0007 00       		.text
+ 1291              		.align	2
+ 1293              	print:
+ 1294              	.LFB3:
+ 126:../Modules/iprintf.c **** 
+ 127:../Modules/iprintf.c **** static int print(char **out, const char *format, va_list args )
+ 128:../Modules/iprintf.c **** {
+ 1295              		.loc 1 128 0
+ 1296              		.cfi_startproc
+ 1297              		@ Function supports interworking.
+ 1298              		@ args = 0, pretend = 0, frame = 24
+ 1299              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1300 0334 F0482DE9 		stmfd	sp!, {r4, r5, r6, r7, fp, lr}
+ 1301              	.LCFI6:
+ 1302              		.cfi_def_cfa_offset 24
+ 1303 0338 14B08DE2 		add	fp, sp, #20
+ 1304              		.cfi_offset 14, -4
+ 1305              		.cfi_offset 11, -8
+ 1306              		.cfi_offset 7, -12
+ 1307              		.cfi_offset 6, -16
+ 1308              		.cfi_offset 5, -20
+ 1309              		.cfi_offset 4, -24
+ 1310              	.LCFI7:
+ 1311              		.cfi_def_cfa 11, 4
+ 1312 033c 28D04DE2 		sub	sp, sp, #40
+ 1313 0340 20000BE5 		str	r0, [fp, #-32]
+ 1314 0344 24100BE5 		str	r1, [fp, #-36]
+ 1315 0348 28200BE5 		str	r2, [fp, #-40]
+ 129:../Modules/iprintf.c **** 	register int width, pad;
+ 130:../Modules/iprintf.c **** 	register int pc = 0;
+ 1316              		.loc 1 130 0
+ 1317 034c 0040A0E3 		mov	r4, #0
+ 131:../Modules/iprintf.c **** 	char scr[2];
+ 132:../Modules/iprintf.c **** 
+ 133:../Modules/iprintf.c **** 	for (; *format != 0; ++format) {
+ 1318              		.loc 1 133 0
+ 1319 0350 BD0000EA 		b	.L28
+ 1320              	.L47:
+ 134:../Modules/iprintf.c **** 		if (*format == '%') {
+ 1321              		.loc 1 134 0
+ 1322 0354 24301BE5 		ldr	r3, [fp, #-36]
+ 1323 0358 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1324 035c 250053E3 		cmp	r3, #37
+ 1325 0360 B000001A 		bne	.L29
+ 135:../Modules/iprintf.c **** 			++format;
+ 1326              		.loc 1 135 0
+ 1327 0364 24301BE5 		ldr	r3, [fp, #-36]
+ 1328 0368 013083E2 		add	r3, r3, #1
+ 1329 036c 24300BE5 		str	r3, [fp, #-36]
+ 136:../Modules/iprintf.c **** 			width = pad = 0;
+ 1330              		.loc 1 136 0
+ 1331 0370 0060A0E3 		mov	r6, #0
+ 1332 0374 0650A0E1 		mov	r5, r6
+ 137:../Modules/iprintf.c **** 			if (*format == '\0') break;
+ 1333              		.loc 1 137 0
+ 1334 0378 24301BE5 		ldr	r3, [fp, #-36]
+ 1335 037c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1336 0380 000053E3 		cmp	r3, #0
+ 1337 0384 B500000A 		beq	.L49
+ 1338              	.L30:
+ 138:../Modules/iprintf.c **** 			if (*format == '%') goto out;
+ 1339              		.loc 1 138 0
+ 1340 0388 24301BE5 		ldr	r3, [fp, #-36]
+ 1341 038c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1342 0390 250053E3 		cmp	r3, #37
+ 1343 0394 A200000A 		beq	.L50
+ 1344              	.L32:
+ 139:../Modules/iprintf.c **** 			if (*format == '-') {
+ 1345              		.loc 1 139 0
+ 1346 0398 24301BE5 		ldr	r3, [fp, #-36]
+ 1347 039c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1348 03a0 2D0053E3 		cmp	r3, #45
+ 1349 03a4 0900001A 		bne	.L51
+ 140:../Modules/iprintf.c **** 				++format;
+ 1350              		.loc 1 140 0
+ 1351 03a8 24301BE5 		ldr	r3, [fp, #-36]
+ 1352 03ac 013083E2 		add	r3, r3, #1
+ 1353 03b0 24300BE5 		str	r3, [fp, #-36]
+ 141:../Modules/iprintf.c **** 				pad = PAD_RIGHT;
+ 1354              		.loc 1 141 0
+ 1355 03b4 0160A0E3 		mov	r6, #1
+ 142:../Modules/iprintf.c **** 			}
+ 143:../Modules/iprintf.c **** 			while (*format == '0') {
+ 1356              		.loc 1 143 0
+ 1357 03b8 050000EA 		b	.L34
+ 1358              	.L35:
+ 144:../Modules/iprintf.c **** 				++format;
+ 1359              		.loc 1 144 0
+ 1360 03bc 24301BE5 		ldr	r3, [fp, #-36]
+ 1361 03c0 013083E2 		add	r3, r3, #1
+ 1362 03c4 24300BE5 		str	r3, [fp, #-36]
+ 145:../Modules/iprintf.c **** 				pad |= PAD_ZERO;
+ 1363              		.loc 1 145 0
+ 1364 03c8 026086E3 		orr	r6, r6, #2
+ 1365 03cc 000000EA 		b	.L34
+ 1366              	.L51:
+ 143:../Modules/iprintf.c **** 			while (*format == '0') {
+ 1367              		.loc 1 143 0
+ 1368 03d0 0000A0E1 		mov	r0, r0	@ nop
+ 1369              	.L34:
+ 143:../Modules/iprintf.c **** 			while (*format == '0') {
+ 1370              		.loc 1 143 0 is_stmt 0 discriminator 1
+ 1371 03d4 24301BE5 		ldr	r3, [fp, #-36]
+ 1372 03d8 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1373 03dc 300053E3 		cmp	r3, #48
+ 1374 03e0 F5FFFF0A 		beq	.L35
+ 146:../Modules/iprintf.c **** 			}
+ 147:../Modules/iprintf.c **** 			for ( ; *format >= '0' && *format <= '9'; ++format) {
+ 1375              		.loc 1 147 0 is_stmt 1
+ 1376 03e4 0B0000EA 		b	.L36
+ 1377              	.L38:
+ 148:../Modules/iprintf.c **** 				width *= 10;
+ 1378              		.loc 1 148 0 discriminator 1
+ 1379 03e8 0530A0E1 		mov	r3, r5
+ 1380 03ec 0331A0E1 		mov	r3, r3, asl #2
+ 1381 03f0 053083E0 		add	r3, r3, r5
+ 1382 03f4 8330A0E1 		mov	r3, r3, asl #1
+ 1383 03f8 0350A0E1 		mov	r5, r3
+ 149:../Modules/iprintf.c **** 				width += *format - '0';
+ 1384              		.loc 1 149 0 discriminator 1
+ 1385 03fc 24301BE5 		ldr	r3, [fp, #-36]
+ 1386 0400 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1387 0404 303043E2 		sub	r3, r3, #48
+ 1388 0408 035085E0 		add	r5, r5, r3
+ 147:../Modules/iprintf.c **** 			for ( ; *format >= '0' && *format <= '9'; ++format) {
+ 1389              		.loc 1 147 0 discriminator 1
+ 1390 040c 24301BE5 		ldr	r3, [fp, #-36]
+ 1391 0410 013083E2 		add	r3, r3, #1
+ 1392 0414 24300BE5 		str	r3, [fp, #-36]
+ 1393              	.L36:
+ 1394 0418 24301BE5 		ldr	r3, [fp, #-36]
+ 1395 041c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1396 0420 2F0053E3 		cmp	r3, #47
+ 1397 0424 0300009A 		bls	.L37
+ 147:../Modules/iprintf.c **** 			for ( ; *format >= '0' && *format <= '9'; ++format) {
+ 1398              		.loc 1 147 0 is_stmt 0 discriminator 2
+ 1399 0428 24301BE5 		ldr	r3, [fp, #-36]
+ 1400 042c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1401 0430 390053E3 		cmp	r3, #57
+ 1402 0434 EBFFFF9A 		bls	.L38
+ 1403              	.L37:
+ 150:../Modules/iprintf.c **** 			}
+ 151:../Modules/iprintf.c **** 			if( *format == 's' ) {
+ 1404              		.loc 1 151 0 is_stmt 1
+ 1405 0438 24301BE5 		ldr	r3, [fp, #-36]
+ 1406 043c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1407 0440 730053E3 		cmp	r3, #115
+ 1408 0444 1100001A 		bne	.L39
+ 1409              	.LBB3:
+ 152:../Modules/iprintf.c **** 				register char *s = (char *)va_arg( args, int );
+ 1410              		.loc 1 152 0
+ 1411 0448 28301BE5 		ldr	r3, [fp, #-40]
+ 1412 044c 042083E2 		add	r2, r3, #4
+ 1413 0450 28200BE5 		str	r2, [fp, #-40]
+ 1414 0454 003093E5 		ldr	r3, [r3, #0]
+ 1415 0458 0370A0E1 		mov	r7, r3
+ 153:../Modules/iprintf.c **** 				pc += prints (out, s?s:"(null)", width, pad);
+ 1416              		.loc 1 153 0
+ 1417 045c 000057E3 		cmp	r7, #0
+ 1418 0460 0100000A 		beq	.L40
+ 1419              		.loc 1 153 0 is_stmt 0 discriminator 1
+ 1420 0464 0730A0E1 		mov	r3, r7
+ 1421 0468 000000EA 		b	.L41
+ 1422              	.L40:
+ 1423              		.loc 1 153 0 discriminator 2
+ 1424 046c 20329FE5 		ldr	r3, .L52
+ 1425              	.L41:
+ 1426              		.loc 1 153 0 discriminator 3
+ 1427 0470 20001BE5 		ldr	r0, [fp, #-32]
+ 1428 0474 0310A0E1 		mov	r1, r3
+ 1429 0478 0520A0E1 		mov	r2, r5
+ 1430 047c 0630A0E1 		mov	r3, r6
+ 1431 0480 F8FEFFEB 		bl	prints
+ 1432 0484 0030A0E1 		mov	r3, r0
+ 1433 0488 034084E0 		add	r4, r4, r3
+ 154:../Modules/iprintf.c **** 				continue;
+ 1434              		.loc 1 154 0 is_stmt 1 discriminator 3
+ 1435 048c 6B0000EA 		b	.L42
+ 1436              	.L39:
+ 1437              	.LBE3:
+ 155:../Modules/iprintf.c **** 			}
+ 156:../Modules/iprintf.c **** 			if( *format == 'd' ) {
+ 1438              		.loc 1 156 0
+ 1439 0490 24301BE5 		ldr	r3, [fp, #-36]
+ 1440 0494 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1441 0498 640053E3 		cmp	r3, #100
+ 1442 049c 0F00001A 		bne	.L43
+ 157:../Modules/iprintf.c **** 				pc += printi (out, va_arg( args, int ), 10, 1, width, pad, 'a');
+ 1443              		.loc 1 157 0
+ 1444 04a0 28301BE5 		ldr	r3, [fp, #-40]
+ 1445 04a4 042083E2 		add	r2, r3, #4
+ 1446 04a8 28200BE5 		str	r2, [fp, #-40]
+ 1447 04ac 003093E5 		ldr	r3, [r3, #0]
+ 1448 04b0 00508DE5 		str	r5, [sp, #0]
+ 1449 04b4 04608DE5 		str	r6, [sp, #4]
+ 1450 04b8 6120A0E3 		mov	r2, #97
+ 1451 04bc 08208DE5 		str	r2, [sp, #8]
+ 1452 04c0 20001BE5 		ldr	r0, [fp, #-32]
+ 1453 04c4 0310A0E1 		mov	r1, r3
+ 1454 04c8 0A20A0E3 		mov	r2, #10
+ 1455 04cc 0130A0E3 		mov	r3, #1
+ 1456 04d0 35FFFFEB 		bl	printi
+ 1457 04d4 0030A0E1 		mov	r3, r0
+ 1458 04d8 034084E0 		add	r4, r4, r3
+ 158:../Modules/iprintf.c **** 				continue;
+ 1459              		.loc 1 158 0
+ 1460 04dc 570000EA 		b	.L42
+ 1461              	.L43:
+ 159:../Modules/iprintf.c **** 			}
+ 160:../Modules/iprintf.c **** 			if( *format == 'x' ) {
+ 1462              		.loc 1 160 0
+ 1463 04e0 24301BE5 		ldr	r3, [fp, #-36]
+ 1464 04e4 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1465 04e8 780053E3 		cmp	r3, #120
+ 1466 04ec 0F00001A 		bne	.L44
+ 161:../Modules/iprintf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'a');
+ 1467              		.loc 1 161 0
+ 1468 04f0 28301BE5 		ldr	r3, [fp, #-40]
+ 1469 04f4 042083E2 		add	r2, r3, #4
+ 1470 04f8 28200BE5 		str	r2, [fp, #-40]
+ 1471 04fc 003093E5 		ldr	r3, [r3, #0]
+ 1472 0500 00508DE5 		str	r5, [sp, #0]
+ 1473 0504 04608DE5 		str	r6, [sp, #4]
+ 1474 0508 6120A0E3 		mov	r2, #97
+ 1475 050c 08208DE5 		str	r2, [sp, #8]
+ 1476 0510 20001BE5 		ldr	r0, [fp, #-32]
+ 1477 0514 0310A0E1 		mov	r1, r3
+ 1478 0518 1020A0E3 		mov	r2, #16
+ 1479 051c 0030A0E3 		mov	r3, #0
+ 1480 0520 21FFFFEB 		bl	printi
+ 1481 0524 0030A0E1 		mov	r3, r0
+ 1482 0528 034084E0 		add	r4, r4, r3
+ 162:../Modules/iprintf.c **** 				continue;
+ 1483              		.loc 1 162 0
+ 1484 052c 430000EA 		b	.L42
+ 1485              	.L44:
+ 163:../Modules/iprintf.c **** 			}
+ 164:../Modules/iprintf.c **** 			if( *format == 'X' ) {
+ 1486              		.loc 1 164 0
+ 1487 0530 24301BE5 		ldr	r3, [fp, #-36]
+ 1488 0534 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1489 0538 580053E3 		cmp	r3, #88
+ 1490 053c 0F00001A 		bne	.L45
+ 165:../Modules/iprintf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'A');
+ 1491              		.loc 1 165 0
+ 1492 0540 28301BE5 		ldr	r3, [fp, #-40]
+ 1493 0544 042083E2 		add	r2, r3, #4
+ 1494 0548 28200BE5 		str	r2, [fp, #-40]
+ 1495 054c 003093E5 		ldr	r3, [r3, #0]
+ 1496 0550 00508DE5 		str	r5, [sp, #0]
+ 1497 0554 04608DE5 		str	r6, [sp, #4]
+ 1498 0558 4120A0E3 		mov	r2, #65
+ 1499 055c 08208DE5 		str	r2, [sp, #8]
+ 1500 0560 20001BE5 		ldr	r0, [fp, #-32]
+ 1501 0564 0310A0E1 		mov	r1, r3
+ 1502 0568 1020A0E3 		mov	r2, #16
+ 1503 056c 0030A0E3 		mov	r3, #0
+ 1504 0570 0DFFFFEB 		bl	printi
+ 1505 0574 0030A0E1 		mov	r3, r0
+ 1506 0578 034084E0 		add	r4, r4, r3
+ 166:../Modules/iprintf.c **** 				continue;
+ 1507              		.loc 1 166 0
+ 1508 057c 2F0000EA 		b	.L42
+ 1509              	.L45:
+ 167:../Modules/iprintf.c **** 			}
+ 168:../Modules/iprintf.c **** 			if( *format == 'u' ) {
+ 1510              		.loc 1 168 0
+ 1511 0580 24301BE5 		ldr	r3, [fp, #-36]
+ 1512 0584 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1513 0588 750053E3 		cmp	r3, #117
+ 1514 058c 0F00001A 		bne	.L46
+ 169:../Modules/iprintf.c **** 				pc += printi (out, va_arg( args, int ), 10, 0, width, pad, 'a');
+ 1515              		.loc 1 169 0
+ 1516 0590 28301BE5 		ldr	r3, [fp, #-40]
+ 1517 0594 042083E2 		add	r2, r3, #4
+ 1518 0598 28200BE5 		str	r2, [fp, #-40]
+ 1519 059c 003093E5 		ldr	r3, [r3, #0]
+ 1520 05a0 00508DE5 		str	r5, [sp, #0]
+ 1521 05a4 04608DE5 		str	r6, [sp, #4]
+ 1522 05a8 6120A0E3 		mov	r2, #97
+ 1523 05ac 08208DE5 		str	r2, [sp, #8]
+ 1524 05b0 20001BE5 		ldr	r0, [fp, #-32]
+ 1525 05b4 0310A0E1 		mov	r1, r3
+ 1526 05b8 0A20A0E3 		mov	r2, #10
+ 1527 05bc 0030A0E3 		mov	r3, #0
+ 1528 05c0 F9FEFFEB 		bl	printi
+ 1529 05c4 0030A0E1 		mov	r3, r0
+ 1530 05c8 034084E0 		add	r4, r4, r3
+ 170:../Modules/iprintf.c **** 				continue;
+ 1531              		.loc 1 170 0
+ 1532 05cc 1B0000EA 		b	.L42
+ 1533              	.L46:
+ 171:../Modules/iprintf.c **** 			}
+ 172:../Modules/iprintf.c **** 			if( *format == 'c' ) {
+ 1534              		.loc 1 172 0
+ 1535 05d0 24301BE5 		ldr	r3, [fp, #-36]
+ 1536 05d4 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1537 05d8 630053E3 		cmp	r3, #99
+ 1538 05dc 1700001A 		bne	.L42
+ 173:../Modules/iprintf.c **** 				/* char are converted to int then pushed on the stack */
+ 174:../Modules/iprintf.c **** 				scr[0] = (char)va_arg( args, int );
+ 1539              		.loc 1 174 0
+ 1540 05e0 28301BE5 		ldr	r3, [fp, #-40]
+ 1541 05e4 042083E2 		add	r2, r3, #4
+ 1542 05e8 28200BE5 		str	r2, [fp, #-40]
+ 1543 05ec 003093E5 		ldr	r3, [r3, #0]
+ 1544 05f0 FF3003E2 		and	r3, r3, #255
+ 1545 05f4 18304BE5 		strb	r3, [fp, #-24]
+ 175:../Modules/iprintf.c **** 				scr[1] = '\0';
+ 1546              		.loc 1 175 0
+ 1547 05f8 0030A0E3 		mov	r3, #0
+ 1548 05fc 17304BE5 		strb	r3, [fp, #-23]
+ 176:../Modules/iprintf.c **** 				pc += prints (out, scr, width, pad);
+ 1549              		.loc 1 176 0
+ 1550 0600 18304BE2 		sub	r3, fp, #24
+ 1551 0604 20001BE5 		ldr	r0, [fp, #-32]
+ 1552 0608 0310A0E1 		mov	r1, r3
+ 1553 060c 0520A0E1 		mov	r2, r5
+ 1554 0610 0630A0E1 		mov	r3, r6
+ 1555 0614 93FEFFEB 		bl	prints
+ 1556 0618 0030A0E1 		mov	r3, r0
+ 1557 061c 034084E0 		add	r4, r4, r3
+ 177:../Modules/iprintf.c **** 				continue;
+ 1558              		.loc 1 177 0
+ 1559 0620 060000EA 		b	.L42
+ 1560              	.L50:
+ 138:../Modules/iprintf.c **** 			if (*format == '%') goto out;
+ 1561              		.loc 1 138 0
+ 1562 0624 0000A0E1 		mov	r0, r0	@ nop
+ 1563              	.L29:
+ 178:../Modules/iprintf.c **** 			}
+ 179:../Modules/iprintf.c **** 		}
+ 180:../Modules/iprintf.c **** 		else {
+ 181:../Modules/iprintf.c **** 		out:
+ 182:../Modules/iprintf.c **** 			printchar (out, *format);
+ 1564              		.loc 1 182 0
+ 1565 0628 24301BE5 		ldr	r3, [fp, #-36]
+ 1566 062c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1567 0630 20001BE5 		ldr	r0, [fp, #-32]
+ 1568 0634 0310A0E1 		mov	r1, r3
+ 1569 0638 70FEFFEB 		bl	printchar
+ 183:../Modules/iprintf.c **** 			++pc;
+ 1570              		.loc 1 183 0
+ 1571 063c 014084E2 		add	r4, r4, #1
+ 1572              	.L42:
+ 133:../Modules/iprintf.c **** 	for (; *format != 0; ++format) {
+ 1573              		.loc 1 133 0
+ 1574 0640 24301BE5 		ldr	r3, [fp, #-36]
+ 1575 0644 013083E2 		add	r3, r3, #1
+ 1576 0648 24300BE5 		str	r3, [fp, #-36]
+ 1577              	.L28:
+ 133:../Modules/iprintf.c **** 	for (; *format != 0; ++format) {
+ 1578              		.loc 1 133 0 is_stmt 0 discriminator 1
+ 1579 064c 24301BE5 		ldr	r3, [fp, #-36]
+ 1580 0650 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1581 0654 000053E3 		cmp	r3, #0
+ 1582 0658 3DFFFF1A 		bne	.L47
+ 1583 065c 000000EA 		b	.L31
+ 1584              	.L49:
+ 137:../Modules/iprintf.c **** 			if (*format == '\0') break;
+ 1585              		.loc 1 137 0 is_stmt 1
+ 1586 0660 0000A0E1 		mov	r0, r0	@ nop
+ 1587              	.L31:
+ 184:../Modules/iprintf.c **** 		}
+ 185:../Modules/iprintf.c **** 	}
+ 186:../Modules/iprintf.c **** 	if (out) **out = '\0';
+ 1588              		.loc 1 186 0
+ 1589 0664 20301BE5 		ldr	r3, [fp, #-32]
+ 1590 0668 000053E3 		cmp	r3, #0
+ 1591 066c 0300000A 		beq	.L48
+ 1592              		.loc 1 186 0 is_stmt 0 discriminator 1
+ 1593 0670 20301BE5 		ldr	r3, [fp, #-32]
+ 1594 0674 003093E5 		ldr	r3, [r3, #0]
+ 1595 0678 0020A0E3 		mov	r2, #0
+ 1596 067c 0020C3E5 		strb	r2, [r3, #0]
+ 1597              	.L48:
+ 187:../Modules/iprintf.c **** 	va_end( args );
+ 188:../Modules/iprintf.c **** 	return pc;
+ 1598              		.loc 1 188 0 is_stmt 1
+ 1599 0680 0430A0E1 		mov	r3, r4
+ 189:../Modules/iprintf.c **** }
+ 1600              		.loc 1 189 0
+ 1601 0684 0300A0E1 		mov	r0, r3
+ 1602 0688 14D04BE2 		sub	sp, fp, #20
+ 1603 068c F048BDE8 		ldmfd	sp!, {r4, r5, r6, r7, fp, lr}
+ 1604 0690 1EFF2FE1 		bx	lr
+ 1605              	.L53:
+ 1606              		.align	2
+ 1607              	.L52:
+ 1608 0694 00000000 		.word	.LC0
+ 1609              		.cfi_endproc
+ 1610              	.LFE3:
+ 1612              		.align	2
+ 1613              		.global	iprintf
+ 1615              	iprintf:
+ 1616              	.LFB4:
+ 190:../Modules/iprintf.c **** 
+ 191:../Modules/iprintf.c **** int iprintf(const char *format, ...)
+ 192:../Modules/iprintf.c **** {
+ 1617              		.loc 1 192 0
+ 1618              		.cfi_startproc
+ 1619              		@ Function supports interworking.
+ 1620              		@ args = 4, pretend = 16, frame = 8
+ 1621              		@ frame_needed = 1, uses_anonymous_args = 1
+ 1622 0698 0F002DE9 		stmfd	sp!, {r0, r1, r2, r3}
+ 1623              	.LCFI8:
+ 1624              		.cfi_def_cfa_offset 16
+ 1625 069c 00482DE9 		stmfd	sp!, {fp, lr}
+ 1626              	.LCFI9:
+ 1627              		.cfi_def_cfa_offset 24
+ 1628 06a0 04B08DE2 		add	fp, sp, #4
+ 1629              		.cfi_offset 14, -20
+ 1630              		.cfi_offset 11, -24
+ 1631              		.cfi_offset 3, -4
+ 1632              		.cfi_offset 2, -8
+ 1633              		.cfi_offset 1, -12
+ 1634              		.cfi_offset 0, -16
+ 1635              	.LCFI10:
+ 1636              		.cfi_def_cfa 11, 20
+ 1637 06a4 08D04DE2 		sub	sp, sp, #8
+ 193:../Modules/iprintf.c ****         va_list args;
+ 194:../Modules/iprintf.c **** 
+ 195:../Modules/iprintf.c ****         va_start( args, format );
+ 1638              		.loc 1 195 0
+ 1639 06a8 08308BE2 		add	r3, fp, #8
+ 1640 06ac 08300BE5 		str	r3, [fp, #-8]
+ 196:../Modules/iprintf.c ****         return print( 0, format, args );
+ 1641              		.loc 1 196 0
+ 1642 06b0 0000A0E3 		mov	r0, #0
+ 1643 06b4 04109BE5 		ldr	r1, [fp, #4]
+ 1644 06b8 08201BE5 		ldr	r2, [fp, #-8]
+ 1645 06bc 1CFFFFEB 		bl	print
+ 1646 06c0 0030A0E1 		mov	r3, r0
+ 197:../Modules/iprintf.c **** }
+ 1647              		.loc 1 197 0
+ 1648 06c4 0300A0E1 		mov	r0, r3
+ 1649 06c8 04D04BE2 		sub	sp, fp, #4
+ 1650 06cc 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1651 06d0 10D08DE2 		add	sp, sp, #16
+ 1652 06d4 1EFF2FE1 		bx	lr
+ 1653              		.cfi_endproc
+ 1654              	.LFE4:
+ 1656              		.align	2
+ 1657              		.global	isprintf
+ 1659              	isprintf:
+ 1660              	.LFB5:
+ 198:../Modules/iprintf.c **** 
+ 199:../Modules/iprintf.c **** int isprintf(char *out, const char *format, ...)
+ 200:../Modules/iprintf.c **** {
+ 1661              		.loc 1 200 0
+ 1662              		.cfi_startproc
+ 1663              		@ Function supports interworking.
+ 1664              		@ args = 4, pretend = 12, frame = 16
+ 1665              		@ frame_needed = 1, uses_anonymous_args = 1
+ 1666 06d8 0E002DE9 		stmfd	sp!, {r1, r2, r3}
+ 1667              	.LCFI11:
+ 1668              		.cfi_def_cfa_offset 12
+ 1669 06dc 00482DE9 		stmfd	sp!, {fp, lr}
+ 1670              	.LCFI12:
+ 1671              		.cfi_def_cfa_offset 20
+ 1672 06e0 04B08DE2 		add	fp, sp, #4
+ 1673              		.cfi_offset 14, -16
+ 1674              		.cfi_offset 11, -20
+ 1675              		.cfi_offset 3, -4
+ 1676              		.cfi_offset 2, -8
+ 1677              		.cfi_offset 1, -12
+ 1678              	.LCFI13:
+ 1679              		.cfi_def_cfa 11, 16
+ 1680 06e4 14D04DE2 		sub	sp, sp, #20
+ 1681 06e8 14000BE5 		str	r0, [fp, #-20]
+ 201:../Modules/iprintf.c ****         va_list args;
+ 202:../Modules/iprintf.c **** 
+ 203:../Modules/iprintf.c ****         va_start( args, format );
+ 1682              		.loc 1 203 0
+ 1683 06ec 08308BE2 		add	r3, fp, #8
+ 1684 06f0 0C300BE5 		str	r3, [fp, #-12]
+ 204:../Modules/iprintf.c ****         return print( &out, format, args );
+ 1685              		.loc 1 204 0
+ 1686 06f4 14304BE2 		sub	r3, fp, #20
+ 1687 06f8 0300A0E1 		mov	r0, r3
+ 1688 06fc 04109BE5 		ldr	r1, [fp, #4]
+ 1689 0700 0C201BE5 		ldr	r2, [fp, #-12]
+ 1690 0704 0AFFFFEB 		bl	print
+ 1691 0708 0030A0E1 		mov	r3, r0
+ 205:../Modules/iprintf.c **** }
+ 1692              		.loc 1 205 0
+ 1693 070c 0300A0E1 		mov	r0, r3
+ 1694 0710 04D04BE2 		sub	sp, fp, #4
+ 1695 0714 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1696 0718 0CD08DE2 		add	sp, sp, #12
+ 1697 071c 1EFF2FE1 		bx	lr
+ 1698              		.cfi_endproc
+ 1699              	.LFE5:
+ 1701              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 iprintf.c
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:929    .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:931    .text:00000000 printchar
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:982    .text:00000068 prints
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:1131   .text:000001ac printi
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:1287   .rodata:00000000 $d
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:1293   .text:00000334 print
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:1608   .text:00000694 $d
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:1612   .text:00000698 $a
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:1615   .text:00000698 iprintf
+C:\Users\Daniel\AppData\Local\Temp\ccxByCb5.s:1659   .text:000006d8 isprintf
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+UART_putc
+__aeabi_uidivmod
+__aeabi_uidiv

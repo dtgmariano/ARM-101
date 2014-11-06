@@ -1,0 +1,115 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"gpio.c"
+  21              	.Ltext0:
+  22              		.file 1 "../Modules/gpio.c"
+ 1790              		.align	2
+ 1791              		.global	GPIOInit
+ 1793              	GPIOInit:
+ 1794              	.LFB0:
+   1:../Modules/gpio.c **** /*
+   2:../Modules/gpio.c ****  * gpio.c
+   3:../Modules/gpio.c ****  *
+   4:../Modules/gpio.c ****  *  Created on: 22 de Fev de 2013
+   5:../Modules/gpio.c ****  *      Author: ufu
+   6:../Modules/gpio.c ****  */
+   7:../Modules/gpio.c **** #include "LPC214x.h"
+   8:../Modules/gpio.c **** #include "gpio.h"
+   9:../Modules/gpio.c **** 
+  10:../Modules/gpio.c **** void GPIOInit()
+  11:../Modules/gpio.c **** {
+ 1795              		.loc 1 11 0
+ 1796              		.cfi_startproc
+ 1797              		@ Function supports interworking.
+ 1798              		@ args = 0, pretend = 0, frame = 0
+ 1799              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1800              		@ link register save eliminated.
+ 1801 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 1802              	.LCFI0:
+ 1803              		.cfi_def_cfa_offset 4
+ 1804 0004 00B08DE2 		add	fp, sp, #0
+ 1805              		.cfi_offset 11, -4
+ 1806              	.LCFI1:
+ 1807              		.cfi_def_cfa_register 11
+  12:../Modules/gpio.c **** 	//Setting GPIO Port 0.18 function: Sets P0.18 with value 00 for Bits 5 and 4 (PINSEL1)
+  13:../Modules/gpio.c **** 	//P0.18       EXT1-19		EXT1 7
+  14:../Modules/gpio.c **** 	PINSEL1 &= ~(1<<4);
+ 1808              		.loc 1 14 0
+ 1809 0008 4E32A0E3 		mov	r3, #-536870908
+ 1810 000c 0B3983E2 		add	r3, r3, #180224
+ 1811 0010 4E22A0E3 		mov	r2, #-536870908
+ 1812 0014 0B2982E2 		add	r2, r2, #180224
+ 1813 0018 002092E5 		ldr	r2, [r2, #0]
+ 1814 001c 1020C2E3 		bic	r2, r2, #16
+ 1815 0020 002083E5 		str	r2, [r3, #0]
+  15:../Modules/gpio.c **** 	PINSEL1 &= ~(1<<5);
+ 1816              		.loc 1 15 0
+ 1817 0024 4E32A0E3 		mov	r3, #-536870908
+ 1818 0028 0B3983E2 		add	r3, r3, #180224
+ 1819 002c 4E22A0E3 		mov	r2, #-536870908
+ 1820 0030 0B2982E2 		add	r2, r2, #180224
+ 1821 0034 002092E5 		ldr	r2, [r2, #0]
+ 1822 0038 2020C2E3 		bic	r2, r2, #32
+ 1823 003c 002083E5 		str	r2, [r3, #0]
+  16:../Modules/gpio.c **** 	IODIR0 |= (1<<18);	//Setting P0.18 as output
+ 1824              		.loc 1 16 0
+ 1825 0040 8E32A0E3 		mov	r3, #-536870904
+ 1826 0044 0A3983E2 		add	r3, r3, #163840
+ 1827 0048 8E22A0E3 		mov	r2, #-536870904
+ 1828 004c 0A2982E2 		add	r2, r2, #163840
+ 1829 0050 002092E5 		ldr	r2, [r2, #0]
+ 1830 0054 012782E3 		orr	r2, r2, #262144
+ 1831 0058 002083E5 		str	r2, [r3, #0]
+  17:../Modules/gpio.c **** 
+  18:../Modules/gpio.c **** 	//Setting GPIO Port 0.19 function: Sets P0.19 with value 00 for Bits 7 and 6 (PINSEL1)
+  19:../Modules/gpio.c **** 	//P0.19      EXT1-20		EXT1 8
+  20:../Modules/gpio.c **** 	PINSEL1 &= ~(1<<6);
+ 1832              		.loc 1 20 0
+ 1833 005c 4E32A0E3 		mov	r3, #-536870908
+ 1834 0060 0B3983E2 		add	r3, r3, #180224
+ 1835 0064 4E22A0E3 		mov	r2, #-536870908
+ 1836 0068 0B2982E2 		add	r2, r2, #180224
+ 1837 006c 002092E5 		ldr	r2, [r2, #0]
+ 1838 0070 4020C2E3 		bic	r2, r2, #64
+ 1839 0074 002083E5 		str	r2, [r3, #0]
+  21:../Modules/gpio.c **** 	PINSEL1 &= ~(1<<7);
+ 1840              		.loc 1 21 0
+ 1841 0078 4E32A0E3 		mov	r3, #-536870908
+ 1842 007c 0B3983E2 		add	r3, r3, #180224
+ 1843 0080 4E22A0E3 		mov	r2, #-536870908
+ 1844 0084 0B2982E2 		add	r2, r2, #180224
+ 1845 0088 002092E5 		ldr	r2, [r2, #0]
+ 1846 008c 8020C2E3 		bic	r2, r2, #128
+ 1847 0090 002083E5 		str	r2, [r3, #0]
+  22:../Modules/gpio.c **** 	IODIR0 |= (1<<19);	//Setting P0.19 as output
+ 1848              		.loc 1 22 0
+ 1849 0094 8E32A0E3 		mov	r3, #-536870904
+ 1850 0098 0A3983E2 		add	r3, r3, #163840
+ 1851 009c 8E22A0E3 		mov	r2, #-536870904
+ 1852 00a0 0A2982E2 		add	r2, r2, #163840
+ 1853 00a4 002092E5 		ldr	r2, [r2, #0]
+ 1854 00a8 022782E3 		orr	r2, r2, #524288
+ 1855 00ac 002083E5 		str	r2, [r3, #0]
+  23:../Modules/gpio.c **** }
+ 1856              		.loc 1 23 0
+ 1857 00b0 00D08BE2 		add	sp, fp, #0
+ 1858 00b4 0008BDE8 		ldmfd	sp!, {fp}
+ 1859 00b8 1EFF2FE1 		bx	lr
+ 1860              		.cfi_endproc
+ 1861              	.LFE0:
+ 1863              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 gpio.c
+C:\Users\ufu\AppData\Local\Temp\ccVWnG6i.s:1790   .text:00000000 $a
+C:\Users\ufu\AppData\Local\Temp\ccVWnG6i.s:1793   .text:00000000 GPIOInit
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

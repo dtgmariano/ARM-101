@@ -1,0 +1,78 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+-include ../makefile.init
+
+RM := rm -rf
+
+# All of the sources participating in the build are defined here
+-include sources.mk
+-include subdir.mk
+-include objects.mk
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(strip $(C_DEPS)),)
+-include $(C_DEPS)
+endif
+ifneq ($(strip $(ASM_DEPS)),)
+-include $(ASM_DEPS)
+endif
+ifneq ($(strip $(S_UPPER_DEPS)),)
+-include $(S_UPPER_DEPS)
+endif
+endif
+
+-include ../makefile.defs
+
+# Add inputs and outputs from these tool invocations to the build variables 
+SECONDARY_FLASH += \
+MA2000_ADC_PWM.hex \
+
+SECONDARY_LIST += \
+MA2000_ADC_PWM.lst \
+
+SECONDARY_SIZE += \
+MA2000_ADC_PWM.siz \
+
+
+# All Target
+all: MA2000_ADC_PWM.elf secondary-outputs
+
+# Tool invocations
+MA2000_ADC_PWM.elf: $(OBJS) $(USER_OBJS)
+	@echo 'Building target: $@'
+	@echo 'Invoking: ARM Yagarto Windows GCC C Linker'
+	arm-none-eabi-gcc -T"C:\Dropbox\ARM\PROGRAMAS\LPC2148\MA2000_ADC_PWM\lpc2148_rom.ld" -nostartfiles -Wl,-Map,MA2000_ADC_PWM.map -mcpu=arm7tdmi -g3 -gdwarf-2 -o"MA2000_ADC_PWM.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	@echo 'Finished building target: $@'
+	@echo ' '
+
+MA2000_ADC_PWM.hex: MA2000_ADC_PWM.elf
+	@echo 'Invoking: ARM Yagarto Windows GNU Create Flash Image'
+	arm-none-eabi-objcopy -O ihex MA2000_ADC_PWM.elf "MA2000_ADC_PWM.hex"
+	@echo 'Finished building: $@'
+	@echo ' '
+
+MA2000_ADC_PWM.lst: MA2000_ADC_PWM.elf
+	@echo 'Invoking: ARM Yagarto Windows GNU Create Listing'
+	arm-none-eabi-objdump -h -S -C MA2000_ADC_PWM.elf >"MA2000_ADC_PWM.lst"
+	@echo 'Finished building: $@'
+	@echo ' '
+
+MA2000_ADC_PWM.siz: MA2000_ADC_PWM.elf
+	@echo 'Invoking: ARM Yagarto Windows GNU Print Size'
+	arm-none-eabi-size  --format=berkeley -x MA2000_ADC_PWM.elf
+	@echo 'Finished building: $@'
+	@echo ' '
+
+# Other Targets
+clean:
+	-$(RM) $(SECONDARY_SIZE)$(OBJS)$(C_DEPS)$(ASM_DEPS)$(SECONDARY_FLASH)$(EXECUTABLES)$(SECONDARY_LIST)$(S_UPPER_DEPS) MA2000_ADC_PWM.elf
+	-@echo ' '
+
+secondary-outputs: $(SECONDARY_FLASH) $(SECONDARY_LIST) $(SECONDARY_SIZE)
+
+.PHONY: all clean dependents
+.SECONDARY:
+
+-include ../makefile.targets

@@ -1,0 +1,389 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"uart.c"
+  21              	.Ltext0:
+  22              		.file 1 "../uart.c"
+ 2068              		.align	2
+ 2069              		.global	vUART_ISR_Wrapper
+ 2071              	vUART_ISR_Wrapper:
+ 2072              	.LFB0:
+   1:../uart.c     **** /*
+   2:../uart.c     ****  * uart.c
+   3:../uart.c     ****  *
+   4:../uart.c     ****  *  Created on: 12/02/2011
+   5:../uart.c     ****  *      Author: FELIPE
+   6:../uart.c     ****  */
+   7:../uart.c     **** 
+   8:../uart.c     **** #include "uart.h"
+   9:../uart.c     **** #include "LPC214x.h"
+  10:../uart.c     **** #include <stdint.h>
+  11:../uart.c     **** 
+  12:../uart.c     **** #define LSR_RDR          0x01
+  13:../uart.c     **** #define LSR_OE           0x02
+  14:../uart.c     **** #define LSR_PE           0x04
+  15:../uart.c     **** #define LSR_FE           0x08
+  16:../uart.c     **** #define LSR_BI           0x10
+  17:../uart.c     **** #define LSR_RXFE         0x80
+  18:../uart.c     **** #define LSR_TEMT         0x40
+  19:../uart.c     **** #define FCR_resetRXFIFO  0x01
+  20:../uart.c     **** #define FCR_resetTXFIFO  0x02
+  21:../uart.c     **** #define N_UART_CHANNELS     2
+  22:../uart.c     **** 
+  23:../uart.c     **** void vUART_ISR_Wrapper(void)
+  24:../uart.c     **** {
+ 2073              		.loc 1 24 0
+ 2074              		.cfi_startproc
+ 2075              		@ Interrupt Service Routine.
+ 2076              		@ Naked Function: prologue and epilogue provided by programmer.
+ 2077              		@ args = 0, pretend = 0, frame = 0
+ 2078              		@ frame_needed = 1, uses_anonymous_args = 0
+  25:../uart.c     ****   VICVectAddr = 0;
+ 2079              		.loc 1 25 0
+ 2080 0000 0030A0E3 		mov	r3, #0
+ 2081 0004 FD3E43E2 		sub	r3, r3, #4048
+ 2082 0008 0020A0E3 		mov	r2, #0
+ 2083 000c 002083E5 		str	r2, [r3, #0]
+  26:../uart.c     **** }
+ 2084              		.loc 1 26 0
+ 2085              		.cfi_endproc
+ 2086              	.LFE0:
+ 2088              		.global	__aeabi_idiv
+ 2089              		.align	2
+ 2090              		.global	UART_Init
+ 2092              	UART_Init:
+ 2093              	.LFB1:
+  27:../uart.c     **** 
+  28:../uart.c     **** void UART_Init(uint8_t channel, uint16_t baudrate)
+  29:../uart.c     **** {
+ 2094              		.loc 1 29 0
+ 2095              		.cfi_startproc
+ 2096              		@ Function supports interworking.
+ 2097              		@ args = 0, pretend = 0, frame = 16
+ 2098              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2099 0010 00482DE9 		stmfd	sp!, {fp, lr}
+ 2100              	.LCFI0:
+ 2101              		.cfi_def_cfa_offset 8
+ 2102 0014 04B08DE2 		add	fp, sp, #4
+ 2103              		.cfi_offset 14, -4
+ 2104              		.cfi_offset 11, -8
+ 2105              	.LCFI1:
+ 2106              		.cfi_def_cfa 11, 4
+ 2107 0018 10D04DE2 		sub	sp, sp, #16
+ 2108 001c 0020A0E1 		mov	r2, r0
+ 2109 0020 0130A0E1 		mov	r3, r1
+ 2110 0024 0D204BE5 		strb	r2, [fp, #-13]
+ 2111 0028 B0314BE1 		strh	r3, [fp, #-16]	@ movhi
+  30:../uart.c     ****   uint16_t Fdiv;
+  31:../uart.c     **** 
+  32:../uart.c     ****   PINSEL0 |= 0x00000005; /* Habilita RxD1, TxD1, RxD0 e TxD0 */
+ 2112              		.loc 1 32 0
+ 2113 002c 0E32A0E3 		mov	r3, #-536870912
+ 2114 0030 0B3983E2 		add	r3, r3, #180224
+ 2115 0034 0E22A0E3 		mov	r2, #-536870912
+ 2116 0038 0B2982E2 		add	r2, r2, #180224
+ 2117 003c 002092E5 		ldr	r2, [r2, #0]
+ 2118 0040 052082E3 		orr	r2, r2, #5
+ 2119 0044 002083E5 		str	r2, [r3, #0]
+  33:../uart.c     **** 
+  34:../uart.c     ****   U0LCR = 0x83; /* 8 bits, sem paridade, 1 Stop bit e o bit 7 é setado para configurar o divisor */
+ 2120              		.loc 1 34 0
+ 2121 0048 0339A0E3 		mov	r3, #49152
+ 2122 004c CE3283E2 		add	r3, r3, #-536870900
+ 2123 0050 8320A0E3 		mov	r2, #131
+ 2124 0054 002083E5 		str	r2, [r3, #0]
+  35:../uart.c     ****   Fdiv = (60000000 / 16) / baudrate;
+ 2125              		.loc 1 35 0
+ 2126 0058 B0315BE1 		ldrh	r3, [fp, #-16]
+ 2127 005c E509A0E3 		mov	r0, #3751936
+ 2128 0060 790E40E2 		sub	r0, r0, #1936
+ 2129 0064 0310A0E1 		mov	r1, r3
+ 2130 0068 FEFFFFEB 		bl	__aeabi_idiv
+ 2131 006c 0030A0E1 		mov	r3, r0
+ 2132 0070 B6304BE1 		strh	r3, [fp, #-6]	@ movhi
+  36:../uart.c     ****   U0DLM = Fdiv / 256;  /* MSByte  */
+ 2133              		.loc 1 36 0
+ 2134 0074 0339A0E3 		mov	r3, #49152
+ 2135 0078 4E3283E2 		add	r3, r3, #-536870908
+ 2136 007c B6205BE1 		ldrh	r2, [fp, #-6]
+ 2137 0080 2224A0E1 		mov	r2, r2, lsr #8
+ 2138 0084 0228A0E1 		mov	r2, r2, asl #16
+ 2139 0088 2228A0E1 		mov	r2, r2, lsr #16
+ 2140 008c 002083E5 		str	r2, [r3, #0]
+  37:../uart.c     ****   U0DLL = Fdiv % 256;  /* LSByte */
+ 2141              		.loc 1 37 0
+ 2142 0090 0E32A0E3 		mov	r3, #-536870912
+ 2143 0094 033983E2 		add	r3, r3, #49152
+ 2144 0098 B6205BE1 		ldrh	r2, [fp, #-6]
+ 2145 009c FF2002E2 		and	r2, r2, #255
+ 2146 00a0 002083E5 		str	r2, [r3, #0]
+  38:../uart.c     ****   U0LCR = 0x03; /* DLAB = 0 */
+ 2147              		.loc 1 38 0
+ 2148 00a4 0339A0E3 		mov	r3, #49152
+ 2149 00a8 CE3283E2 		add	r3, r3, #-536870900
+ 2150 00ac 0320A0E3 		mov	r2, #3
+ 2151 00b0 002083E5 		str	r2, [r3, #0]
+  39:../uart.c     ****   U0FCR = 0x07; /* Habilita e reseta TX e RX FIFO. */
+ 2152              		.loc 1 39 0
+ 2153 00b4 0339A0E3 		mov	r3, #49152
+ 2154 00b8 8E3283E2 		add	r3, r3, #-536870904
+ 2155 00bc 0720A0E3 		mov	r2, #7
+ 2156 00c0 002083E5 		str	r2, [r3, #0]
+  40:../uart.c     ****   U0TER = 0x80; /* Habilita Transmissão */
+ 2157              		.loc 1 40 0
+ 2158 00c4 0E32A0E3 		mov	r3, #-536870912
+ 2159 00c8 033983E2 		add	r3, r3, #49152
+ 2160 00cc 303083E2 		add	r3, r3, #48
+ 2161 00d0 8020A0E3 		mov	r2, #128
+ 2162 00d4 002083E5 		str	r2, [r3, #0]
+  41:../uart.c     **** 
+  42:../uart.c     **** //  VICVectAddr1 = (unsigned) vUART_ISR_Wrapper;   //Set the timer ISR vector address
+  43:../uart.c     **** //  VICVectCntl1 = (1 << 5)|0x06;
+  44:../uart.c     **** //  VICIntSelect &= ~(1<<6);      //seleciona a se a interrupção sera FIQ ou IRQ para o timmer0
+  45:../uart.c     **** //  VICIntEnable |= (1 << 6);    //habilita a interrupção da UART
+  46:../uart.c     **** //
+  47:../uart.c     **** //  U0IER = 0x01|0x04;
+  48:../uart.c     **** //  enableIRQ();
+  49:../uart.c     **** }
+ 2163              		.loc 1 49 0
+ 2164 00d8 04D04BE2 		sub	sp, fp, #4
+ 2165 00dc 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2166 00e0 1EFF2FE1 		bx	lr
+ 2167              		.cfi_endproc
+ 2168              	.LFE1:
+ 2170              		.align	2
+ 2171              		.global	UART_SendBuffer
+ 2173              	UART_SendBuffer:
+ 2174              	.LFB2:
+  50:../uart.c     **** 
+  51:../uart.c     **** void UART_SendBuffer(uint8_t channel,const uint8_t *Buffer, uint16_t size)
+  52:../uart.c     **** {
+ 2175              		.loc 1 52 0
+ 2176              		.cfi_startproc
+ 2177              		@ Function supports interworking.
+ 2178              		@ args = 0, pretend = 0, frame = 16
+ 2179              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2180              		@ link register save eliminated.
+ 2181 00e4 04B02DE5 		str	fp, [sp, #-4]!
+ 2182              	.LCFI2:
+ 2183              		.cfi_def_cfa_offset 4
+ 2184 00e8 00B08DE2 		add	fp, sp, #0
+ 2185              		.cfi_offset 11, -4
+ 2186              	.LCFI3:
+ 2187              		.cfi_def_cfa_register 11
+ 2188 00ec 14D04DE2 		sub	sp, sp, #20
+ 2189 00f0 0C100BE5 		str	r1, [fp, #-12]
+ 2190 00f4 0230A0E1 		mov	r3, r2
+ 2191 00f8 0020A0E1 		mov	r2, r0
+ 2192 00fc 05204BE5 		strb	r2, [fp, #-5]
+ 2193 0100 BE304BE1 		strh	r3, [fp, #-14]	@ movhi
+  53:../uart.c     ****   if(size > 0)
+ 2194              		.loc 1 53 0
+ 2195 0104 BE305BE1 		ldrh	r3, [fp, #-14]
+ 2196 0108 000053E3 		cmp	r3, #0
+ 2197 010c 1700000A 		beq	.L3
+  54:../uart.c     ****   {
+  55:../uart.c     ****     do
+  56:../uart.c     ****     {
+  57:../uart.c     ****       while(!(U0LSR & LSR_TEMT)){} // Aguarda o registro ficar disponível
+ 2198              		.loc 1 57 0
+ 2199 0110 0000A0E1 		mov	r0, r0	@ nop
+ 2200 0114 000000EA 		b	.L5
+ 2201              	.L7:
+ 2202 0118 0000A0E1 		mov	r0, r0	@ nop
+ 2203              	.L5:
+ 2204              		.loc 1 57 0 is_stmt 0 discriminator 1
+ 2205 011c 0E32A0E3 		mov	r3, #-536870912
+ 2206 0120 033983E2 		add	r3, r3, #49152
+ 2207 0124 143083E2 		add	r3, r3, #20
+ 2208 0128 003093E5 		ldr	r3, [r3, #0]
+ 2209 012c 403003E2 		and	r3, r3, #64
+ 2210 0130 000053E3 		cmp	r3, #0
+ 2211 0134 F8FFFF0A 		beq	.L5
+  58:../uart.c     ****       U0THR = *Buffer;
+ 2212              		.loc 1 58 0 is_stmt 1
+ 2213 0138 0E32A0E3 		mov	r3, #-536870912
+ 2214 013c 033983E2 		add	r3, r3, #49152
+ 2215 0140 0C201BE5 		ldr	r2, [fp, #-12]
+ 2216 0144 0020D2E5 		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 2217 0148 002083E5 		str	r2, [r3, #0]
+  59:../uart.c     ****       Buffer++;
+ 2218              		.loc 1 59 0
+ 2219 014c 0C301BE5 		ldr	r3, [fp, #-12]
+ 2220 0150 013083E2 		add	r3, r3, #1
+ 2221 0154 0C300BE5 		str	r3, [fp, #-12]
+  60:../uart.c     ****       size--;
+ 2222              		.loc 1 60 0
+ 2223 0158 BE305BE1 		ldrh	r3, [fp, #-14]	@ movhi
+ 2224 015c 013043E2 		sub	r3, r3, #1
+ 2225 0160 BE304BE1 		strh	r3, [fp, #-14]	@ movhi
+  61:../uart.c     ****     }while(size > 0);
+ 2226              		.loc 1 61 0
+ 2227 0164 BE305BE1 		ldrh	r3, [fp, #-14]
+ 2228 0168 000053E3 		cmp	r3, #0
+ 2229 016c E9FFFF1A 		bne	.L7
+ 2230              	.L3:
+  62:../uart.c     ****   }
+  63:../uart.c     **** }
+ 2231              		.loc 1 63 0
+ 2232 0170 00D08BE2 		add	sp, fp, #0
+ 2233 0174 0008BDE8 		ldmfd	sp!, {fp}
+ 2234 0178 1EFF2FE1 		bx	lr
+ 2235              		.cfi_endproc
+ 2236              	.LFE2:
+ 2238              		.align	2
+ 2239              		.global	UART_putc
+ 2241              	UART_putc:
+ 2242              	.LFB3:
+  64:../uart.c     **** 
+  65:../uart.c     **** void UART_putc(char c)
+  66:../uart.c     **** {
+ 2243              		.loc 1 66 0
+ 2244              		.cfi_startproc
+ 2245              		@ Function supports interworking.
+ 2246              		@ args = 0, pretend = 0, frame = 8
+ 2247              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2248              		@ link register save eliminated.
+ 2249 017c 04B02DE5 		str	fp, [sp, #-4]!
+ 2250              	.LCFI4:
+ 2251              		.cfi_def_cfa_offset 4
+ 2252 0180 00B08DE2 		add	fp, sp, #0
+ 2253              		.cfi_offset 11, -4
+ 2254              	.LCFI5:
+ 2255              		.cfi_def_cfa_register 11
+ 2256 0184 0CD04DE2 		sub	sp, sp, #12
+ 2257 0188 0030A0E1 		mov	r3, r0
+ 2258 018c 05304BE5 		strb	r3, [fp, #-5]
+  67:../uart.c     ****   while(!(U0LSR & LSR_TEMT)){} // Aguarda o registro ficar disponível
+ 2259              		.loc 1 67 0
+ 2260 0190 0000A0E1 		mov	r0, r0	@ nop
+ 2261              	.L9:
+ 2262              		.loc 1 67 0 is_stmt 0 discriminator 1
+ 2263 0194 0E32A0E3 		mov	r3, #-536870912
+ 2264 0198 033983E2 		add	r3, r3, #49152
+ 2265 019c 143083E2 		add	r3, r3, #20
+ 2266 01a0 003093E5 		ldr	r3, [r3, #0]
+ 2267 01a4 403003E2 		and	r3, r3, #64
+ 2268 01a8 000053E3 		cmp	r3, #0
+ 2269 01ac F8FFFF0A 		beq	.L9
+  68:../uart.c     ****   U0THR = c;
+ 2270              		.loc 1 68 0 is_stmt 1
+ 2271 01b0 0E32A0E3 		mov	r3, #-536870912
+ 2272 01b4 033983E2 		add	r3, r3, #49152
+ 2273 01b8 05205BE5 		ldrb	r2, [fp, #-5]	@ zero_extendqisi2
+ 2274 01bc 002083E5 		str	r2, [r3, #0]
+  69:../uart.c     **** }
+ 2275              		.loc 1 69 0
+ 2276 01c0 00D08BE2 		add	sp, fp, #0
+ 2277 01c4 0008BDE8 		ldmfd	sp!, {fp}
+ 2278 01c8 1EFF2FE1 		bx	lr
+ 2279              		.cfi_endproc
+ 2280              	.LFE3:
+ 2282              		.align	2
+ 2283              		.global	UART_ReceiveBuffer
+ 2285              	UART_ReceiveBuffer:
+ 2286              	.LFB4:
+  70:../uart.c     **** 
+  71:../uart.c     **** uint16_t UART_ReceiveBuffer(uint8_t channel, uint8_t *Buffer, uint16_t size)
+  72:../uart.c     **** {
+ 2287              		.loc 1 72 0
+ 2288              		.cfi_startproc
+ 2289              		@ Function supports interworking.
+ 2290              		@ args = 0, pretend = 0, frame = 24
+ 2291              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2292              		@ link register save eliminated.
+ 2293 01cc 04B02DE5 		str	fp, [sp, #-4]!
+ 2294              	.LCFI6:
+ 2295              		.cfi_def_cfa_offset 4
+ 2296 01d0 00B08DE2 		add	fp, sp, #0
+ 2297              		.cfi_offset 11, -4
+ 2298              	.LCFI7:
+ 2299              		.cfi_def_cfa_register 11
+ 2300 01d4 1CD04DE2 		sub	sp, sp, #28
+ 2301 01d8 14100BE5 		str	r1, [fp, #-20]
+ 2302 01dc 0230A0E1 		mov	r3, r2
+ 2303 01e0 0020A0E1 		mov	r2, r0
+ 2304 01e4 0D204BE5 		strb	r2, [fp, #-13]
+ 2305 01e8 B6314BE1 		strh	r3, [fp, #-22]	@ movhi
+  73:../uart.c     ****   uint16_t available = 0;
+ 2306              		.loc 1 73 0
+ 2307 01ec 0030A0E3 		mov	r3, #0
+ 2308 01f0 B6304BE1 		strh	r3, [fp, #-6]	@ movhi
+  74:../uart.c     **** 
+  75:../uart.c     ****   if (U0LSR & LSR_RDR) //Verifica a existência de um dado valido
+ 2309              		.loc 1 75 0
+ 2310 01f4 0E32A0E3 		mov	r3, #-536870912
+ 2311 01f8 033983E2 		add	r3, r3, #49152
+ 2312 01fc 143083E2 		add	r3, r3, #20
+ 2313 0200 003093E5 		ldr	r3, [r3, #0]
+ 2314 0204 013003E2 		and	r3, r3, #1
+ 2315 0208 FF3003E2 		and	r3, r3, #255
+ 2316 020c 000053E3 		cmp	r3, #0
+ 2317 0210 1200000A 		beq	.L11
+  76:../uart.c     ****   {
+  77:../uart.c     ****     while (size > 0)
+ 2318              		.loc 1 77 0
+ 2319 0214 0E0000EA 		b	.L12
+ 2320              	.L13:
+  78:../uart.c     ****     {
+  79:../uart.c     ****       *Buffer++ = U0RBR;
+ 2321              		.loc 1 79 0
+ 2322 0218 0E32A0E3 		mov	r3, #-536870912
+ 2323 021c 033983E2 		add	r3, r3, #49152
+ 2324 0220 003093E5 		ldr	r3, [r3, #0]
+ 2325 0224 FF2003E2 		and	r2, r3, #255
+ 2326 0228 14301BE5 		ldr	r3, [fp, #-20]
+ 2327 022c 0020C3E5 		strb	r2, [r3, #0]
+ 2328 0230 14301BE5 		ldr	r3, [fp, #-20]
+ 2329 0234 013083E2 		add	r3, r3, #1
+ 2330 0238 14300BE5 		str	r3, [fp, #-20]
+  80:../uart.c     ****       size--;
+ 2331              		.loc 1 80 0
+ 2332 023c B6315BE1 		ldrh	r3, [fp, #-22]	@ movhi
+ 2333 0240 013043E2 		sub	r3, r3, #1
+ 2334 0244 B6314BE1 		strh	r3, [fp, #-22]	@ movhi
+  81:../uart.c     ****       available++;
+ 2335              		.loc 1 81 0
+ 2336 0248 B6305BE1 		ldrh	r3, [fp, #-6]	@ movhi
+ 2337 024c 013083E2 		add	r3, r3, #1
+ 2338 0250 B6304BE1 		strh	r3, [fp, #-6]	@ movhi
+ 2339              	.L12:
+  77:../uart.c     ****     while (size > 0)
+ 2340              		.loc 1 77 0 discriminator 1
+ 2341 0254 B6315BE1 		ldrh	r3, [fp, #-22]
+ 2342 0258 000053E3 		cmp	r3, #0
+ 2343 025c EDFFFF1A 		bne	.L13
+ 2344              	.L11:
+  82:../uart.c     ****     }
+  83:../uart.c     ****   }
+  84:../uart.c     ****   return available;
+ 2345              		.loc 1 84 0
+ 2346 0260 B6305BE1 		ldrh	r3, [fp, #-6]
+  85:../uart.c     **** }
+ 2347              		.loc 1 85 0
+ 2348 0264 0300A0E1 		mov	r0, r3
+ 2349 0268 00D08BE2 		add	sp, fp, #0
+ 2350 026c 0008BDE8 		ldmfd	sp!, {fp}
+ 2351 0270 1EFF2FE1 		bx	lr
+ 2352              		.cfi_endproc
+ 2353              	.LFE4:
+ 2355              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 uart.c
+C:\Users\ufu\AppData\Local\Temp\ccmPR6Oj.s:2068   .text:00000000 $a
+C:\Users\ufu\AppData\Local\Temp\ccmPR6Oj.s:2071   .text:00000000 vUART_ISR_Wrapper
+C:\Users\ufu\AppData\Local\Temp\ccmPR6Oj.s:2092   .text:00000010 UART_Init
+C:\Users\ufu\AppData\Local\Temp\ccmPR6Oj.s:2173   .text:000000e4 UART_SendBuffer
+C:\Users\ufu\AppData\Local\Temp\ccmPR6Oj.s:2241   .text:0000017c UART_putc
+C:\Users\ufu\AppData\Local\Temp\ccmPR6Oj.s:2285   .text:000001cc UART_ReceiveBuffer
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_idiv

@@ -1,0 +1,713 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"main.c"
+  21              	.Ltext0:
+  22              		.file 1 "../main.c"
+ 2163              		.align	2
+ 2166              	DOF1_SETPOINT:
+ 2167 0000 00000000 		.space	4
+ 2168              		.global	DOF1_PWM_DC
+ 2169              		.align	2
+ 2172              	DOF1_PWM_DC:
+ 2173 0004 00000000 		.space	4
+ 2174              		.global	DOF4_PWM_DC
+ 2175              		.align	2
+ 2178              	DOF4_PWM_DC:
+ 2179 0008 00000000 		.space	4
+ 2180              		.global	DOF5_PWM_DC
+ 2181              		.align	2
+ 2184              	DOF5_PWM_DC:
+ 2185 000c 00000000 		.space	4
+ 2186              		.global	DOF1_ADC_POT
+ 2187              		.align	2
+ 2190              	DOF1_ADC_POT:
+ 2191 0010 00000000 		.space	4
+ 2192              		.global	DOF1_ERROR
+ 2193              		.align	2
+ 2196              	DOF1_ERROR:
+ 2197 0014 00000000 		.space	4
+ 2198              		.global	iCountTimer0
+ 2199              		.align	2
+ 2202              	iCountTimer0:
+ 2203 0018 00000000 		.space	4
+ 2204              		.global	iCountUart
+ 2205              		.align	2
+ 2208              	iCountUart:
+ 2209 001c 00000000 		.space	4
+ 2210              		.global	tBuffer
+ 2211              		.data
+ 2214              	tBuffer:
+ 2215 0000 05       		.byte	5
+ 2216              		.text
+ 2217              		.align	2
+ 2218              		.global	PWM_InterruptControl
+ 2220              	PWM_InterruptControl:
+ 2221              	.LFB0:
+   1:../main.c     **** /*------------------------------------------------------------------------------------*/
+   2:../main.c     **** /*                                       HEADER                                       */
+   3:../main.c     **** /*------------------------------------------------------------------------------------*/
+   4:../main.c     **** 
+   5:../main.c     **** /***************************************************************************************
+   6:../main.c     ****  *Project Name: MA2000 Firmware
+   7:../main.c     ****  *	   Version: 0.24
+   8:../main.c     ****  *   File Name: main.c
+   9:../main.c     ****  *  Created on: 19/03/2013
+  10:../main.c     ****  *      Author: Daniel Teodoro G. Mariano
+  11:../main.c     ****  *       Email: dtgm@uol.com.br
+  12:../main.c     ****  * Description: Firmware for LPC2148, to control the MA2000 robot, a mechanical arm
+  13:../main.c     ****  * 				with 6 degrees of freedom.
+  14:../main.c     ****  *
+  15:../main.c     ****  * 				The first three DOF's (1-Waist, 2-Shoulder, 3-Elbow) are controlled each
+  16:../main.c     ****  * 				one by a DC Motor with the following configurations: A PWM at 2500 Hz with
+  17:../main.c     ****  * 				variable Duty Cycle is assigned to the variable DOF_PWM_DC, according with
+  18:../main.c     ****  * 				the proportional control and two GPIO for controlling the inputs of the
+  19:../main.c     ****  * 				LPC6203 Full Bridge Driver.
+  20:../main.c     ****  *
+  21:../main.c     ****  * 				Each motor has a potentiometer connected to the motor shaft by a toothed
+  22:../main.c     ****  * 				belt, and this potentiometer provides a voltage signal proportional to the
+  23:../main.c     ****  * 				angular position of the motor. This signal is capture by an ADC channel
+  24:../main.c     ****  * 				and is assigned to the variable DOF_ADC_POT
+  25:../main.c     ****  *
+  26:../main.c     ****  * 				The proportional control is effected by the relationship of the variables
+  27:../main.c     ****  * 				DOF_ADC_POT and the setpoint position established by the user assigned to
+  28:../main.c     ****  * 				the variable DOF_SETPOINT.
+  29:../main.c     ****  *
+  30:../main.c     ****  * 				The others three DOF's (4-Pitch, 5-Yaw, 6-Roll) are controlled each one
+  31:../main.c     ****  * 				by a Servomotor with the following configurations: A PWM at 50 Hz with
+  32:../main.c     ****  * 				variable Duty Cycle (5%-10%) to control the servo.
+  33:../main.c     **** ***************************************************************************************/
+  34:../main.c     **** 
+  35:../main.c     **** /*------------------------------------------------------------------------------------*/
+  36:../main.c     **** /*                                PINS CONFIGURATION                                  */
+  37:../main.c     **** /*------------------------------------------------------------------------------------*/
+  38:../main.c     **** 
+  39:../main.c     **** /***************************************************************************************
+  40:../main.c     **** * Pins		Function	  	LPC2148 	Connector
+  41:../main.c     **** * P0.7		PWM 2 (31)      EXT1-8		EXT1 20
+  42:../main.c     **** * P0.8		PWM 4 (31)      			EXT1 17
+  43:../main.c     **** * P0.21		PWM 5 (31)           		EXT1 9
+  44:../main.c     **** * P0.18		P0.18 (53)      EXT1-19		EXT1 7
+  45:../main.c     **** * P0.19		P0.19 (54)      EXT1-20		EXT1 8
+  46:../main.c     **** * P0.28		AD0.1 (13)      EXT2-1		EXT2 25
+  47:../main.c     **** * P0.29		AD0.2 (14)      EXT2-2		EXT2 26
+  48:../main.c     **** * P0.30		AD0.3 ()
+  49:../main.c     **** * P0.25		AD0.4
+  50:../main.c     **** *
+  51:../main.c     **** * 				  			+3.3V   	EXT2-4
+  52:../main.c     **** * 			      			GND     	EXT2-1 e EXT1-2
+  53:../main.c     **** ***************************************************************************************/
+  54:../main.c     **** 
+  55:../main.c     **** /*------------------------------------------------------------------------------------*/
+  56:../main.c     **** /*                                 	   INCLUDES                                       */
+  57:../main.c     **** /*------------------------------------------------------------------------------------*/
+  58:../main.c     **** #include "LPC214x.h"
+  59:../main.c     **** #include "cpu_init.h"
+  60:../main.c     **** #include "Modules/adc.h"
+  61:../main.c     **** #include "Modules/pwm.h"
+  62:../main.c     **** #include "Modules/gpio.h"
+  63:../main.c     **** #include "Modules/uart.h"
+  64:../main.c     **** #include "Modules/iprintf.h"
+  65:../main.c     **** #include "Modules/timer.h"
+  66:../main.c     **** 
+  67:../main.c     **** /*------------------------------------------------------------------------------------*/
+  68:../main.c     **** /*                                 	   DEFINES                                        */
+  69:../main.c     **** /*------------------------------------------------------------------------------------*/
+  70:../main.c     **** #define PWMSERVO_COUNT 4290
+  71:../main.c     **** // PWMSERVO_COUNT = (MATCHREGISTER0 * 500)
+  72:../main.c     **** 
+  73:../main.c     **** /*------------------------------------------------------------------------------------*/
+  74:../main.c     **** /*                         	   VARIABLES DECLARATION                                  */
+  75:../main.c     **** /*------------------------------------------------------------------------------------*/
+  76:../main.c     **** typedef enum {IDLE, RECEIVING_DATA, DEF_SETPOINT} STATE;
+  77:../main.c     **** 
+  78:../main.c     **** unsigned int DOF1_SETPOINT=0;
+  79:../main.c     **** //unsigned int DOF2_SETPOINT=0;
+  80:../main.c     **** //unsigned int DOF3_SETPOINT=0;
+  81:../main.c     **** //unsigned int DOF4_SETPOINT=0;
+  82:../main.c     **** //unsigned int DOF5_SETPOINT=0;
+  83:../main.c     **** //unsigned int DOF6_SETPOINT=0;
+  84:../main.c     **** 
+  85:../main.c     **** unsigned int DOF1_PWM_DC=0;
+  86:../main.c     **** //unsigned int DOF2_PWM_DC=0;
+  87:../main.c     **** //unsigned int DOF3_PWM_DC=0;
+  88:../main.c     **** unsigned int DOF4_PWM_DC=0;
+  89:../main.c     **** unsigned int DOF5_PWM_DC=0;
+  90:../main.c     **** //unsigned int DOF6_PWM_DC=0;
+  91:../main.c     **** 
+  92:../main.c     **** unsigned int DOF1_ADC_POT=0;
+  93:../main.c     **** //unsigned int DOF2_ADC_POT=0;
+  94:../main.c     **** //unsigned int DOF3_ADC_POT=0;
+  95:../main.c     **** 
+  96:../main.c     **** unsigned int DOF1_ERROR=0;
+  97:../main.c     **** //unsigned int DOF2_ERROR=0;
+  98:../main.c     **** //unsigned int DOF3_ERROR=0;
+  99:../main.c     **** 
+ 100:../main.c     **** int iCountTimer0=0;
+ 101:../main.c     **** int iCountUart=0;
+ 102:../main.c     **** 
+ 103:../main.c     **** 
+ 104:../main.c     **** uint8_t tBuffer = 5;
+ 105:../main.c     **** 
+ 106:../main.c     **** //unsigned int SVMOTOR_VEC[180] = {};
+ 107:../main.c     **** //unsigned int DCMOTOR_VEC[270] = {};
+ 108:../main.c     **** 
+ 109:../main.c     **** /*------------------------------------------------------------------------------------*/
+ 110:../main.c     **** /*                                     PROTOTYPES                                     */
+ 111:../main.c     **** /*------------------------------------------------------------------------------------*/
+ 112:../main.c     **** 
+ 113:../main.c     **** 
+ 114:../main.c     **** 
+ 115:../main.c     **** /*------------------------------------------------------------------------------------*/
+ 116:../main.c     **** /*                               FUNCTIONS  IMPLEMENTATION                            */
+ 117:../main.c     **** /*------------------------------------------------------------------------------------*/
+ 118:../main.c     **** 
+ 119:../main.c     **** /***************************************************************************************
+ 120:../main.c     ****  * Function Name: PWM_InterruptControl(void)
+ 121:../main.c     ****  * 		 	Type: Void
+ 122:../main.c     ****  *	  Parameters:
+ 123:../main.c     ****  * 	 	 Returns: Void
+ 124:../main.c     ****  * 	 Description: Function called by a timer interruption to control PWM 4, 5 and 6
+ 125:../main.c     **** ***************************************************************************************/
+ 126:../main.c     **** void PWM_InterruptControl(void)
+ 127:../main.c     **** {
+ 2222              		.loc 1 127 0
+ 2223              		.cfi_startproc
+ 2224              		@ Function supports interworking.
+ 2225              		@ args = 0, pretend = 0, frame = 0
+ 2226              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2227              		@ link register save eliminated.
+ 2228 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 2229              	.LCFI0:
+ 2230              		.cfi_def_cfa_offset 4
+ 2231 0004 00B08DE2 		add	fp, sp, #0
+ 2232              		.cfi_offset 11, -4
+ 2233              	.LCFI1:
+ 2234              		.cfi_def_cfa_register 11
+ 128:../main.c     **** 	if(iCountTimer0 >= DOF4_PWM_DC)
+ 2235              		.loc 1 128 0
+ 2236 0008 B4309FE5 		ldr	r3, .L5
+ 2237 000c 003093E5 		ldr	r3, [r3, #0]
+ 2238 0010 0320A0E1 		mov	r2, r3
+ 2239 0014 AC309FE5 		ldr	r3, .L5+4
+ 2240 0018 003093E5 		ldr	r3, [r3, #0]
+ 2241 001c 030052E1 		cmp	r2, r3
+ 2242 0020 0300003A 		bcc	.L2
+ 129:../main.c     **** 	{
+ 130:../main.c     **** 		IOCLR0 = (1<<18); //Sets low for GPIO 0.18
+ 2243              		.loc 1 130 0
+ 2244 0024 CE32A0E3 		mov	r3, #-536870900
+ 2245 0028 0A3983E2 		add	r3, r3, #163840
+ 2246 002c 0127A0E3 		mov	r2, #262144
+ 2247 0030 002083E5 		str	r2, [r3, #0]
+ 2248              	.L2:
+ 131:../main.c     **** 	}
+ 132:../main.c     **** 
+ 133:../main.c     **** 	if(iCountTimer0 >= DOF5_PWM_DC)
+ 2249              		.loc 1 133 0
+ 2250 0034 88309FE5 		ldr	r3, .L5
+ 2251 0038 003093E5 		ldr	r3, [r3, #0]
+ 2252 003c 0320A0E1 		mov	r2, r3
+ 2253 0040 84309FE5 		ldr	r3, .L5+8
+ 2254 0044 003093E5 		ldr	r3, [r3, #0]
+ 2255 0048 030052E1 		cmp	r2, r3
+ 2256 004c 0300003A 		bcc	.L3
+ 134:../main.c     **** 	{
+ 135:../main.c     **** 		IOCLR0 = (1<<19); //Sets low for GPIO 0.19
+ 2257              		.loc 1 135 0
+ 2258 0050 CE32A0E3 		mov	r3, #-536870900
+ 2259 0054 0A3983E2 		add	r3, r3, #163840
+ 2260 0058 0227A0E3 		mov	r2, #524288
+ 2261 005c 002083E5 		str	r2, [r3, #0]
+ 2262              	.L3:
+ 136:../main.c     **** 	}
+ 137:../main.c     **** //	if(iCountTimer0 >= DOF6_PWM_DC)
+ 138:../main.c     **** //	{
+ 139:../main.c     **** //		IOCLR0 = (1<<xx);
+ 140:../main.c     **** //	}
+ 141:../main.c     **** 	if(iCountTimer0 >= PWMSERVO_COUNT)
+ 2263              		.loc 1 141 0
+ 2264 0060 5C309FE5 		ldr	r3, .L5
+ 2265 0064 002093E5 		ldr	r2, [r3, #0]
+ 2266 0068 433DA0E3 		mov	r3, #4288
+ 2267 006c 013083E2 		add	r3, r3, #1
+ 2268 0070 030052E1 		cmp	r2, r3
+ 2269 0074 0A0000DA 		ble	.L4
+ 142:../main.c     **** 	{
+ 143:../main.c     **** 		IOSET0 = (1<<18); //Sets high for GPIO 0.18
+ 2270              		.loc 1 143 0
+ 2271 0078 4E32A0E3 		mov	r3, #-536870908
+ 2272 007c 0A3983E2 		add	r3, r3, #163840
+ 2273 0080 0127A0E3 		mov	r2, #262144
+ 2274 0084 002083E5 		str	r2, [r3, #0]
+ 144:../main.c     ****  		IOSET0 = (1<<19); //Sets high for GPIO 0.19
+ 2275              		.loc 1 144 0
+ 2276 0088 4E32A0E3 		mov	r3, #-536870908
+ 2277 008c 0A3983E2 		add	r3, r3, #163840
+ 2278 0090 0227A0E3 		mov	r2, #524288
+ 2279 0094 002083E5 		str	r2, [r3, #0]
+ 145:../main.c     **** 		//IOSET0 = (1<<xx);
+ 146:../main.c     **** 		iCountTimer0 = 0;
+ 2280              		.loc 1 146 0
+ 2281 0098 24309FE5 		ldr	r3, .L5
+ 2282 009c 0020A0E3 		mov	r2, #0
+ 2283 00a0 002083E5 		str	r2, [r3, #0]
+ 2284              	.L4:
+ 147:../main.c     **** 	}
+ 148:../main.c     **** 	iCountTimer0++;
+ 2285              		.loc 1 148 0
+ 2286 00a4 18309FE5 		ldr	r3, .L5
+ 2287 00a8 003093E5 		ldr	r3, [r3, #0]
+ 2288 00ac 012083E2 		add	r2, r3, #1
+ 2289 00b0 0C309FE5 		ldr	r3, .L5
+ 2290 00b4 002083E5 		str	r2, [r3, #0]
+ 149:../main.c     **** }
+ 2291              		.loc 1 149 0
+ 2292 00b8 00D08BE2 		add	sp, fp, #0
+ 2293 00bc 0008BDE8 		ldmfd	sp!, {fp}
+ 2294 00c0 1EFF2FE1 		bx	lr
+ 2295              	.L6:
+ 2296              		.align	2
+ 2297              	.L5:
+ 2298 00c4 00000000 		.word	iCountTimer0
+ 2299 00c8 00000000 		.word	DOF4_PWM_DC
+ 2300 00cc 00000000 		.word	DOF5_PWM_DC
+ 2301              		.cfi_endproc
+ 2302              	.LFE0:
+ 2304              		.align	2
+ 2305              		.global	Modules_Init
+ 2307              	Modules_Init:
+ 2308              	.LFB1:
+ 150:../main.c     **** 
+ 151:../main.c     **** /***************************************************************************************
+ 152:../main.c     ****  * Function Name: Modules_Init(void)
+ 153:../main.c     ****  * 		 	Type: Void
+ 154:../main.c     ****  *	  Parameters:
+ 155:../main.c     ****  * 		 Returns: Void
+ 156:../main.c     ****  * 	 Description: Initiates CPU configurations,
+ 157:../main.c     ****  * 				  Configure Timer, PWM, ADC, UART Modules,
+ 158:../main.c     ****  * 				  Sets GPIO Pins.
+ 159:../main.c     **** ***************************************************************************************/
+ 160:../main.c     **** void Modules_Init(void)
+ 161:../main.c     **** {
+ 2309              		.loc 1 161 0
+ 2310              		.cfi_startproc
+ 2311              		@ Function supports interworking.
+ 2312              		@ args = 0, pretend = 0, frame = 0
+ 2313              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2314 00d0 00482DE9 		stmfd	sp!, {fp, lr}
+ 2315              	.LCFI2:
+ 2316              		.cfi_def_cfa_offset 8
+ 2317 00d4 04B08DE2 		add	fp, sp, #4
+ 2318              		.cfi_offset 14, -4
+ 2319              		.cfi_offset 11, -8
+ 2320              	.LCFI3:
+ 2321              		.cfi_def_cfa 11, 4
+ 162:../main.c     **** 	cpu_init();
+ 2322              		.loc 1 162 0
+ 2323 00d8 FEFFFFEB 		bl	cpu_init
+ 163:../main.c     **** 	UART_Init(0,9600);
+ 2324              		.loc 1 163 0
+ 2325 00dc 0000A0E3 		mov	r0, #0
+ 2326 00e0 961DA0E3 		mov	r1, #9600
+ 2327 00e4 FEFFFFEB 		bl	UART_Init
+ 164:../main.c     **** 	Timer_Init();
+ 2328              		.loc 1 164 0
+ 2329 00e8 FEFFFFEB 		bl	Timer_Init
+ 165:../main.c     **** 	Timer_RegisterCallback(PWM_InterruptControl);
+ 2330              		.loc 1 165 0
+ 2331 00ec 24009FE5 		ldr	r0, .L8
+ 2332 00f0 FEFFFFEB 		bl	Timer_RegisterCallback
+ 166:../main.c     **** 	Timer_Enable();
+ 2333              		.loc 1 166 0
+ 2334 00f4 FEFFFFEB 		bl	Timer_Enable
+ 167:../main.c     **** 	PWMInit();
+ 2335              		.loc 1 167 0
+ 2336 00f8 FEFFFFEB 		bl	PWMInit
+ 168:../main.c     **** 	ADCInit(ADC_CLK);
+ 2337              		.loc 1 168 0
+ 2338 00fc 3D09A0E3 		mov	r0, #999424
+ 2339 0100 090D80E2 		add	r0, r0, #576
+ 2340 0104 FEFFFFEB 		bl	ADCInit
+ 169:../main.c     **** 	GPIOInit();
+ 2341              		.loc 1 169 0
+ 2342 0108 FEFFFFEB 		bl	GPIOInit
+ 170:../main.c     **** }
+ 2343              		.loc 1 170 0
+ 2344 010c 04D04BE2 		sub	sp, fp, #4
+ 2345 0110 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2346 0114 1EFF2FE1 		bx	lr
+ 2347              	.L9:
+ 2348              		.align	2
+ 2349              	.L8:
+ 2350 0118 00000000 		.word	PWM_InterruptControl
+ 2351              		.cfi_endproc
+ 2352              	.LFE1:
+ 2354              		.section	.rodata
+ 2355              		.align	2
+ 2356              	.LC0:
+ 2357 0000 444F4631 		.ascii	"DOF1_ADC_POT: %d\015\012\000"
+ 2357      5F414443 
+ 2357      5F504F54 
+ 2357      3A202564 
+ 2357      0D0A00
+ 2358 0013 00       		.text
+ 2359              		.align	2
+ 2360              		.global	IdleState
+ 2362              	IdleState:
+ 2363              	.LFB2:
+ 171:../main.c     **** 
+ 172:../main.c     **** /***************************************************************************************
+ 173:../main.c     ****  * Function Name: IdleState(void)
+ 174:../main.c     ****  * 		 	Type: STATE
+ 175:../main.c     ****  *	  Parameters:
+ 176:../main.c     ****  * 		 Returns:
+ 177:../main.c     ****  * 	 Description:
+ 178:../main.c     **** ***************************************************************************************/
+ 179:../main.c     **** STATE IdleState(void)
+ 180:../main.c     **** {
+ 2364              		.loc 1 180 0
+ 2365              		.cfi_startproc
+ 2366              		@ Function supports interworking.
+ 2367              		@ args = 0, pretend = 0, frame = 0
+ 2368              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2369 011c 00482DE9 		stmfd	sp!, {fp, lr}
+ 2370              	.LCFI4:
+ 2371              		.cfi_def_cfa_offset 8
+ 2372 0120 04B08DE2 		add	fp, sp, #4
+ 2373              		.cfi_offset 14, -4
+ 2374              		.cfi_offset 11, -8
+ 2375              	.LCFI5:
+ 2376              		.cfi_def_cfa 11, 4
+ 181:../main.c     **** 	if(iCountUart>=25000)
+ 2377              		.loc 1 181 0
+ 2378 0124 58309FE5 		ldr	r3, .L12
+ 2379 0128 002093E5 		ldr	r2, [r3, #0]
+ 2380 012c 613CA0E3 		mov	r3, #24832
+ 2381 0130 A73083E2 		add	r3, r3, #167
+ 2382 0134 030052E1 		cmp	r2, r3
+ 2383 0138 070000DA 		ble	.L11
+ 182:../main.c     **** 	{
+ 183:../main.c     **** 		iCountUart=0;
+ 2384              		.loc 1 183 0
+ 2385 013c 40309FE5 		ldr	r3, .L12
+ 2386 0140 0020A0E3 		mov	r2, #0
+ 2387 0144 002083E5 		str	r2, [r3, #0]
+ 184:../main.c     **** 		iprintf("DOF1_ADC_POT: %d\r\n",DOF1_ADC_POT);
+ 2388              		.loc 1 184 0
+ 2389 0148 38309FE5 		ldr	r3, .L12+4
+ 2390 014c 003093E5 		ldr	r3, [r3, #0]
+ 2391 0150 34009FE5 		ldr	r0, .L12+8
+ 2392 0154 0310A0E1 		mov	r1, r3
+ 2393 0158 FEFFFFEB 		bl	iprintf
+ 2394              	.L11:
+ 185:../main.c     **** 		//UART_SendBuffer('0',&tBuffer,1);
+ 186:../main.c     **** 		//iprintf("DOF1_ADC_POT: %d \r\n",DOF1_ADC_POT);
+ 187:../main.c     **** 		//UART_putc(teste);
+ 188:../main.c     **** 		//UART_SendBuffer(tChannel,&tBuffer,tSize);
+ 189:../main.c     **** 		//iprintf("  ADC: %d \r\n", DOF1_ADC_POT);
+ 190:../main.c     **** 		//print( 0, '%d', DOF1_ADC_POT );
+ 191:../main.c     **** 		//iprintf("DOF1_ADC_POT: %d  TESTE:%c\r\n",DOF1_ADC_POT, teste);
+ 192:../main.c     **** 
+ 193:../main.c     **** 	}
+ 194:../main.c     **** 	iCountUart++;
+ 2395              		.loc 1 194 0
+ 2396 015c 20309FE5 		ldr	r3, .L12
+ 2397 0160 003093E5 		ldr	r3, [r3, #0]
+ 2398 0164 012083E2 		add	r2, r3, #1
+ 2399 0168 14309FE5 		ldr	r3, .L12
+ 2400 016c 002083E5 		str	r2, [r3, #0]
+ 195:../main.c     **** 	return RECEIVING_DATA;
+ 2401              		.loc 1 195 0
+ 2402 0170 0130A0E3 		mov	r3, #1
+ 196:../main.c     **** }
+ 2403              		.loc 1 196 0
+ 2404 0174 0300A0E1 		mov	r0, r3
+ 2405 0178 04D04BE2 		sub	sp, fp, #4
+ 2406 017c 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2407 0180 1EFF2FE1 		bx	lr
+ 2408              	.L13:
+ 2409              		.align	2
+ 2410              	.L12:
+ 2411 0184 00000000 		.word	iCountUart
+ 2412 0188 00000000 		.word	DOF1_ADC_POT
+ 2413 018c 00000000 		.word	.LC0
+ 2414              		.cfi_endproc
+ 2415              	.LFE2:
+ 2417              		.align	2
+ 2418              		.global	ReceivingDataState
+ 2420              	ReceivingDataState:
+ 2421              	.LFB3:
+ 197:../main.c     **** 
+ 198:../main.c     **** /***************************************************************************************
+ 199:../main.c     ****  * Function Name: ReceivingDataState(void)
+ 200:../main.c     ****  * 		 	Type: STATE
+ 201:../main.c     ****   *	  Parameters:
+ 202:../main.c     ****  * 		 Returns:
+ 203:../main.c     ****  * 	 Description:
+ 204:../main.c     **** ***************************************************************************************/
+ 205:../main.c     **** STATE ReceivingDataState(void)
+ 206:../main.c     **** {
+ 2422              		.loc 1 206 0
+ 2423              		.cfi_startproc
+ 2424              		@ Function supports interworking.
+ 2425              		@ args = 0, pretend = 0, frame = 0
+ 2426              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2427 0190 00482DE9 		stmfd	sp!, {fp, lr}
+ 2428              	.LCFI6:
+ 2429              		.cfi_def_cfa_offset 8
+ 2430 0194 04B08DE2 		add	fp, sp, #4
+ 2431              		.cfi_offset 14, -4
+ 2432              		.cfi_offset 11, -8
+ 2433              	.LCFI7:
+ 2434              		.cfi_def_cfa 11, 4
+ 207:../main.c     **** 	//UART_ReceiveBuffer(0,teste,1);
+ 208:../main.c     **** 	DOF1_SETPOINT = 1000;
+ 2435              		.loc 1 208 0
+ 2436 0198 2C309FE5 		ldr	r3, .L15
+ 2437 019c FA2FA0E3 		mov	r2, #1000
+ 2438 01a0 002083E5 		str	r2, [r3, #0]
+ 209:../main.c     **** 	DOF1_ADC_POT = ADC0Read(1);
+ 2439              		.loc 1 209 0
+ 2440 01a4 0100A0E3 		mov	r0, #1
+ 2441 01a8 FEFFFFEB 		bl	ADC0Read
+ 2442 01ac 0020A0E1 		mov	r2, r0
+ 2443 01b0 18309FE5 		ldr	r3, .L15+4
+ 2444 01b4 002083E5 		str	r2, [r3, #0]
+ 210:../main.c     **** 
+ 211:../main.c     **** 	return DEF_SETPOINT;
+ 2445              		.loc 1 211 0
+ 2446 01b8 0230A0E3 		mov	r3, #2
+ 212:../main.c     **** }
+ 2447              		.loc 1 212 0
+ 2448 01bc 0300A0E1 		mov	r0, r3
+ 2449 01c0 04D04BE2 		sub	sp, fp, #4
+ 2450 01c4 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2451 01c8 1EFF2FE1 		bx	lr
+ 2452              	.L16:
+ 2453              		.align	2
+ 2454              	.L15:
+ 2455 01cc 00000000 		.word	DOF1_SETPOINT
+ 2456 01d0 00000000 		.word	DOF1_ADC_POT
+ 2457              		.cfi_endproc
+ 2458              	.LFE3:
+ 2460              		.align	2
+ 2461              		.global	DefSetPointState
+ 2463              	DefSetPointState:
+ 2464              	.LFB4:
+ 213:../main.c     **** 
+ 214:../main.c     **** /***************************************************************************************
+ 215:../main.c     ****  * Function Name: DefSetPointState(void)
+ 216:../main.c     ****  * 		 	Type: STATE
+ 217:../main.c     ****  *	  Parameters:
+ 218:../main.c     ****  * 		 Returns:
+ 219:../main.c     ****  * 	 Description:
+ 220:../main.c     **** ***************************************************************************************/
+ 221:../main.c     **** STATE DefSetPointState(void)
+ 222:../main.c     **** {
+ 2465              		.loc 1 222 0
+ 2466              		.cfi_startproc
+ 2467              		@ Function supports interworking.
+ 2468              		@ args = 0, pretend = 0, frame = 0
+ 2469              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2470 01d4 00482DE9 		stmfd	sp!, {fp, lr}
+ 2471              	.LCFI8:
+ 2472              		.cfi_def_cfa_offset 8
+ 2473 01d8 04B08DE2 		add	fp, sp, #4
+ 2474              		.cfi_offset 14, -4
+ 2475              		.cfi_offset 11, -8
+ 2476              	.LCFI9:
+ 2477              		.cfi_def_cfa 11, 4
+ 223:../main.c     **** 	DOF4_PWM_DC = 275;
+ 2478              		.loc 1 223 0
+ 2479 01dc 38209FE5 		ldr	r2, .L18
+ 2480 01e0 113EA0E3 		mov	r3, #272
+ 2481 01e4 033083E2 		add	r3, r3, #3
+ 2482 01e8 003082E5 		str	r3, [r2, #0]
+ 224:../main.c     **** 	DOF5_PWM_DC = 450;
+ 2483              		.loc 1 224 0
+ 2484 01ec 2C209FE5 		ldr	r2, .L18+4
+ 2485 01f0 073DA0E3 		mov	r3, #448
+ 2486 01f4 023083E2 		add	r3, r3, #2
+ 2487 01f8 003082E5 		str	r3, [r2, #0]
+ 225:../main.c     **** 	setDutyCycle(2,500);
+ 2488              		.loc 1 225 0
+ 2489 01fc 0200A0E3 		mov	r0, #2
+ 2490 0200 7D1FA0E3 		mov	r1, #500
+ 2491 0204 FEFFFFEB 		bl	setDutyCycle
+ 226:../main.c     **** //	if((DOF1_SETPOINT>DOF1_ADC_POT) || DOF1_ADC_POT < 50)
+ 227:../main.c     **** //	{
+ 228:../main.c     **** //		IOCLR0 = (1<<18);
+ 229:../main.c     **** //		IOSET0 = (1<<19);
+ 230:../main.c     **** //		DOF1_ERROR = DOF1_SETPOINT - DOF1_ADC_POT;
+ 231:../main.c     **** //	}
+ 232:../main.c     **** //	if((DOF1_SETPOINT<DOF1_ADC_POT) || DOF1_ADC_POT > 970)
+ 233:../main.c     **** //	{
+ 234:../main.c     **** //		IOCLR0 = (1<<19);
+ 235:../main.c     **** //		IOSET0 = (1<<18);
+ 236:../main.c     **** //		DOF1_ERROR = DOF1_ADC_POT - DOF1_SETPOINT;
+ 237:../main.c     **** //	}
+ 238:../main.c     **** //	setDutyCycle(2,DOF1_ERROR);
+ 239:../main.c     **** 	return IDLE;
+ 2492              		.loc 1 239 0
+ 2493 0208 0030A0E3 		mov	r3, #0
+ 240:../main.c     **** }
+ 2494              		.loc 1 240 0
+ 2495 020c 0300A0E1 		mov	r0, r3
+ 2496 0210 04D04BE2 		sub	sp, fp, #4
+ 2497 0214 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2498 0218 1EFF2FE1 		bx	lr
+ 2499              	.L19:
+ 2500              		.align	2
+ 2501              	.L18:
+ 2502 021c 00000000 		.word	DOF4_PWM_DC
+ 2503 0220 00000000 		.word	DOF5_PWM_DC
+ 2504              		.cfi_endproc
+ 2505              	.LFE4:
+ 2507              		.align	2
+ 2508              		.global	main
+ 2510              	main:
+ 2511              	.LFB5:
+ 241:../main.c     **** 
+ 242:../main.c     **** /***************************************************************************************
+ 243:../main.c     ****  * Function Name: main(void)
+ 244:../main.c     ****  * 		 	Type: Integer
+ 245:../main.c     ****  *	  Parameters:
+ 246:../main.c     ****  * 		 Returns: 0
+ 247:../main.c     ****  * 	 Description: Main function for firmware
+ 248:../main.c     **** ***************************************************************************************/
+ 249:../main.c     **** int main (void)
+ 250:../main.c     **** {
+ 2512              		.loc 1 250 0
+ 2513              		.cfi_startproc
+ 2514              		@ Function supports interworking.
+ 2515              		@ args = 0, pretend = 0, frame = 8
+ 2516              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2517 0224 00482DE9 		stmfd	sp!, {fp, lr}
+ 2518              	.LCFI10:
+ 2519              		.cfi_def_cfa_offset 8
+ 2520 0228 04B08DE2 		add	fp, sp, #4
+ 2521              		.cfi_offset 14, -4
+ 2522              		.cfi_offset 11, -8
+ 2523              	.LCFI11:
+ 2524              		.cfi_def_cfa 11, 4
+ 2525 022c 08D04DE2 		sub	sp, sp, #8
+ 251:../main.c     **** 	//Creates a variable of STATE type, and attributes its initial value
+ 252:../main.c     **** 	STATE nextState = IDLE;
+ 2526              		.loc 1 252 0
+ 2527 0230 0030A0E3 		mov	r3, #0
+ 2528 0234 05304BE5 		strb	r3, [fp, #-5]
+ 253:../main.c     **** 
+ 254:../main.c     **** 	//Calls function Modules_Init()
+ 255:../main.c     **** 	Modules_Init();
+ 2529              		.loc 1 255 0
+ 2530 0238 FEFFFFEB 		bl	Modules_Init
+ 2531 023c 000000EA 		b	.L25
+ 2532              	.L26:
+ 256:../main.c     **** 
+ 257:../main.c     **** 	while (1)
+ 258:../main.c     **** 	{
+ 259:../main.c     **** //		DOF4_PWM_DC = 200;
+ 260:../main.c     **** //		DOF5_PWM_DC = 400;
+ 261:../main.c     **** 		switch(nextState)
+ 262:../main.c     **** 		{
+ 263:../main.c     **** 			case IDLE:
+ 264:../main.c     **** 			{
+ 265:../main.c     **** 				nextState = IdleState();
+ 266:../main.c     **** 			}
+ 267:../main.c     **** 			case RECEIVING_DATA:
+ 268:../main.c     **** 			{
+ 269:../main.c     **** 				nextState = ReceivingDataState();
+ 270:../main.c     **** 			}
+ 271:../main.c     **** 			case DEF_SETPOINT:
+ 272:../main.c     **** 			{
+ 273:../main.c     **** 				nextState = DefSetPointState();
+ 274:../main.c     **** 			}
+ 275:../main.c     **** 		}
+ 276:../main.c     **** 	}
+ 2533              		.loc 1 276 0
+ 2534 0240 0000A0E1 		mov	r0, r0	@ nop
+ 2535              	.L25:
+ 261:../main.c     **** 		switch(nextState)
+ 2536              		.loc 1 261 0
+ 2537 0244 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 2538 0248 010053E3 		cmp	r3, #1
+ 2539 024c 0600000A 		beq	.L23
+ 2540 0250 020053E3 		cmp	r3, #2
+ 2541 0254 0700000A 		beq	.L24
+ 2542 0258 000053E3 		cmp	r3, #0
+ 2543 025c F7FFFF1A 		bne	.L26
+ 2544              	.L22:
+ 265:../main.c     **** 				nextState = IdleState();
+ 2545              		.loc 1 265 0
+ 2546 0260 FEFFFFEB 		bl	IdleState
+ 2547 0264 0030A0E1 		mov	r3, r0
+ 2548 0268 05304BE5 		strb	r3, [fp, #-5]
+ 2549              	.L23:
+ 269:../main.c     **** 				nextState = ReceivingDataState();
+ 2550              		.loc 1 269 0
+ 2551 026c FEFFFFEB 		bl	ReceivingDataState
+ 2552 0270 0030A0E1 		mov	r3, r0
+ 2553 0274 05304BE5 		strb	r3, [fp, #-5]
+ 2554              	.L24:
+ 273:../main.c     **** 				nextState = DefSetPointState();
+ 2555              		.loc 1 273 0
+ 2556 0278 FEFFFFEB 		bl	DefSetPointState
+ 2557 027c 0030A0E1 		mov	r3, r0
+ 2558 0280 05304BE5 		strb	r3, [fp, #-5]
+ 2559              		.loc 1 276 0
+ 2560 0284 EEFFFFEA 		b	.L25
+ 2561              		.cfi_endproc
+ 2562              	.LFE5:
+ 2564              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2166   .bss:00000000 DOF1_SETPOINT
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2163   .bss:00000000 $d
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2172   .bss:00000004 DOF1_PWM_DC
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2178   .bss:00000008 DOF4_PWM_DC
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2184   .bss:0000000c DOF5_PWM_DC
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2190   .bss:00000010 DOF1_ADC_POT
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2196   .bss:00000014 DOF1_ERROR
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2202   .bss:00000018 iCountTimer0
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2208   .bss:0000001c iCountUart
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2214   .data:00000000 tBuffer
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2217   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2220   .text:00000000 PWM_InterruptControl
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2298   .text:000000c4 $d
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2304   .text:000000d0 $a
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2307   .text:000000d0 Modules_Init
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2350   .text:00000118 $d
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2355   .rodata:00000000 $d
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2359   .text:0000011c $a
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2362   .text:0000011c IdleState
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2411   .text:00000184 $d
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2417   .text:00000190 $a
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2420   .text:00000190 ReceivingDataState
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2455   .text:000001cc $d
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2460   .text:000001d4 $a
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2463   .text:000001d4 DefSetPointState
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2502   .text:0000021c $d
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2507   .text:00000224 $a
+C:\Users\Daniel\AppData\Local\Temp\ccBoKxp4.s:2510   .text:00000224 main
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+cpu_init
+UART_Init
+Timer_Init
+Timer_RegisterCallback
+Timer_Enable
+PWMInit
+ADCInit
+GPIOInit
+iprintf
+ADC0Read
+setDutyCycle

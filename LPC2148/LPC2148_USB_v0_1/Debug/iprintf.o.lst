@@ -1,0 +1,1017 @@
+   1              		.cpu arm7tdmi-s
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"iprintf.c"
+  21              	.Ltext0:
+  22              		.file 1 "../iprintf.c"
+ 1285              		.align	2
+ 1287              	printchar:
+ 1288              	.LFB0:
+   1:../iprintf.c  **** /*
+   2:../iprintf.c  **** 	Copyright 2001, 2002 Georges Menie (www.menie.org)
+   3:../iprintf.c  **** 	stdarg version contributed by Christian Ettinger
+   4:../iprintf.c  **** 
+   5:../iprintf.c  ****     This program is free software; you can redistribute it and/or modify
+   6:../iprintf.c  ****     it under the terms of the GNU Lesser General Public License as published by
+   7:../iprintf.c  ****     the Free Software Foundation; either version 2 of the License, or
+   8:../iprintf.c  ****     (at your option) any later version.
+   9:../iprintf.c  **** 
+  10:../iprintf.c  ****     This program is distributed in the hope that it will be useful,
+  11:../iprintf.c  ****     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12:../iprintf.c  ****     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13:../iprintf.c  ****     GNU Lesser General Public License for more details.
+  14:../iprintf.c  **** 
+  15:../iprintf.c  ****     You should have received a copy of the GNU Lesser General Public License
+  16:../iprintf.c  ****     along with this program; if not, write to the Free Software
+  17:../iprintf.c  ****     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  18:../iprintf.c  **** */
+  19:../iprintf.c  **** 
+  20:../iprintf.c  **** /*
+  21:../iprintf.c  **** 	putchar is the only external dependency for this file,
+  22:../iprintf.c  **** 	if you have a working putchar, leave it commented out.
+  23:../iprintf.c  **** 	If not, uncomment the define below and
+  24:../iprintf.c  **** 	replace outbyte(c) by your own function call.
+  25:../iprintf.c  **** 
+  26:../iprintf.c  **** #define putchar(c) outbyte(c)
+  27:../iprintf.c  **** */
+  28:../iprintf.c  **** 
+  29:../iprintf.c  **** #include <stdarg.h>
+  30:../iprintf.c  **** #include "iprintf.h"
+  31:../iprintf.c  **** #include "uart.h"
+  32:../iprintf.c  **** 
+  33:../iprintf.c  **** extern void lcd_char(unsigned char letter);
+  34:../iprintf.c  **** 
+  35:../iprintf.c  **** int iprintf(const char *format, ...);
+  36:../iprintf.c  **** int isprintf(char *out, const char *format, ...);
+  37:../iprintf.c  **** 
+  38:../iprintf.c  **** static void printchar(char **str, int c)
+  39:../iprintf.c  **** {
+ 1289              		.loc 1 39 0
+ 1290              		.cfi_startproc
+ 1291              		@ Function supports interworking.
+ 1292              		@ args = 0, pretend = 0, frame = 8
+ 1293              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1294 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 1295              	.LCFI0:
+ 1296              		.cfi_def_cfa_offset 8
+ 1297 0004 04B08DE2 		add	fp, sp, #4
+ 1298              		.cfi_offset 14, -4
+ 1299              		.cfi_offset 11, -8
+ 1300              	.LCFI1:
+ 1301              		.cfi_def_cfa 11, 4
+ 1302 0008 08D04DE2 		sub	sp, sp, #8
+ 1303 000c 08000BE5 		str	r0, [fp, #-8]
+ 1304 0010 0C100BE5 		str	r1, [fp, #-12]
+  40:../iprintf.c  **** 	if (str) {
+ 1305              		.loc 1 40 0
+ 1306 0014 08301BE5 		ldr	r3, [fp, #-8]
+ 1307 0018 000053E3 		cmp	r3, #0
+ 1308 001c 0A00000A 		beq	.L2
+  41:../iprintf.c  **** 		**str = c;
+ 1309              		.loc 1 41 0
+ 1310 0020 08301BE5 		ldr	r3, [fp, #-8]
+ 1311 0024 003093E5 		ldr	r3, [r3, #0]
+ 1312 0028 0C201BE5 		ldr	r2, [fp, #-12]
+ 1313 002c FF2002E2 		and	r2, r2, #255
+ 1314 0030 0020C3E5 		strb	r2, [r3, #0]
+  42:../iprintf.c  **** 		++(*str);
+ 1315              		.loc 1 42 0
+ 1316 0034 08301BE5 		ldr	r3, [fp, #-8]
+ 1317 0038 003093E5 		ldr	r3, [r3, #0]
+ 1318 003c 012083E2 		add	r2, r3, #1
+ 1319 0040 08301BE5 		ldr	r3, [fp, #-8]
+ 1320 0044 002083E5 		str	r2, [r3, #0]
+ 1321 0048 030000EA 		b	.L1
+ 1322              	.L2:
+  43:../iprintf.c  **** 	}
+  44:../iprintf.c  **** 	else {
+  45:../iprintf.c  **** //	  WriteChar_USART0(c);
+  46:../iprintf.c  **** //		lcd_char(c);
+  47:../iprintf.c  **** 	  UART_putc(c);
+ 1323              		.loc 1 47 0
+ 1324 004c 0C301BE5 		ldr	r3, [fp, #-12]
+ 1325 0050 FF3003E2 		and	r3, r3, #255
+ 1326 0054 0300A0E1 		mov	r0, r3
+ 1327 0058 FEFFFFEB 		bl	UART_putc
+ 1328              	.L1:
+  48:../iprintf.c  **** 	}
+  49:../iprintf.c  **** }
+ 1329              		.loc 1 49 0
+ 1330 005c 04D04BE2 		sub	sp, fp, #4
+ 1331 0060 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1332 0064 1EFF2FE1 		bx	lr
+ 1333              		.cfi_endproc
+ 1334              	.LFE0:
+ 1336              		.align	2
+ 1338              	prints:
+ 1339              	.LFB1:
+  50:../iprintf.c  **** 
+  51:../iprintf.c  **** #define PAD_RIGHT 1
+  52:../iprintf.c  **** #define PAD_ZERO 2
+  53:../iprintf.c  **** 
+  54:../iprintf.c  **** static int prints(char **out, const char *string, int width, int pad)
+  55:../iprintf.c  **** {
+ 1340              		.loc 1 55 0
+ 1341              		.cfi_startproc
+ 1342              		@ Function supports interworking.
+ 1343              		@ args = 0, pretend = 0, frame = 16
+ 1344              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1345 0068 F0482DE9 		stmfd	sp!, {r4, r5, r6, r7, fp, lr}
+ 1346              	.LCFI2:
+ 1347              		.cfi_def_cfa_offset 24
+ 1348 006c 14B08DE2 		add	fp, sp, #20
+ 1349              		.cfi_offset 14, -4
+ 1350              		.cfi_offset 11, -8
+ 1351              		.cfi_offset 7, -12
+ 1352              		.cfi_offset 6, -16
+ 1353              		.cfi_offset 5, -20
+ 1354              		.cfi_offset 4, -24
+ 1355              	.LCFI3:
+ 1356              		.cfi_def_cfa 11, 4
+ 1357 0070 10D04DE2 		sub	sp, sp, #16
+ 1358 0074 18000BE5 		str	r0, [fp, #-24]
+ 1359 0078 1C100BE5 		str	r1, [fp, #-28]
+ 1360 007c 20200BE5 		str	r2, [fp, #-32]
+ 1361 0080 24300BE5 		str	r3, [fp, #-36]
+  56:../iprintf.c  **** 	register int pc = 0, padchar = ' ';
+ 1362              		.loc 1 56 0
+ 1363 0084 0040A0E3 		mov	r4, #0
+ 1364 0088 2060A0E3 		mov	r6, #32
+  57:../iprintf.c  **** 
+  58:../iprintf.c  **** 	if (width > 0) {
+ 1365              		.loc 1 58 0
+ 1366 008c 20301BE5 		ldr	r3, [fp, #-32]
+ 1367 0090 000053E3 		cmp	r3, #0
+ 1368 0094 150000DA 		ble	.L5
+ 1369              	.LBB2:
+  59:../iprintf.c  **** 		register int len = 0;
+ 1370              		.loc 1 59 0
+ 1371 0098 0050A0E3 		mov	r5, #0
+  60:../iprintf.c  **** 		register const char *ptr;
+  61:../iprintf.c  **** 		for (ptr = string; *ptr; ++ptr) ++len;
+ 1372              		.loc 1 61 0
+ 1373 009c 1C701BE5 		ldr	r7, [fp, #-28]
+ 1374 00a0 010000EA 		b	.L6
+ 1375              	.L7:
+ 1376              		.loc 1 61 0 is_stmt 0 discriminator 2
+ 1377 00a4 015085E2 		add	r5, r5, #1
+ 1378 00a8 017087E2 		add	r7, r7, #1
+ 1379              	.L6:
+ 1380              		.loc 1 61 0 discriminator 1
+ 1381 00ac 0030D7E5 		ldrb	r3, [r7, #0]	@ zero_extendqisi2
+ 1382 00b0 000053E3 		cmp	r3, #0
+ 1383 00b4 FAFFFF1A 		bne	.L7
+  62:../iprintf.c  **** 		if (len >= width) width = 0;
+ 1384              		.loc 1 62 0 is_stmt 1
+ 1385 00b8 20301BE5 		ldr	r3, [fp, #-32]
+ 1386 00bc 030055E1 		cmp	r5, r3
+ 1387 00c0 020000BA 		blt	.L8
+ 1388              		.loc 1 62 0 is_stmt 0 discriminator 1
+ 1389 00c4 0030A0E3 		mov	r3, #0
+ 1390 00c8 20300BE5 		str	r3, [fp, #-32]
+ 1391 00cc 020000EA 		b	.L9
+ 1392              	.L8:
+  63:../iprintf.c  **** 		else width -= len;
+ 1393              		.loc 1 63 0 is_stmt 1
+ 1394 00d0 20301BE5 		ldr	r3, [fp, #-32]
+ 1395 00d4 033065E0 		rsb	r3, r5, r3
+ 1396 00d8 20300BE5 		str	r3, [fp, #-32]
+ 1397              	.L9:
+  64:../iprintf.c  **** 		if (pad & PAD_ZERO) padchar = '0';
+ 1398              		.loc 1 64 0
+ 1399 00dc 24301BE5 		ldr	r3, [fp, #-36]
+ 1400 00e0 023003E2 		and	r3, r3, #2
+ 1401 00e4 000053E3 		cmp	r3, #0
+ 1402 00e8 0000000A 		beq	.L5
+ 1403              		.loc 1 64 0 is_stmt 0 discriminator 1
+ 1404 00ec 3060A0E3 		mov	r6, #48
+ 1405              	.L5:
+ 1406              	.LBE2:
+  65:../iprintf.c  **** 	}
+  66:../iprintf.c  **** 	if (!(pad & PAD_RIGHT)) {
+ 1407              		.loc 1 66 0 is_stmt 1
+ 1408 00f0 24301BE5 		ldr	r3, [fp, #-36]
+ 1409 00f4 013003E2 		and	r3, r3, #1
+ 1410 00f8 000053E3 		cmp	r3, #0
+ 1411 00fc 1500001A 		bne	.L17
+  67:../iprintf.c  **** 		for ( ; width > 0; --width) {
+ 1412              		.loc 1 67 0
+ 1413 0100 060000EA 		b	.L11
+ 1414              	.L12:
+  68:../iprintf.c  **** 			printchar (out, padchar);
+ 1415              		.loc 1 68 0 discriminator 2
+ 1416 0104 18001BE5 		ldr	r0, [fp, #-24]
+ 1417 0108 0610A0E1 		mov	r1, r6
+ 1418 010c BBFFFFEB 		bl	printchar
+  69:../iprintf.c  **** 			++pc;
+ 1419              		.loc 1 69 0 discriminator 2
+ 1420 0110 014084E2 		add	r4, r4, #1
+  67:../iprintf.c  **** 		for ( ; width > 0; --width) {
+ 1421              		.loc 1 67 0 discriminator 2
+ 1422 0114 20301BE5 		ldr	r3, [fp, #-32]
+ 1423 0118 013043E2 		sub	r3, r3, #1
+ 1424 011c 20300BE5 		str	r3, [fp, #-32]
+ 1425              	.L11:
+  67:../iprintf.c  **** 		for ( ; width > 0; --width) {
+ 1426              		.loc 1 67 0 is_stmt 0 discriminator 1
+ 1427 0120 20301BE5 		ldr	r3, [fp, #-32]
+ 1428 0124 000053E3 		cmp	r3, #0
+ 1429 0128 F5FFFFCA 		bgt	.L12
+  70:../iprintf.c  **** 		}
+  71:../iprintf.c  **** 	}
+  72:../iprintf.c  **** 	for ( ; *string ; ++string) {
+ 1430              		.loc 1 72 0 is_stmt 1
+ 1431 012c 0A0000EA 		b	.L13
+ 1432              	.L14:
+  73:../iprintf.c  **** 		printchar (out, *string);
+ 1433              		.loc 1 73 0 discriminator 2
+ 1434 0130 1C301BE5 		ldr	r3, [fp, #-28]
+ 1435 0134 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1436 0138 18001BE5 		ldr	r0, [fp, #-24]
+ 1437 013c 0310A0E1 		mov	r1, r3
+ 1438 0140 AEFFFFEB 		bl	printchar
+  74:../iprintf.c  **** 		++pc;
+ 1439              		.loc 1 74 0 discriminator 2
+ 1440 0144 014084E2 		add	r4, r4, #1
+  72:../iprintf.c  **** 	for ( ; *string ; ++string) {
+ 1441              		.loc 1 72 0 discriminator 2
+ 1442 0148 1C301BE5 		ldr	r3, [fp, #-28]
+ 1443 014c 013083E2 		add	r3, r3, #1
+ 1444 0150 1C300BE5 		str	r3, [fp, #-28]
+ 1445 0154 000000EA 		b	.L13
+ 1446              	.L17:
+  72:../iprintf.c  **** 	for ( ; *string ; ++string) {
+ 1447              		.loc 1 72 0 is_stmt 0
+ 1448 0158 0000A0E1 		mov	r0, r0	@ nop
+ 1449              	.L13:
+  72:../iprintf.c  **** 	for ( ; *string ; ++string) {
+ 1450              		.loc 1 72 0 discriminator 1
+ 1451 015c 1C301BE5 		ldr	r3, [fp, #-28]
+ 1452 0160 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1453 0164 000053E3 		cmp	r3, #0
+ 1454 0168 F0FFFF1A 		bne	.L14
+  75:../iprintf.c  **** 	}
+  76:../iprintf.c  **** 	for ( ; width > 0; --width) {
+ 1455              		.loc 1 76 0 is_stmt 1
+ 1456 016c 060000EA 		b	.L15
+ 1457              	.L16:
+  77:../iprintf.c  **** 		printchar (out, padchar);
+ 1458              		.loc 1 77 0 discriminator 2
+ 1459 0170 18001BE5 		ldr	r0, [fp, #-24]
+ 1460 0174 0610A0E1 		mov	r1, r6
+ 1461 0178 A0FFFFEB 		bl	printchar
+  78:../iprintf.c  **** 		++pc;
+ 1462              		.loc 1 78 0 discriminator 2
+ 1463 017c 014084E2 		add	r4, r4, #1
+  76:../iprintf.c  **** 	for ( ; width > 0; --width) {
+ 1464              		.loc 1 76 0 discriminator 2
+ 1465 0180 20301BE5 		ldr	r3, [fp, #-32]
+ 1466 0184 013043E2 		sub	r3, r3, #1
+ 1467 0188 20300BE5 		str	r3, [fp, #-32]
+ 1468              	.L15:
+  76:../iprintf.c  **** 	for ( ; width > 0; --width) {
+ 1469              		.loc 1 76 0 is_stmt 0 discriminator 1
+ 1470 018c 20301BE5 		ldr	r3, [fp, #-32]
+ 1471 0190 000053E3 		cmp	r3, #0
+ 1472 0194 F5FFFFCA 		bgt	.L16
+  79:../iprintf.c  **** 	}
+  80:../iprintf.c  **** 
+  81:../iprintf.c  **** 	return pc;
+ 1473              		.loc 1 81 0 is_stmt 1
+ 1474 0198 0430A0E1 		mov	r3, r4
+  82:../iprintf.c  **** }
+ 1475              		.loc 1 82 0
+ 1476 019c 0300A0E1 		mov	r0, r3
+ 1477 01a0 14D04BE2 		sub	sp, fp, #20
+ 1478 01a4 F048BDE8 		ldmfd	sp!, {r4, r5, r6, r7, fp, lr}
+ 1479 01a8 1EFF2FE1 		bx	lr
+ 1480              		.cfi_endproc
+ 1481              	.LFE1:
+ 1483              		.global	__aeabi_uidivmod
+ 1484              		.global	__aeabi_uidiv
+ 1485              		.align	2
+ 1487              	printi:
+ 1488              	.LFB2:
+  83:../iprintf.c  **** 
+  84:../iprintf.c  **** /* the following should be enough for 32 bit int */
+  85:../iprintf.c  **** #define PRINT_BUF_LEN 12
+  86:../iprintf.c  **** 
+  87:../iprintf.c  **** static int printi(char **out, int i, int b, int sg, int width, int pad, int letbase)
+  88:../iprintf.c  **** {
+ 1489              		.loc 1 88 0
+ 1490              		.cfi_startproc
+ 1491              		@ Function supports interworking.
+ 1492              		@ args = 12, pretend = 0, frame = 32
+ 1493              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1494 01ac F0492DE9 		stmfd	sp!, {r4, r5, r6, r7, r8, fp, lr}
+ 1495              	.LCFI4:
+ 1496              		.cfi_def_cfa_offset 28
+ 1497 01b0 18B08DE2 		add	fp, sp, #24
+ 1498              		.cfi_offset 14, -4
+ 1499              		.cfi_offset 11, -8
+ 1500              		.cfi_offset 8, -12
+ 1501              		.cfi_offset 7, -16
+ 1502              		.cfi_offset 6, -20
+ 1503              		.cfi_offset 5, -24
+ 1504              		.cfi_offset 4, -28
+ 1505              	.LCFI5:
+ 1506              		.cfi_def_cfa 11, 4
+ 1507 01b4 24D04DE2 		sub	sp, sp, #36
+ 1508 01b8 30000BE5 		str	r0, [fp, #-48]
+ 1509 01bc 34100BE5 		str	r1, [fp, #-52]
+ 1510 01c0 38200BE5 		str	r2, [fp, #-56]
+ 1511 01c4 3C300BE5 		str	r3, [fp, #-60]
+  89:../iprintf.c  **** 	char print_buf[PRINT_BUF_LEN];
+  90:../iprintf.c  **** 	register char *s;
+  91:../iprintf.c  **** 	register int t, neg = 0, pc = 0;
+ 1512              		.loc 1 91 0
+ 1513 01c8 0080A0E3 		mov	r8, #0
+ 1514 01cc 0070A0E3 		mov	r7, #0
+  92:../iprintf.c  **** 	register unsigned int u = i;
+ 1515              		.loc 1 92 0
+ 1516 01d0 34501BE5 		ldr	r5, [fp, #-52]
+  93:../iprintf.c  **** 
+  94:../iprintf.c  **** 	if (i == 0) {
+ 1517              		.loc 1 94 0
+ 1518 01d4 34301BE5 		ldr	r3, [fp, #-52]
+ 1519 01d8 000053E3 		cmp	r3, #0
+ 1520 01dc 0B00001A 		bne	.L19
+  95:../iprintf.c  **** 		print_buf[0] = '0';
+ 1521              		.loc 1 95 0
+ 1522 01e0 3030A0E3 		mov	r3, #48
+ 1523 01e4 28304BE5 		strb	r3, [fp, #-40]
+  96:../iprintf.c  **** 		print_buf[1] = '\0';
+ 1524              		.loc 1 96 0
+ 1525 01e8 0030A0E3 		mov	r3, #0
+ 1526 01ec 27304BE5 		strb	r3, [fp, #-39]
+  97:../iprintf.c  **** 		return prints (out, print_buf, width, pad);
+ 1527              		.loc 1 97 0
+ 1528 01f0 28304BE2 		sub	r3, fp, #40
+ 1529 01f4 30001BE5 		ldr	r0, [fp, #-48]
+ 1530 01f8 0310A0E1 		mov	r1, r3
+ 1531 01fc 04209BE5 		ldr	r2, [fp, #4]
+ 1532 0200 08309BE5 		ldr	r3, [fp, #8]
+ 1533 0204 97FFFFEB 		bl	prints
+ 1534 0208 0030A0E1 		mov	r3, r0
+ 1535 020c 440000EA 		b	.L20
+ 1536              	.L19:
+  98:../iprintf.c  **** 	}
+  99:../iprintf.c  **** 
+ 100:../iprintf.c  **** 	if (sg && b == 10 && i < 0) {
+ 1537              		.loc 1 100 0
+ 1538 0210 3C301BE5 		ldr	r3, [fp, #-60]
+ 1539 0214 000053E3 		cmp	r3, #0
+ 1540 0218 0900000A 		beq	.L21
+ 1541              		.loc 1 100 0 is_stmt 0 discriminator 1
+ 1542 021c 38301BE5 		ldr	r3, [fp, #-56]
+ 1543 0220 0A0053E3 		cmp	r3, #10
+ 1544 0224 0600001A 		bne	.L21
+ 1545 0228 34301BE5 		ldr	r3, [fp, #-52]
+ 1546 022c 000053E3 		cmp	r3, #0
+ 1547 0230 030000AA 		bge	.L21
+ 101:../iprintf.c  **** 		neg = 1;
+ 1548              		.loc 1 101 0 is_stmt 1
+ 1549 0234 0180A0E3 		mov	r8, #1
+ 102:../iprintf.c  **** 		u = -i;
+ 1550              		.loc 1 102 0
+ 1551 0238 34301BE5 		ldr	r3, [fp, #-52]
+ 1552 023c 003063E2 		rsb	r3, r3, #0
+ 1553 0240 0350A0E1 		mov	r5, r3
+ 1554              	.L21:
+ 103:../iprintf.c  **** 	}
+ 104:../iprintf.c  **** 
+ 105:../iprintf.c  **** 	s = print_buf + PRINT_BUF_LEN-1;
+ 1555              		.loc 1 105 0
+ 1556 0244 28304BE2 		sub	r3, fp, #40
+ 1557 0248 0B4083E2 		add	r4, r3, #11
+ 106:../iprintf.c  **** 	*s = '\0';
+ 1558              		.loc 1 106 0
+ 1559 024c 0030A0E3 		mov	r3, #0
+ 1560 0250 0030C4E5 		strb	r3, [r4, #0]
+ 107:../iprintf.c  **** 
+ 108:../iprintf.c  **** 	while (u) {
+ 1561              		.loc 1 108 0
+ 1562 0254 150000EA 		b	.L22
+ 1563              	.L24:
+ 109:../iprintf.c  **** 		t = u % b;
+ 1564              		.loc 1 109 0
+ 1565 0258 38301BE5 		ldr	r3, [fp, #-56]
+ 1566 025c 0500A0E1 		mov	r0, r5
+ 1567 0260 0310A0E1 		mov	r1, r3
+ 1568 0264 FEFFFFEB 		bl	__aeabi_uidivmod
+ 1569 0268 0130A0E1 		mov	r3, r1
+ 1570 026c 0360A0E1 		mov	r6, r3
+ 110:../iprintf.c  **** 		if( t >= 10 )
+ 1571              		.loc 1 110 0
+ 1572 0270 090056E3 		cmp	r6, #9
+ 1573 0274 020000DA 		ble	.L23
+ 111:../iprintf.c  **** 			t += letbase - '0' - 10;
+ 1574              		.loc 1 111 0
+ 1575 0278 0C309BE5 		ldr	r3, [fp, #12]
+ 1576 027c 3A3043E2 		sub	r3, r3, #58
+ 1577 0280 036086E0 		add	r6, r6, r3
+ 1578              	.L23:
+ 112:../iprintf.c  **** 		*--s = t + '0';
+ 1579              		.loc 1 112 0
+ 1580 0284 014044E2 		sub	r4, r4, #1
+ 1581 0288 FF3006E2 		and	r3, r6, #255
+ 1582 028c 303083E2 		add	r3, r3, #48
+ 1583 0290 FF3003E2 		and	r3, r3, #255
+ 1584 0294 0030C4E5 		strb	r3, [r4, #0]
+ 113:../iprintf.c  **** 		u /= b;
+ 1585              		.loc 1 113 0
+ 1586 0298 38301BE5 		ldr	r3, [fp, #-56]
+ 1587 029c 0500A0E1 		mov	r0, r5
+ 1588 02a0 0310A0E1 		mov	r1, r3
+ 1589 02a4 FEFFFFEB 		bl	__aeabi_uidiv
+ 1590 02a8 0030A0E1 		mov	r3, r0
+ 1591 02ac 0350A0E1 		mov	r5, r3
+ 1592              	.L22:
+ 108:../iprintf.c  **** 	while (u) {
+ 1593              		.loc 1 108 0 discriminator 1
+ 1594 02b0 000055E3 		cmp	r5, #0
+ 1595 02b4 E7FFFF1A 		bne	.L24
+ 114:../iprintf.c  **** 	}
+ 115:../iprintf.c  **** 
+ 116:../iprintf.c  **** 	if (neg) {
+ 1596              		.loc 1 116 0
+ 1597 02b8 000058E3 		cmp	r8, #0
+ 1598 02bc 1100000A 		beq	.L25
+ 117:../iprintf.c  **** 		if( width && (pad & PAD_ZERO) ) {
+ 1599              		.loc 1 117 0
+ 1600 02c0 04309BE5 		ldr	r3, [fp, #4]
+ 1601 02c4 000053E3 		cmp	r3, #0
+ 1602 02c8 0B00000A 		beq	.L26
+ 1603              		.loc 1 117 0 is_stmt 0 discriminator 1
+ 1604 02cc 08309BE5 		ldr	r3, [fp, #8]
+ 1605 02d0 023003E2 		and	r3, r3, #2
+ 1606 02d4 000053E3 		cmp	r3, #0
+ 1607 02d8 0700000A 		beq	.L26
+ 118:../iprintf.c  **** 			printchar (out, '-');
+ 1608              		.loc 1 118 0 is_stmt 1
+ 1609 02dc 30001BE5 		ldr	r0, [fp, #-48]
+ 1610 02e0 2D10A0E3 		mov	r1, #45
+ 1611 02e4 45FFFFEB 		bl	printchar
+ 119:../iprintf.c  **** 			++pc;
+ 1612              		.loc 1 119 0
+ 1613 02e8 017087E2 		add	r7, r7, #1
+ 120:../iprintf.c  **** 			--width;
+ 1614              		.loc 1 120 0
+ 1615 02ec 04309BE5 		ldr	r3, [fp, #4]
+ 1616 02f0 013043E2 		sub	r3, r3, #1
+ 1617 02f4 04308BE5 		str	r3, [fp, #4]
+ 1618 02f8 020000EA 		b	.L25
+ 1619              	.L26:
+ 121:../iprintf.c  **** 		}
+ 122:../iprintf.c  **** 		else {
+ 123:../iprintf.c  **** 			*--s = '-';
+ 1620              		.loc 1 123 0
+ 1621 02fc 014044E2 		sub	r4, r4, #1
+ 1622 0300 2D30A0E3 		mov	r3, #45
+ 1623 0304 0030C4E5 		strb	r3, [r4, #0]
+ 1624              	.L25:
+ 124:../iprintf.c  **** 		}
+ 125:../iprintf.c  **** 	}
+ 126:../iprintf.c  **** 
+ 127:../iprintf.c  **** 	return pc + prints (out, s, width, pad);
+ 1625              		.loc 1 127 0
+ 1626 0308 30001BE5 		ldr	r0, [fp, #-48]
+ 1627 030c 0410A0E1 		mov	r1, r4
+ 1628 0310 04209BE5 		ldr	r2, [fp, #4]
+ 1629 0314 08309BE5 		ldr	r3, [fp, #8]
+ 1630 0318 52FFFFEB 		bl	prints
+ 1631 031c 0030A0E1 		mov	r3, r0
+ 1632 0320 073083E0 		add	r3, r3, r7
+ 1633              	.L20:
+ 128:../iprintf.c  **** }
+ 1634              		.loc 1 128 0
+ 1635 0324 0300A0E1 		mov	r0, r3
+ 1636 0328 18D04BE2 		sub	sp, fp, #24
+ 1637 032c F049BDE8 		ldmfd	sp!, {r4, r5, r6, r7, r8, fp, lr}
+ 1638 0330 1EFF2FE1 		bx	lr
+ 1639              		.cfi_endproc
+ 1640              	.LFE2:
+ 1642              		.section	.rodata
+ 1643              		.align	2
+ 1644              	.LC0:
+ 1645 0000 286E756C 		.ascii	"(null)\000"
+ 1645      6C2900
+ 1646 0007 00       		.text
+ 1647              		.align	2
+ 1649              	print:
+ 1650              	.LFB3:
+ 129:../iprintf.c  **** 
+ 130:../iprintf.c  **** static int print(char **out, const char *format, va_list args )
+ 131:../iprintf.c  **** {
+ 1651              		.loc 1 131 0
+ 1652              		.cfi_startproc
+ 1653              		@ Function supports interworking.
+ 1654              		@ args = 0, pretend = 0, frame = 24
+ 1655              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1656 0334 F0482DE9 		stmfd	sp!, {r4, r5, r6, r7, fp, lr}
+ 1657              	.LCFI6:
+ 1658              		.cfi_def_cfa_offset 24
+ 1659 0338 14B08DE2 		add	fp, sp, #20
+ 1660              		.cfi_offset 14, -4
+ 1661              		.cfi_offset 11, -8
+ 1662              		.cfi_offset 7, -12
+ 1663              		.cfi_offset 6, -16
+ 1664              		.cfi_offset 5, -20
+ 1665              		.cfi_offset 4, -24
+ 1666              	.LCFI7:
+ 1667              		.cfi_def_cfa 11, 4
+ 1668 033c 28D04DE2 		sub	sp, sp, #40
+ 1669 0340 20000BE5 		str	r0, [fp, #-32]
+ 1670 0344 24100BE5 		str	r1, [fp, #-36]
+ 1671 0348 28200BE5 		str	r2, [fp, #-40]
+ 132:../iprintf.c  **** 	register int width, pad;
+ 133:../iprintf.c  **** 	register int pc = 0;
+ 1672              		.loc 1 133 0
+ 1673 034c 0040A0E3 		mov	r4, #0
+ 134:../iprintf.c  **** 	char scr[2];
+ 135:../iprintf.c  **** 
+ 136:../iprintf.c  **** 	for (; *format != 0; ++format) {
+ 1674              		.loc 1 136 0
+ 1675 0350 BD0000EA 		b	.L28
+ 1676              	.L47:
+ 137:../iprintf.c  **** 		if (*format == '%') {
+ 1677              		.loc 1 137 0
+ 1678 0354 24301BE5 		ldr	r3, [fp, #-36]
+ 1679 0358 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1680 035c 250053E3 		cmp	r3, #37
+ 1681 0360 B000001A 		bne	.L29
+ 138:../iprintf.c  **** 			++format;
+ 1682              		.loc 1 138 0
+ 1683 0364 24301BE5 		ldr	r3, [fp, #-36]
+ 1684 0368 013083E2 		add	r3, r3, #1
+ 1685 036c 24300BE5 		str	r3, [fp, #-36]
+ 139:../iprintf.c  **** 			width = pad = 0;
+ 1686              		.loc 1 139 0
+ 1687 0370 0060A0E3 		mov	r6, #0
+ 1688 0374 0650A0E1 		mov	r5, r6
+ 140:../iprintf.c  **** 			if (*format == '\0') break;
+ 1689              		.loc 1 140 0
+ 1690 0378 24301BE5 		ldr	r3, [fp, #-36]
+ 1691 037c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1692 0380 000053E3 		cmp	r3, #0
+ 1693 0384 B500000A 		beq	.L49
+ 1694              	.L30:
+ 141:../iprintf.c  **** 			if (*format == '%') goto out;
+ 1695              		.loc 1 141 0
+ 1696 0388 24301BE5 		ldr	r3, [fp, #-36]
+ 1697 038c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1698 0390 250053E3 		cmp	r3, #37
+ 1699 0394 A200000A 		beq	.L50
+ 1700              	.L32:
+ 142:../iprintf.c  **** 			if (*format == '-') {
+ 1701              		.loc 1 142 0
+ 1702 0398 24301BE5 		ldr	r3, [fp, #-36]
+ 1703 039c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1704 03a0 2D0053E3 		cmp	r3, #45
+ 1705 03a4 0900001A 		bne	.L51
+ 143:../iprintf.c  **** 				++format;
+ 1706              		.loc 1 143 0
+ 1707 03a8 24301BE5 		ldr	r3, [fp, #-36]
+ 1708 03ac 013083E2 		add	r3, r3, #1
+ 1709 03b0 24300BE5 		str	r3, [fp, #-36]
+ 144:../iprintf.c  **** 				pad = PAD_RIGHT;
+ 1710              		.loc 1 144 0
+ 1711 03b4 0160A0E3 		mov	r6, #1
+ 145:../iprintf.c  **** 			}
+ 146:../iprintf.c  **** 			while (*format == '0') {
+ 1712              		.loc 1 146 0
+ 1713 03b8 050000EA 		b	.L34
+ 1714              	.L35:
+ 147:../iprintf.c  **** 				++format;
+ 1715              		.loc 1 147 0
+ 1716 03bc 24301BE5 		ldr	r3, [fp, #-36]
+ 1717 03c0 013083E2 		add	r3, r3, #1
+ 1718 03c4 24300BE5 		str	r3, [fp, #-36]
+ 148:../iprintf.c  **** 				pad |= PAD_ZERO;
+ 1719              		.loc 1 148 0
+ 1720 03c8 026086E3 		orr	r6, r6, #2
+ 1721 03cc 000000EA 		b	.L34
+ 1722              	.L51:
+ 146:../iprintf.c  **** 			while (*format == '0') {
+ 1723              		.loc 1 146 0
+ 1724 03d0 0000A0E1 		mov	r0, r0	@ nop
+ 1725              	.L34:
+ 146:../iprintf.c  **** 			while (*format == '0') {
+ 1726              		.loc 1 146 0 is_stmt 0 discriminator 1
+ 1727 03d4 24301BE5 		ldr	r3, [fp, #-36]
+ 1728 03d8 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1729 03dc 300053E3 		cmp	r3, #48
+ 1730 03e0 F5FFFF0A 		beq	.L35
+ 149:../iprintf.c  **** 			}
+ 150:../iprintf.c  **** 			for ( ; *format >= '0' && *format <= '9'; ++format) {
+ 1731              		.loc 1 150 0 is_stmt 1
+ 1732 03e4 0B0000EA 		b	.L36
+ 1733              	.L38:
+ 151:../iprintf.c  **** 				width *= 10;
+ 1734              		.loc 1 151 0 discriminator 1
+ 1735 03e8 0530A0E1 		mov	r3, r5
+ 1736 03ec 0331A0E1 		mov	r3, r3, asl #2
+ 1737 03f0 053083E0 		add	r3, r3, r5
+ 1738 03f4 8330A0E1 		mov	r3, r3, asl #1
+ 1739 03f8 0350A0E1 		mov	r5, r3
+ 152:../iprintf.c  **** 				width += *format - '0';
+ 1740              		.loc 1 152 0 discriminator 1
+ 1741 03fc 24301BE5 		ldr	r3, [fp, #-36]
+ 1742 0400 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1743 0404 303043E2 		sub	r3, r3, #48
+ 1744 0408 035085E0 		add	r5, r5, r3
+ 150:../iprintf.c  **** 			for ( ; *format >= '0' && *format <= '9'; ++format) {
+ 1745              		.loc 1 150 0 discriminator 1
+ 1746 040c 24301BE5 		ldr	r3, [fp, #-36]
+ 1747 0410 013083E2 		add	r3, r3, #1
+ 1748 0414 24300BE5 		str	r3, [fp, #-36]
+ 1749              	.L36:
+ 1750 0418 24301BE5 		ldr	r3, [fp, #-36]
+ 1751 041c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1752 0420 2F0053E3 		cmp	r3, #47
+ 1753 0424 0300009A 		bls	.L37
+ 150:../iprintf.c  **** 			for ( ; *format >= '0' && *format <= '9'; ++format) {
+ 1754              		.loc 1 150 0 is_stmt 0 discriminator 2
+ 1755 0428 24301BE5 		ldr	r3, [fp, #-36]
+ 1756 042c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1757 0430 390053E3 		cmp	r3, #57
+ 1758 0434 EBFFFF9A 		bls	.L38
+ 1759              	.L37:
+ 153:../iprintf.c  **** 			}
+ 154:../iprintf.c  **** 			if( *format == 's' ) {
+ 1760              		.loc 1 154 0 is_stmt 1
+ 1761 0438 24301BE5 		ldr	r3, [fp, #-36]
+ 1762 043c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1763 0440 730053E3 		cmp	r3, #115
+ 1764 0444 1100001A 		bne	.L39
+ 1765              	.LBB3:
+ 155:../iprintf.c  **** 				register char *s = (char *)va_arg( args, int );
+ 1766              		.loc 1 155 0
+ 1767 0448 28301BE5 		ldr	r3, [fp, #-40]
+ 1768 044c 042083E2 		add	r2, r3, #4
+ 1769 0450 28200BE5 		str	r2, [fp, #-40]
+ 1770 0454 003093E5 		ldr	r3, [r3, #0]
+ 1771 0458 0370A0E1 		mov	r7, r3
+ 156:../iprintf.c  **** 				pc += prints (out, s?s:"(null)", width, pad);
+ 1772              		.loc 1 156 0
+ 1773 045c 000057E3 		cmp	r7, #0
+ 1774 0460 0100000A 		beq	.L40
+ 1775              		.loc 1 156 0 is_stmt 0 discriminator 1
+ 1776 0464 0730A0E1 		mov	r3, r7
+ 1777 0468 000000EA 		b	.L41
+ 1778              	.L40:
+ 1779              		.loc 1 156 0 discriminator 2
+ 1780 046c 20329FE5 		ldr	r3, .L52
+ 1781              	.L41:
+ 1782              		.loc 1 156 0 discriminator 3
+ 1783 0470 20001BE5 		ldr	r0, [fp, #-32]
+ 1784 0474 0310A0E1 		mov	r1, r3
+ 1785 0478 0520A0E1 		mov	r2, r5
+ 1786 047c 0630A0E1 		mov	r3, r6
+ 1787 0480 F8FEFFEB 		bl	prints
+ 1788 0484 0030A0E1 		mov	r3, r0
+ 1789 0488 034084E0 		add	r4, r4, r3
+ 157:../iprintf.c  **** 				continue;
+ 1790              		.loc 1 157 0 is_stmt 1 discriminator 3
+ 1791 048c 6B0000EA 		b	.L42
+ 1792              	.L39:
+ 1793              	.LBE3:
+ 158:../iprintf.c  **** 			}
+ 159:../iprintf.c  **** 			if( *format == 'd' ) {
+ 1794              		.loc 1 159 0
+ 1795 0490 24301BE5 		ldr	r3, [fp, #-36]
+ 1796 0494 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1797 0498 640053E3 		cmp	r3, #100
+ 1798 049c 0F00001A 		bne	.L43
+ 160:../iprintf.c  **** 				pc += printi (out, va_arg( args, int ), 10, 1, width, pad, 'a');
+ 1799              		.loc 1 160 0
+ 1800 04a0 28301BE5 		ldr	r3, [fp, #-40]
+ 1801 04a4 042083E2 		add	r2, r3, #4
+ 1802 04a8 28200BE5 		str	r2, [fp, #-40]
+ 1803 04ac 003093E5 		ldr	r3, [r3, #0]
+ 1804 04b0 00508DE5 		str	r5, [sp, #0]
+ 1805 04b4 04608DE5 		str	r6, [sp, #4]
+ 1806 04b8 6120A0E3 		mov	r2, #97
+ 1807 04bc 08208DE5 		str	r2, [sp, #8]
+ 1808 04c0 20001BE5 		ldr	r0, [fp, #-32]
+ 1809 04c4 0310A0E1 		mov	r1, r3
+ 1810 04c8 0A20A0E3 		mov	r2, #10
+ 1811 04cc 0130A0E3 		mov	r3, #1
+ 1812 04d0 35FFFFEB 		bl	printi
+ 1813 04d4 0030A0E1 		mov	r3, r0
+ 1814 04d8 034084E0 		add	r4, r4, r3
+ 161:../iprintf.c  **** 				continue;
+ 1815              		.loc 1 161 0
+ 1816 04dc 570000EA 		b	.L42
+ 1817              	.L43:
+ 162:../iprintf.c  **** 			}
+ 163:../iprintf.c  **** 			if( *format == 'x' ) {
+ 1818              		.loc 1 163 0
+ 1819 04e0 24301BE5 		ldr	r3, [fp, #-36]
+ 1820 04e4 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1821 04e8 780053E3 		cmp	r3, #120
+ 1822 04ec 0F00001A 		bne	.L44
+ 164:../iprintf.c  **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'a');
+ 1823              		.loc 1 164 0
+ 1824 04f0 28301BE5 		ldr	r3, [fp, #-40]
+ 1825 04f4 042083E2 		add	r2, r3, #4
+ 1826 04f8 28200BE5 		str	r2, [fp, #-40]
+ 1827 04fc 003093E5 		ldr	r3, [r3, #0]
+ 1828 0500 00508DE5 		str	r5, [sp, #0]
+ 1829 0504 04608DE5 		str	r6, [sp, #4]
+ 1830 0508 6120A0E3 		mov	r2, #97
+ 1831 050c 08208DE5 		str	r2, [sp, #8]
+ 1832 0510 20001BE5 		ldr	r0, [fp, #-32]
+ 1833 0514 0310A0E1 		mov	r1, r3
+ 1834 0518 1020A0E3 		mov	r2, #16
+ 1835 051c 0030A0E3 		mov	r3, #0
+ 1836 0520 21FFFFEB 		bl	printi
+ 1837 0524 0030A0E1 		mov	r3, r0
+ 1838 0528 034084E0 		add	r4, r4, r3
+ 165:../iprintf.c  **** 				continue;
+ 1839              		.loc 1 165 0
+ 1840 052c 430000EA 		b	.L42
+ 1841              	.L44:
+ 166:../iprintf.c  **** 			}
+ 167:../iprintf.c  **** 			if( *format == 'X' ) {
+ 1842              		.loc 1 167 0
+ 1843 0530 24301BE5 		ldr	r3, [fp, #-36]
+ 1844 0534 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1845 0538 580053E3 		cmp	r3, #88
+ 1846 053c 0F00001A 		bne	.L45
+ 168:../iprintf.c  **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'A');
+ 1847              		.loc 1 168 0
+ 1848 0540 28301BE5 		ldr	r3, [fp, #-40]
+ 1849 0544 042083E2 		add	r2, r3, #4
+ 1850 0548 28200BE5 		str	r2, [fp, #-40]
+ 1851 054c 003093E5 		ldr	r3, [r3, #0]
+ 1852 0550 00508DE5 		str	r5, [sp, #0]
+ 1853 0554 04608DE5 		str	r6, [sp, #4]
+ 1854 0558 4120A0E3 		mov	r2, #65
+ 1855 055c 08208DE5 		str	r2, [sp, #8]
+ 1856 0560 20001BE5 		ldr	r0, [fp, #-32]
+ 1857 0564 0310A0E1 		mov	r1, r3
+ 1858 0568 1020A0E3 		mov	r2, #16
+ 1859 056c 0030A0E3 		mov	r3, #0
+ 1860 0570 0DFFFFEB 		bl	printi
+ 1861 0574 0030A0E1 		mov	r3, r0
+ 1862 0578 034084E0 		add	r4, r4, r3
+ 169:../iprintf.c  **** 				continue;
+ 1863              		.loc 1 169 0
+ 1864 057c 2F0000EA 		b	.L42
+ 1865              	.L45:
+ 170:../iprintf.c  **** 			}
+ 171:../iprintf.c  **** 			if( *format == 'u' ) {
+ 1866              		.loc 1 171 0
+ 1867 0580 24301BE5 		ldr	r3, [fp, #-36]
+ 1868 0584 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1869 0588 750053E3 		cmp	r3, #117
+ 1870 058c 0F00001A 		bne	.L46
+ 172:../iprintf.c  **** 				pc += printi (out, va_arg( args, int ), 10, 0, width, pad, 'a');
+ 1871              		.loc 1 172 0
+ 1872 0590 28301BE5 		ldr	r3, [fp, #-40]
+ 1873 0594 042083E2 		add	r2, r3, #4
+ 1874 0598 28200BE5 		str	r2, [fp, #-40]
+ 1875 059c 003093E5 		ldr	r3, [r3, #0]
+ 1876 05a0 00508DE5 		str	r5, [sp, #0]
+ 1877 05a4 04608DE5 		str	r6, [sp, #4]
+ 1878 05a8 6120A0E3 		mov	r2, #97
+ 1879 05ac 08208DE5 		str	r2, [sp, #8]
+ 1880 05b0 20001BE5 		ldr	r0, [fp, #-32]
+ 1881 05b4 0310A0E1 		mov	r1, r3
+ 1882 05b8 0A20A0E3 		mov	r2, #10
+ 1883 05bc 0030A0E3 		mov	r3, #0
+ 1884 05c0 F9FEFFEB 		bl	printi
+ 1885 05c4 0030A0E1 		mov	r3, r0
+ 1886 05c8 034084E0 		add	r4, r4, r3
+ 173:../iprintf.c  **** 				continue;
+ 1887              		.loc 1 173 0
+ 1888 05cc 1B0000EA 		b	.L42
+ 1889              	.L46:
+ 174:../iprintf.c  **** 			}
+ 175:../iprintf.c  **** 			if( *format == 'c' ) {
+ 1890              		.loc 1 175 0
+ 1891 05d0 24301BE5 		ldr	r3, [fp, #-36]
+ 1892 05d4 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1893 05d8 630053E3 		cmp	r3, #99
+ 1894 05dc 1700001A 		bne	.L42
+ 176:../iprintf.c  **** 				/* char are converted to int then pushed on the stack */
+ 177:../iprintf.c  **** 				scr[0] = (char)va_arg( args, int );
+ 1895              		.loc 1 177 0
+ 1896 05e0 28301BE5 		ldr	r3, [fp, #-40]
+ 1897 05e4 042083E2 		add	r2, r3, #4
+ 1898 05e8 28200BE5 		str	r2, [fp, #-40]
+ 1899 05ec 003093E5 		ldr	r3, [r3, #0]
+ 1900 05f0 FF3003E2 		and	r3, r3, #255
+ 1901 05f4 18304BE5 		strb	r3, [fp, #-24]
+ 178:../iprintf.c  **** 				scr[1] = '\0';
+ 1902              		.loc 1 178 0
+ 1903 05f8 0030A0E3 		mov	r3, #0
+ 1904 05fc 17304BE5 		strb	r3, [fp, #-23]
+ 179:../iprintf.c  **** 				pc += prints (out, scr, width, pad);
+ 1905              		.loc 1 179 0
+ 1906 0600 18304BE2 		sub	r3, fp, #24
+ 1907 0604 20001BE5 		ldr	r0, [fp, #-32]
+ 1908 0608 0310A0E1 		mov	r1, r3
+ 1909 060c 0520A0E1 		mov	r2, r5
+ 1910 0610 0630A0E1 		mov	r3, r6
+ 1911 0614 93FEFFEB 		bl	prints
+ 1912 0618 0030A0E1 		mov	r3, r0
+ 1913 061c 034084E0 		add	r4, r4, r3
+ 180:../iprintf.c  **** 				continue;
+ 1914              		.loc 1 180 0
+ 1915 0620 060000EA 		b	.L42
+ 1916              	.L50:
+ 141:../iprintf.c  **** 			if (*format == '%') goto out;
+ 1917              		.loc 1 141 0
+ 1918 0624 0000A0E1 		mov	r0, r0	@ nop
+ 1919              	.L29:
+ 181:../iprintf.c  **** 			}
+ 182:../iprintf.c  **** 		}
+ 183:../iprintf.c  **** 		else {
+ 184:../iprintf.c  **** 		out:
+ 185:../iprintf.c  **** 			printchar (out, *format);
+ 1920              		.loc 1 185 0
+ 1921 0628 24301BE5 		ldr	r3, [fp, #-36]
+ 1922 062c 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1923 0630 20001BE5 		ldr	r0, [fp, #-32]
+ 1924 0634 0310A0E1 		mov	r1, r3
+ 1925 0638 70FEFFEB 		bl	printchar
+ 186:../iprintf.c  **** 			++pc;
+ 1926              		.loc 1 186 0
+ 1927 063c 014084E2 		add	r4, r4, #1
+ 1928              	.L42:
+ 136:../iprintf.c  **** 	for (; *format != 0; ++format) {
+ 1929              		.loc 1 136 0
+ 1930 0640 24301BE5 		ldr	r3, [fp, #-36]
+ 1931 0644 013083E2 		add	r3, r3, #1
+ 1932 0648 24300BE5 		str	r3, [fp, #-36]
+ 1933              	.L28:
+ 136:../iprintf.c  **** 	for (; *format != 0; ++format) {
+ 1934              		.loc 1 136 0 is_stmt 0 discriminator 1
+ 1935 064c 24301BE5 		ldr	r3, [fp, #-36]
+ 1936 0650 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1937 0654 000053E3 		cmp	r3, #0
+ 1938 0658 3DFFFF1A 		bne	.L47
+ 1939 065c 000000EA 		b	.L31
+ 1940              	.L49:
+ 140:../iprintf.c  **** 			if (*format == '\0') break;
+ 1941              		.loc 1 140 0 is_stmt 1
+ 1942 0660 0000A0E1 		mov	r0, r0	@ nop
+ 1943              	.L31:
+ 187:../iprintf.c  **** 		}
+ 188:../iprintf.c  **** 	}
+ 189:../iprintf.c  **** 	if (out) **out = '\0';
+ 1944              		.loc 1 189 0
+ 1945 0664 20301BE5 		ldr	r3, [fp, #-32]
+ 1946 0668 000053E3 		cmp	r3, #0
+ 1947 066c 0300000A 		beq	.L48
+ 1948              		.loc 1 189 0 is_stmt 0 discriminator 1
+ 1949 0670 20301BE5 		ldr	r3, [fp, #-32]
+ 1950 0674 003093E5 		ldr	r3, [r3, #0]
+ 1951 0678 0020A0E3 		mov	r2, #0
+ 1952 067c 0020C3E5 		strb	r2, [r3, #0]
+ 1953              	.L48:
+ 190:../iprintf.c  **** 	va_end( args );
+ 191:../iprintf.c  **** 	return pc;
+ 1954              		.loc 1 191 0 is_stmt 1
+ 1955 0680 0430A0E1 		mov	r3, r4
+ 192:../iprintf.c  **** }
+ 1956              		.loc 1 192 0
+ 1957 0684 0300A0E1 		mov	r0, r3
+ 1958 0688 14D04BE2 		sub	sp, fp, #20
+ 1959 068c F048BDE8 		ldmfd	sp!, {r4, r5, r6, r7, fp, lr}
+ 1960 0690 1EFF2FE1 		bx	lr
+ 1961              	.L53:
+ 1962              		.align	2
+ 1963              	.L52:
+ 1964 0694 00000000 		.word	.LC0
+ 1965              		.cfi_endproc
+ 1966              	.LFE3:
+ 1968              		.align	2
+ 1969              		.global	iprintf
+ 1971              	iprintf:
+ 1972              	.LFB4:
+ 193:../iprintf.c  **** 
+ 194:../iprintf.c  **** int iprintf(const char *format, ...)
+ 195:../iprintf.c  **** {
+ 1973              		.loc 1 195 0
+ 1974              		.cfi_startproc
+ 1975              		@ Function supports interworking.
+ 1976              		@ args = 4, pretend = 16, frame = 8
+ 1977              		@ frame_needed = 1, uses_anonymous_args = 1
+ 1978 0698 0F002DE9 		stmfd	sp!, {r0, r1, r2, r3}
+ 1979              	.LCFI8:
+ 1980              		.cfi_def_cfa_offset 16
+ 1981 069c 00482DE9 		stmfd	sp!, {fp, lr}
+ 1982              	.LCFI9:
+ 1983              		.cfi_def_cfa_offset 24
+ 1984 06a0 04B08DE2 		add	fp, sp, #4
+ 1985              		.cfi_offset 14, -20
+ 1986              		.cfi_offset 11, -24
+ 1987              		.cfi_offset 3, -4
+ 1988              		.cfi_offset 2, -8
+ 1989              		.cfi_offset 1, -12
+ 1990              		.cfi_offset 0, -16
+ 1991              	.LCFI10:
+ 1992              		.cfi_def_cfa 11, 20
+ 1993 06a4 08D04DE2 		sub	sp, sp, #8
+ 196:../iprintf.c  ****         va_list args;
+ 197:../iprintf.c  **** 
+ 198:../iprintf.c  ****         va_start( args, format );
+ 1994              		.loc 1 198 0
+ 1995 06a8 08308BE2 		add	r3, fp, #8
+ 1996 06ac 08300BE5 		str	r3, [fp, #-8]
+ 199:../iprintf.c  ****         return print( 0, format, args );
+ 1997              		.loc 1 199 0
+ 1998 06b0 0000A0E3 		mov	r0, #0
+ 1999 06b4 04109BE5 		ldr	r1, [fp, #4]
+ 2000 06b8 08201BE5 		ldr	r2, [fp, #-8]
+ 2001 06bc 1CFFFFEB 		bl	print
+ 2002 06c0 0030A0E1 		mov	r3, r0
+ 200:../iprintf.c  **** }
+ 2003              		.loc 1 200 0
+ 2004 06c4 0300A0E1 		mov	r0, r3
+ 2005 06c8 04D04BE2 		sub	sp, fp, #4
+ 2006 06cc 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2007 06d0 10D08DE2 		add	sp, sp, #16
+ 2008 06d4 1EFF2FE1 		bx	lr
+ 2009              		.cfi_endproc
+ 2010              	.LFE4:
+ 2012              		.align	2
+ 2013              		.global	isprintf
+ 2015              	isprintf:
+ 2016              	.LFB5:
+ 201:../iprintf.c  **** 
+ 202:../iprintf.c  **** int isprintf(char *out, const char *format, ...)
+ 203:../iprintf.c  **** {
+ 2017              		.loc 1 203 0
+ 2018              		.cfi_startproc
+ 2019              		@ Function supports interworking.
+ 2020              		@ args = 4, pretend = 12, frame = 16
+ 2021              		@ frame_needed = 1, uses_anonymous_args = 1
+ 2022 06d8 0E002DE9 		stmfd	sp!, {r1, r2, r3}
+ 2023              	.LCFI11:
+ 2024              		.cfi_def_cfa_offset 12
+ 2025 06dc 00482DE9 		stmfd	sp!, {fp, lr}
+ 2026              	.LCFI12:
+ 2027              		.cfi_def_cfa_offset 20
+ 2028 06e0 04B08DE2 		add	fp, sp, #4
+ 2029              		.cfi_offset 14, -16
+ 2030              		.cfi_offset 11, -20
+ 2031              		.cfi_offset 3, -4
+ 2032              		.cfi_offset 2, -8
+ 2033              		.cfi_offset 1, -12
+ 2034              	.LCFI13:
+ 2035              		.cfi_def_cfa 11, 16
+ 2036 06e4 14D04DE2 		sub	sp, sp, #20
+ 2037 06e8 14000BE5 		str	r0, [fp, #-20]
+ 204:../iprintf.c  ****         va_list args;
+ 205:../iprintf.c  **** 
+ 206:../iprintf.c  ****         va_start( args, format );
+ 2038              		.loc 1 206 0
+ 2039 06ec 08308BE2 		add	r3, fp, #8
+ 2040 06f0 0C300BE5 		str	r3, [fp, #-12]
+ 207:../iprintf.c  ****         return print( &out, format, args );
+ 2041              		.loc 1 207 0
+ 2042 06f4 14304BE2 		sub	r3, fp, #20
+ 2043 06f8 0300A0E1 		mov	r0, r3
+ 2044 06fc 04109BE5 		ldr	r1, [fp, #4]
+ 2045 0700 0C201BE5 		ldr	r2, [fp, #-12]
+ 2046 0704 0AFFFFEB 		bl	print
+ 2047 0708 0030A0E1 		mov	r3, r0
+ 208:../iprintf.c  **** }
+ 2048              		.loc 1 208 0
+ 2049 070c 0300A0E1 		mov	r0, r3
+ 2050 0710 04D04BE2 		sub	sp, fp, #4
+ 2051 0714 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2052 0718 0CD08DE2 		add	sp, sp, #12
+ 2053 071c 1EFF2FE1 		bx	lr
+ 2054              		.cfi_endproc
+ 2055              	.LFE5:
+ 2057              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 iprintf.c
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1285   .text:00000000 $a
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1287   .text:00000000 printchar
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1338   .text:00000068 prints
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1487   .text:000001ac printi
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1643   .rodata:00000000 $d
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1649   .text:00000334 print
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1964   .text:00000694 $d
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1968   .text:00000698 $a
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:1971   .text:00000698 iprintf
+C:\Users\FELIPE\AppData\Local\Temp\cc5OnZba.s:2015   .text:000006d8 isprintf
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+UART_putc
+__aeabi_uidivmod
+__aeabi_uidiv

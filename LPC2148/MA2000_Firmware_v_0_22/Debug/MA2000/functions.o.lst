@@ -1,0 +1,446 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"functions.c"
+  21              	.Ltext0:
+  22              		.file 1 "../MA2000/functions.c"
+ 1782              		.align	2
+ 1783              		.global	setGPIOFunction
+ 1785              	setGPIOFunction:
+ 1786              	.LFB0:
+   1:../MA2000/functions.c **** /*
+   2:../MA2000/functions.c ****  * functions.c
+   3:../MA2000/functions.c ****  *
+   4:../MA2000/functions.c ****  *  Created on: 05/12/2012
+   5:../MA2000/functions.c ****  *      Author: Daniel
+   6:../MA2000/functions.c ****  */
+   7:../MA2000/functions.c **** 
+   8:../MA2000/functions.c **** //Function	  	  LPC2148 		Connector
+   9:../MA2000/functions.c **** //PWM 2 (31)      EXT1-8		EXT1 20
+  10:../MA2000/functions.c **** //P0.18 (53)      EXT1-19		EXT1 7
+  11:../MA2000/functions.c **** //P0.19 (54)      EXT1-20		EXT1 8
+  12:../MA2000/functions.c **** //AD0.1 (13)      EXT2-1		EXT2 25
+  13:../MA2000/functions.c **** //AD0.2 (14)      EXT2-2		EXT2 26
+  14:../MA2000/functions.c **** //
+  15:../MA2000/functions.c **** //				  +3.3V   		EXT2-4
+  16:../MA2000/functions.c **** //			      GND     		EXT2-1 e EXT1-2
+  17:../MA2000/functions.c **** 
+  18:../MA2000/functions.c **** #include "LPC214x.h"
+  19:../MA2000/functions.c **** 
+  20:../MA2000/functions.c **** void setGPIOFunction(){
+ 1787              		.loc 1 20 0
+ 1788              		.cfi_startproc
+ 1789              		@ Function supports interworking.
+ 1790              		@ args = 0, pretend = 0, frame = 0
+ 1791              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1792              		@ link register save eliminated.
+ 1793 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 1794              	.LCFI0:
+ 1795              		.cfi_def_cfa_offset 4
+ 1796 0004 00B08DE2 		add	fp, sp, #0
+ 1797              		.cfi_offset 11, -4
+ 1798              	.LCFI1:
+ 1799              		.cfi_def_cfa_register 11
+  21:../MA2000/functions.c **** 	//Setting GPIO Port 0.18 function: Sets P0.18 with value 00 for Bits 5 and 4 (PINSEL1)
+  22:../MA2000/functions.c **** 	//P0.18       EXT1-19		EXT1 7
+  23:../MA2000/functions.c **** 	PINSEL1 &= ~((1<<4)|(1<<5));
+ 1800              		.loc 1 23 0
+ 1801 0008 4E32A0E3 		mov	r3, #-536870908
+ 1802 000c 0B3983E2 		add	r3, r3, #180224
+ 1803 0010 4E22A0E3 		mov	r2, #-536870908
+ 1804 0014 0B2982E2 		add	r2, r2, #180224
+ 1805 0018 002092E5 		ldr	r2, [r2, #0]
+ 1806 001c 3020C2E3 		bic	r2, r2, #48
+ 1807 0020 002083E5 		str	r2, [r3, #0]
+  24:../MA2000/functions.c **** 	IODIR0 |= (1<<18);
+ 1808              		.loc 1 24 0
+ 1809 0024 8E32A0E3 		mov	r3, #-536870904
+ 1810 0028 0A3983E2 		add	r3, r3, #163840
+ 1811 002c 8E22A0E3 		mov	r2, #-536870904
+ 1812 0030 0A2982E2 		add	r2, r2, #163840
+ 1813 0034 002092E5 		ldr	r2, [r2, #0]
+ 1814 0038 012782E3 		orr	r2, r2, #262144
+ 1815 003c 002083E5 		str	r2, [r3, #0]
+  25:../MA2000/functions.c **** 	//Setting P0.18 as output
+  26:../MA2000/functions.c **** 
+  27:../MA2000/functions.c **** 	//Setting GPIO Port 0.19 function: Sets P0.19 with value 00 for Bits 7 and 6 (PINSEL1)
+  28:../MA2000/functions.c **** 	//P0.19      EXT1-20		EXT1 8
+  29:../MA2000/functions.c **** 	PINSEL1 &= ~((1<<6)|(1<<7));
+ 1816              		.loc 1 29 0
+ 1817 0040 4E32A0E3 		mov	r3, #-536870908
+ 1818 0044 0B3983E2 		add	r3, r3, #180224
+ 1819 0048 4E22A0E3 		mov	r2, #-536870908
+ 1820 004c 0B2982E2 		add	r2, r2, #180224
+ 1821 0050 002092E5 		ldr	r2, [r2, #0]
+ 1822 0054 C020C2E3 		bic	r2, r2, #192
+ 1823 0058 002083E5 		str	r2, [r3, #0]
+  30:../MA2000/functions.c **** 	//Setting P0.19 as output
+  31:../MA2000/functions.c **** 	IODIR0 |= (1<<19);
+ 1824              		.loc 1 31 0
+ 1825 005c 8E32A0E3 		mov	r3, #-536870904
+ 1826 0060 0A3983E2 		add	r3, r3, #163840
+ 1827 0064 8E22A0E3 		mov	r2, #-536870904
+ 1828 0068 0A2982E2 		add	r2, r2, #163840
+ 1829 006c 002092E5 		ldr	r2, [r2, #0]
+ 1830 0070 022782E3 		orr	r2, r2, #524288
+ 1831 0074 002083E5 		str	r2, [r3, #0]
+  32:../MA2000/functions.c **** }
+ 1832              		.loc 1 32 0
+ 1833 0078 00D08BE2 		add	sp, fp, #0
+ 1834 007c 0008BDE8 		ldmfd	sp!, {fp}
+ 1835 0080 1EFF2FE1 		bx	lr
+ 1836              		.cfi_endproc
+ 1837              	.LFE0:
+ 1839              		.align	2
+ 1840              		.global	setADC0Function
+ 1842              	setADC0Function:
+ 1843              	.LFB1:
+  33:../MA2000/functions.c **** 
+  34:../MA2000/functions.c **** void setADC0Function(int adc0_channel){
+ 1844              		.loc 1 34 0
+ 1845              		.cfi_startproc
+ 1846              		@ Function supports interworking.
+ 1847              		@ args = 0, pretend = 0, frame = 8
+ 1848              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1849              		@ link register save eliminated.
+ 1850 0084 04B02DE5 		str	fp, [sp, #-4]!
+ 1851              	.LCFI2:
+ 1852              		.cfi_def_cfa_offset 4
+ 1853 0088 00B08DE2 		add	fp, sp, #0
+ 1854              		.cfi_offset 11, -4
+ 1855              	.LCFI3:
+ 1856              		.cfi_def_cfa_register 11
+ 1857 008c 0CD04DE2 		sub	sp, sp, #12
+ 1858 0090 08000BE5 		str	r0, [fp, #-8]
+  35:../MA2000/functions.c **** 
+  36:../MA2000/functions.c **** 	if(adc0_channel == 1){
+ 1859              		.loc 1 36 0
+ 1860 0094 08301BE5 		ldr	r3, [fp, #-8]
+ 1861 0098 010053E3 		cmp	r3, #1
+ 1862 009c 0E00001A 		bne	.L3
+  37:../MA2000/functions.c **** 		//Setting AD0.1 function: Sets P0.28 with value 01 for Bits 25 and 24 (PINSEL1)
+  38:../MA2000/functions.c **** 		//P0.28 -> EXT2.1 -> Pin 25
+  39:../MA2000/functions.c **** 		PINSEL1 &= ~(1<<25);
+ 1863              		.loc 1 39 0
+ 1864 00a0 4E32A0E3 		mov	r3, #-536870908
+ 1865 00a4 0B3983E2 		add	r3, r3, #180224
+ 1866 00a8 4E22A0E3 		mov	r2, #-536870908
+ 1867 00ac 0B2982E2 		add	r2, r2, #180224
+ 1868 00b0 002092E5 		ldr	r2, [r2, #0]
+ 1869 00b4 0224C2E3 		bic	r2, r2, #33554432
+ 1870 00b8 002083E5 		str	r2, [r3, #0]
+  40:../MA2000/functions.c **** 		PINSEL1 |=  (1<<24);
+ 1871              		.loc 1 40 0
+ 1872 00bc 4E32A0E3 		mov	r3, #-536870908
+ 1873 00c0 0B3983E2 		add	r3, r3, #180224
+ 1874 00c4 4E22A0E3 		mov	r2, #-536870908
+ 1875 00c8 0B2982E2 		add	r2, r2, #180224
+ 1876 00cc 002092E5 		ldr	r2, [r2, #0]
+ 1877 00d0 012482E3 		orr	r2, r2, #16777216
+ 1878 00d4 002083E5 		str	r2, [r3, #0]
+ 1879 00d8 340000EA 		b	.L2
+ 1880              	.L3:
+  41:../MA2000/functions.c **** 	}
+  42:../MA2000/functions.c **** 	else if(adc0_channel == 2){
+ 1881              		.loc 1 42 0
+ 1882 00dc 08301BE5 		ldr	r3, [fp, #-8]
+ 1883 00e0 020053E3 		cmp	r3, #2
+ 1884 00e4 0E00001A 		bne	.L5
+  43:../MA2000/functions.c **** 		//Setting AD0.2 function: Sets P0.29 with value 01 for Bits 27 and 26 (PINSEL1)
+  44:../MA2000/functions.c **** 		//P0.29 -> EXT2.2 -> Pin 26
+  45:../MA2000/functions.c **** 		PINSEL1 &= ~(1<<27);
+ 1885              		.loc 1 45 0
+ 1886 00e8 4E32A0E3 		mov	r3, #-536870908
+ 1887 00ec 0B3983E2 		add	r3, r3, #180224
+ 1888 00f0 4E22A0E3 		mov	r2, #-536870908
+ 1889 00f4 0B2982E2 		add	r2, r2, #180224
+ 1890 00f8 002092E5 		ldr	r2, [r2, #0]
+ 1891 00fc 0223C2E3 		bic	r2, r2, #134217728
+ 1892 0100 002083E5 		str	r2, [r3, #0]
+  46:../MA2000/functions.c **** 		PINSEL1 |=  (1<<26);
+ 1893              		.loc 1 46 0
+ 1894 0104 4E32A0E3 		mov	r3, #-536870908
+ 1895 0108 0B3983E2 		add	r3, r3, #180224
+ 1896 010c 4E22A0E3 		mov	r2, #-536870908
+ 1897 0110 0B2982E2 		add	r2, r2, #180224
+ 1898 0114 002092E5 		ldr	r2, [r2, #0]
+ 1899 0118 012382E3 		orr	r2, r2, #67108864
+ 1900 011c 002083E5 		str	r2, [r3, #0]
+ 1901 0120 220000EA 		b	.L2
+ 1902              	.L5:
+  47:../MA2000/functions.c **** 	}
+  48:../MA2000/functions.c **** 	else if(adc0_channel == 3){
+ 1903              		.loc 1 48 0
+ 1904 0124 08301BE5 		ldr	r3, [fp, #-8]
+ 1905 0128 030053E3 		cmp	r3, #3
+ 1906 012c 0E00001A 		bne	.L6
+  49:../MA2000/functions.c **** 		//Setting AD0.3 function: Sets P0.30 with value 01 for Bits 29 and 28 (PINSEL1)
+  50:../MA2000/functions.c **** 		//P0.30 -> EXT2.3 -> Pin 24
+  51:../MA2000/functions.c **** 		PINSEL1 &= ~(1<<29);
+ 1907              		.loc 1 51 0
+ 1908 0130 4E32A0E3 		mov	r3, #-536870908
+ 1909 0134 0B3983E2 		add	r3, r3, #180224
+ 1910 0138 4E22A0E3 		mov	r2, #-536870908
+ 1911 013c 0B2982E2 		add	r2, r2, #180224
+ 1912 0140 002092E5 		ldr	r2, [r2, #0]
+ 1913 0144 0222C2E3 		bic	r2, r2, #536870912
+ 1914 0148 002083E5 		str	r2, [r3, #0]
+  52:../MA2000/functions.c **** 		PINSEL1 |=  (1<<28);
+ 1915              		.loc 1 52 0
+ 1916 014c 4E32A0E3 		mov	r3, #-536870908
+ 1917 0150 0B3983E2 		add	r3, r3, #180224
+ 1918 0154 4E22A0E3 		mov	r2, #-536870908
+ 1919 0158 0B2982E2 		add	r2, r2, #180224
+ 1920 015c 002092E5 		ldr	r2, [r2, #0]
+ 1921 0160 012282E3 		orr	r2, r2, #268435456
+ 1922 0164 002083E5 		str	r2, [r3, #0]
+ 1923 0168 100000EA 		b	.L2
+ 1924              	.L6:
+  53:../MA2000/functions.c **** 	}
+  54:../MA2000/functions.c **** 	else if(adc0_channel == 4){
+ 1925              		.loc 1 54 0
+ 1926 016c 08301BE5 		ldr	r3, [fp, #-8]
+ 1927 0170 040053E3 		cmp	r3, #4
+ 1928 0174 0D00001A 		bne	.L2
+  55:../MA2000/functions.c **** 		//Setting AD0.4 function: Sets P0.25 with value 01 for Bits 19 and 18 (PINSEL1)
+  56:../MA2000/functions.c **** 		//P0.25 -> EXT1.25 -> Pin 1
+  57:../MA2000/functions.c **** 		PINSEL1 &= ~(1<<19);
+ 1929              		.loc 1 57 0
+ 1930 0178 4E32A0E3 		mov	r3, #-536870908
+ 1931 017c 0B3983E2 		add	r3, r3, #180224
+ 1932 0180 4E22A0E3 		mov	r2, #-536870908
+ 1933 0184 0B2982E2 		add	r2, r2, #180224
+ 1934 0188 002092E5 		ldr	r2, [r2, #0]
+ 1935 018c 0227C2E3 		bic	r2, r2, #524288
+ 1936 0190 002083E5 		str	r2, [r3, #0]
+  58:../MA2000/functions.c **** 		PINSEL1 |=  (1<<18);
+ 1937              		.loc 1 58 0
+ 1938 0194 4E32A0E3 		mov	r3, #-536870908
+ 1939 0198 0B3983E2 		add	r3, r3, #180224
+ 1940 019c 4E22A0E3 		mov	r2, #-536870908
+ 1941 01a0 0B2982E2 		add	r2, r2, #180224
+ 1942 01a4 002092E5 		ldr	r2, [r2, #0]
+ 1943 01a8 012782E3 		orr	r2, r2, #262144
+ 1944 01ac 002083E5 		str	r2, [r3, #0]
+ 1945              	.L2:
+  59:../MA2000/functions.c **** 	}
+  60:../MA2000/functions.c **** }
+ 1946              		.loc 1 60 0
+ 1947 01b0 00D08BE2 		add	sp, fp, #0
+ 1948 01b4 0008BDE8 		ldmfd	sp!, {fp}
+ 1949 01b8 1EFF2FE1 		bx	lr
+ 1950              		.cfi_endproc
+ 1951              	.LFE1:
+ 1953              		.align	2
+ 1954              		.global	setPWMFunction
+ 1956              	setPWMFunction:
+ 1957              	.LFB2:
+  61:../MA2000/functions.c **** 
+  62:../MA2000/functions.c **** void setPWMFunction(int pwm_channel) {
+ 1958              		.loc 1 62 0
+ 1959              		.cfi_startproc
+ 1960              		@ Function supports interworking.
+ 1961              		@ args = 0, pretend = 0, frame = 8
+ 1962              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1963              		@ link register save eliminated.
+ 1964 01bc 04B02DE5 		str	fp, [sp, #-4]!
+ 1965              	.LCFI4:
+ 1966              		.cfi_def_cfa_offset 4
+ 1967 01c0 00B08DE2 		add	fp, sp, #0
+ 1968              		.cfi_offset 11, -4
+ 1969              	.LCFI5:
+ 1970              		.cfi_def_cfa_register 11
+ 1971 01c4 0CD04DE2 		sub	sp, sp, #12
+ 1972 01c8 08000BE5 		str	r0, [fp, #-8]
+  63:../MA2000/functions.c **** 	if(pwm_channel == 1){
+ 1973              		.loc 1 63 0
+ 1974 01cc 08301BE5 		ldr	r3, [fp, #-8]
+ 1975 01d0 010053E3 		cmp	r3, #1
+ 1976 01d4 0E00001A 		bne	.L8
+  64:../MA2000/functions.c **** 		//Setting PWM1 function: Sets P0.0 with value 10 for Bits 1 and 0 (PINSEL0)
+  65:../MA2000/functions.c **** 		//P0.0 -> EXT1-1 -> Pin 25
+  66:../MA2000/functions.c **** 		PINSEL0 &= ~(3 << 0);
+ 1977              		.loc 1 66 0
+ 1978 01d8 0E32A0E3 		mov	r3, #-536870912
+ 1979 01dc 0B3983E2 		add	r3, r3, #180224
+ 1980 01e0 0E22A0E3 		mov	r2, #-536870912
+ 1981 01e4 0B2982E2 		add	r2, r2, #180224
+ 1982 01e8 002092E5 		ldr	r2, [r2, #0]
+ 1983 01ec 0320C2E3 		bic	r2, r2, #3
+ 1984 01f0 002083E5 		str	r2, [r3, #0]
+  67:../MA2000/functions.c **** 		PINSEL0 |= (1 << 1);
+ 1985              		.loc 1 67 0
+ 1986 01f4 0E32A0E3 		mov	r3, #-536870912
+ 1987 01f8 0B3983E2 		add	r3, r3, #180224
+ 1988 01fc 0E22A0E3 		mov	r2, #-536870912
+ 1989 0200 0B2982E2 		add	r2, r2, #180224
+ 1990 0204 002092E5 		ldr	r2, [r2, #0]
+ 1991 0208 022082E3 		orr	r2, r2, #2
+ 1992 020c 002083E5 		str	r2, [r3, #0]
+ 1993 0210 580000EA 		b	.L7
+ 1994              	.L8:
+  68:../MA2000/functions.c **** 	}
+  69:../MA2000/functions.c **** 	else if(pwm_channel == 2){
+ 1995              		.loc 1 69 0
+ 1996 0214 08301BE5 		ldr	r3, [fp, #-8]
+ 1997 0218 020053E3 		cmp	r3, #2
+ 1998 021c 0E00001A 		bne	.L10
+  70:../MA2000/functions.c **** 		//Setting PWM2 function: Sets P0.7 with value 10 for Bits 15 and 14 (PINSEL0)
+  71:../MA2000/functions.c **** 		//P0.7 -> EXT1-8 -> Pin 20
+  72:../MA2000/functions.c **** 		PINSEL0 &= ~(3 << 14);
+ 1999              		.loc 1 72 0
+ 2000 0220 0E32A0E3 		mov	r3, #-536870912
+ 2001 0224 0B3983E2 		add	r3, r3, #180224
+ 2002 0228 0E22A0E3 		mov	r2, #-536870912
+ 2003 022c 0B2982E2 		add	r2, r2, #180224
+ 2004 0230 002092E5 		ldr	r2, [r2, #0]
+ 2005 0234 0329C2E3 		bic	r2, r2, #49152
+ 2006 0238 002083E5 		str	r2, [r3, #0]
+  73:../MA2000/functions.c **** 		PINSEL0 |= (1 << 15);
+ 2007              		.loc 1 73 0
+ 2008 023c 0E32A0E3 		mov	r3, #-536870912
+ 2009 0240 0B3983E2 		add	r3, r3, #180224
+ 2010 0244 0E22A0E3 		mov	r2, #-536870912
+ 2011 0248 0B2982E2 		add	r2, r2, #180224
+ 2012 024c 002092E5 		ldr	r2, [r2, #0]
+ 2013 0250 022982E3 		orr	r2, r2, #32768
+ 2014 0254 002083E5 		str	r2, [r3, #0]
+ 2015 0258 460000EA 		b	.L7
+ 2016              	.L10:
+  74:../MA2000/functions.c **** 	}
+  75:../MA2000/functions.c **** 	else if(pwm_channel == 3){
+ 2017              		.loc 1 75 0
+ 2018 025c 08301BE5 		ldr	r3, [fp, #-8]
+ 2019 0260 030053E3 		cmp	r3, #3
+ 2020 0264 0E00001A 		bne	.L11
+  76:../MA2000/functions.c **** 		//Setting PWM3 function: Sets P0.1 with value 10 for Bits 3 and 2 (PINSEL0)
+  77:../MA2000/functions.c **** 		//P0.1 -> EXT1-2 -> Pin 26
+  78:../MA2000/functions.c **** 		PINSEL0 &= ~(3 << 2);
+ 2021              		.loc 1 78 0
+ 2022 0268 0E32A0E3 		mov	r3, #-536870912
+ 2023 026c 0B3983E2 		add	r3, r3, #180224
+ 2024 0270 0E22A0E3 		mov	r2, #-536870912
+ 2025 0274 0B2982E2 		add	r2, r2, #180224
+ 2026 0278 002092E5 		ldr	r2, [r2, #0]
+ 2027 027c 0C20C2E3 		bic	r2, r2, #12
+ 2028 0280 002083E5 		str	r2, [r3, #0]
+  79:../MA2000/functions.c **** 		PINSEL0 |= (1 << 3);
+ 2029              		.loc 1 79 0
+ 2030 0284 0E32A0E3 		mov	r3, #-536870912
+ 2031 0288 0B3983E2 		add	r3, r3, #180224
+ 2032 028c 0E22A0E3 		mov	r2, #-536870912
+ 2033 0290 0B2982E2 		add	r2, r2, #180224
+ 2034 0294 002092E5 		ldr	r2, [r2, #0]
+ 2035 0298 082082E3 		orr	r2, r2, #8
+ 2036 029c 002083E5 		str	r2, [r3, #0]
+ 2037 02a0 340000EA 		b	.L7
+ 2038              	.L11:
+  80:../MA2000/functions.c **** 	}
+  81:../MA2000/functions.c **** 	else if(pwm_channel == 4){
+ 2039              		.loc 1 81 0
+ 2040 02a4 08301BE5 		ldr	r3, [fp, #-8]
+ 2041 02a8 040053E3 		cmp	r3, #4
+ 2042 02ac 0E00001A 		bne	.L12
+  82:../MA2000/functions.c **** 		//Setting PWM4 function: Sets P0.8 with value 10 for Bits 17 and 16 (PINSEL0)
+  83:../MA2000/functions.c **** 		//P0.8 -> EXT1-9 -> Pin 17
+  84:../MA2000/functions.c **** 		PINSEL0 &= ~(3 << 16);
+ 2043              		.loc 1 84 0
+ 2044 02b0 0E32A0E3 		mov	r3, #-536870912
+ 2045 02b4 0B3983E2 		add	r3, r3, #180224
+ 2046 02b8 0E22A0E3 		mov	r2, #-536870912
+ 2047 02bc 0B2982E2 		add	r2, r2, #180224
+ 2048 02c0 002092E5 		ldr	r2, [r2, #0]
+ 2049 02c4 0328C2E3 		bic	r2, r2, #196608
+ 2050 02c8 002083E5 		str	r2, [r3, #0]
+  85:../MA2000/functions.c **** 		PINSEL0 |= (1 << 17);
+ 2051              		.loc 1 85 0
+ 2052 02cc 0E32A0E3 		mov	r3, #-536870912
+ 2053 02d0 0B3983E2 		add	r3, r3, #180224
+ 2054 02d4 0E22A0E3 		mov	r2, #-536870912
+ 2055 02d8 0B2982E2 		add	r2, r2, #180224
+ 2056 02dc 002092E5 		ldr	r2, [r2, #0]
+ 2057 02e0 022882E3 		orr	r2, r2, #131072
+ 2058 02e4 002083E5 		str	r2, [r3, #0]
+ 2059 02e8 220000EA 		b	.L7
+ 2060              	.L12:
+  86:../MA2000/functions.c **** 	}
+  87:../MA2000/functions.c **** 	else if(pwm_channel == 5){
+ 2061              		.loc 1 87 0
+ 2062 02ec 08301BE5 		ldr	r3, [fp, #-8]
+ 2063 02f0 050053E3 		cmp	r3, #5
+ 2064 02f4 0E00001A 		bne	.L13
+  88:../MA2000/functions.c **** 		//Setting PWM5 function: Sets P0.21 with value 01 for Bits 11 and 10 (PINSEL1)
+  89:../MA2000/functions.c **** 		//P0.21 -> EXT1-22 -> Pin 6
+  90:../MA2000/functions.c **** 		PINSEL1 &= ~(3 << 11);
+ 2065              		.loc 1 90 0
+ 2066 02f8 4E32A0E3 		mov	r3, #-536870908
+ 2067 02fc 0B3983E2 		add	r3, r3, #180224
+ 2068 0300 4E22A0E3 		mov	r2, #-536870908
+ 2069 0304 0B2982E2 		add	r2, r2, #180224
+ 2070 0308 002092E5 		ldr	r2, [r2, #0]
+ 2071 030c 062BC2E3 		bic	r2, r2, #6144
+ 2072 0310 002083E5 		str	r2, [r3, #0]
+  91:../MA2000/functions.c **** 		PINSEL1 |= (1 << 10);
+ 2073              		.loc 1 91 0
+ 2074 0314 4E32A0E3 		mov	r3, #-536870908
+ 2075 0318 0B3983E2 		add	r3, r3, #180224
+ 2076 031c 4E22A0E3 		mov	r2, #-536870908
+ 2077 0320 0B2982E2 		add	r2, r2, #180224
+ 2078 0324 002092E5 		ldr	r2, [r2, #0]
+ 2079 0328 012B82E3 		orr	r2, r2, #1024
+ 2080 032c 002083E5 		str	r2, [r3, #0]
+ 2081 0330 100000EA 		b	.L7
+ 2082              	.L13:
+  92:../MA2000/functions.c **** 	}
+  93:../MA2000/functions.c **** 	else if(pwm_channel == 6){
+ 2083              		.loc 1 93 0
+ 2084 0334 08301BE5 		ldr	r3, [fp, #-8]
+ 2085 0338 060053E3 		cmp	r3, #6
+ 2086 033c 0D00001A 		bne	.L7
+  94:../MA2000/functions.c **** 		//Setting PWM6 function: Sets P0.9 with value 10 for Bits 19 and 18 (PINSEL0)
+  95:../MA2000/functions.c **** 		//P0.9 -> EXT1-10 -> Pin 18
+  96:../MA2000/functions.c **** 		PINSEL0 &= ~(3 << 18);
+ 2087              		.loc 1 96 0
+ 2088 0340 0E32A0E3 		mov	r3, #-536870912
+ 2089 0344 0B3983E2 		add	r3, r3, #180224
+ 2090 0348 0E22A0E3 		mov	r2, #-536870912
+ 2091 034c 0B2982E2 		add	r2, r2, #180224
+ 2092 0350 002092E5 		ldr	r2, [r2, #0]
+ 2093 0354 0327C2E3 		bic	r2, r2, #786432
+ 2094 0358 002083E5 		str	r2, [r3, #0]
+  97:../MA2000/functions.c **** 		PINSEL0 |= (1 << 19);
+ 2095              		.loc 1 97 0
+ 2096 035c 0E32A0E3 		mov	r3, #-536870912
+ 2097 0360 0B3983E2 		add	r3, r3, #180224
+ 2098 0364 0E22A0E3 		mov	r2, #-536870912
+ 2099 0368 0B2982E2 		add	r2, r2, #180224
+ 2100 036c 002092E5 		ldr	r2, [r2, #0]
+ 2101 0370 022782E3 		orr	r2, r2, #524288
+ 2102 0374 002083E5 		str	r2, [r3, #0]
+ 2103              	.L7:
+  98:../MA2000/functions.c **** 	}
+  99:../MA2000/functions.c **** 
+ 100:../MA2000/functions.c **** }
+ 2104              		.loc 1 100 0
+ 2105 0378 00D08BE2 		add	sp, fp, #0
+ 2106 037c 0008BDE8 		ldmfd	sp!, {fp}
+ 2107 0380 1EFF2FE1 		bx	lr
+ 2108              		.cfi_endproc
+ 2109              	.LFE2:
+ 2111              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 functions.c
+C:\Users\ufu\AppData\Local\Temp\cczE4JKg.s:1782   .text:00000000 $a
+C:\Users\ufu\AppData\Local\Temp\cczE4JKg.s:1785   .text:00000000 setGPIOFunction
+C:\Users\ufu\AppData\Local\Temp\cczE4JKg.s:1842   .text:00000084 setADC0Function
+C:\Users\ufu\AppData\Local\Temp\cczE4JKg.s:1956   .text:000001bc setPWMFunction
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

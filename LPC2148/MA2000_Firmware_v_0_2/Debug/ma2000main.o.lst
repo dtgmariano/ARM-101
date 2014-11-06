@@ -1,0 +1,334 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"ma2000main.c"
+  21              	.Ltext0:
+  22              		.file 1 "../ma2000main.c"
+ 2110              		.align	2
+ 2111              		.global	Config_P022_LED
+ 2113              	Config_P022_LED:
+ 2114              	.LFB0:
+   1:../ma2000main.c **** /*
+   2:../ma2000main.c ****  * ma2000main.c
+   3:../ma2000main.c ****  *
+   4:../ma2000main.c ****  *  Created on: 12/06/2012
+   5:../ma2000main.c ****  *      Author: Daniel
+   6:../ma2000main.c ****  */
+   7:../ma2000main.c **** 
+   8:../ma2000main.c **** #include "LPC214x.h"
+   9:../ma2000main.c **** #include "cpu_init.h"
+  10:../ma2000main.c **** #include "adc.h"
+  11:../ma2000main.c **** #include "pwm.h"
+  12:../ma2000main.c **** 
+  13:../ma2000main.c **** #define rel 500000
+  14:../ma2000main.c **** 
+  15:../ma2000main.c **** void Config_P022_LED (void)
+  16:../ma2000main.c **** {
+ 2115              		.loc 1 16 0
+ 2116              		.cfi_startproc
+ 2117              		@ Function supports interworking.
+ 2118              		@ args = 0, pretend = 0, frame = 0
+ 2119              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2120              		@ link register save eliminated.
+ 2121 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 2122              	.LCFI0:
+ 2123              		.cfi_def_cfa_offset 4
+ 2124 0004 00B08DE2 		add	fp, sp, #0
+ 2125              		.cfi_offset 11, -4
+ 2126              	.LCFI1:
+ 2127              		.cfi_def_cfa_register 11
+  17:../ma2000main.c **** 	PINSEL1 &= ~((1<<12)|(1<<13)); // Configura o pino P0.22 como entrada/saída (I/O)
+ 2128              		.loc 1 17 0
+ 2129 0008 4E32A0E3 		mov	r3, #-536870908
+ 2130 000c 0B3983E2 		add	r3, r3, #180224
+ 2131 0010 4E22A0E3 		mov	r2, #-536870908
+ 2132 0014 0B2982E2 		add	r2, r2, #180224
+ 2133 0018 002092E5 		ldr	r2, [r2, #0]
+ 2134 001c 032AC2E3 		bic	r2, r2, #12288
+ 2135 0020 002083E5 		str	r2, [r3, #0]
+  18:../ma2000main.c **** 	IODIR0 |= (1<<22); // Configura o pino correspondente ao bit 22 para saída
+ 2136              		.loc 1 18 0
+ 2137 0024 8E32A0E3 		mov	r3, #-536870904
+ 2138 0028 0A3983E2 		add	r3, r3, #163840
+ 2139 002c 8E22A0E3 		mov	r2, #-536870904
+ 2140 0030 0A2982E2 		add	r2, r2, #163840
+ 2141 0034 002092E5 		ldr	r2, [r2, #0]
+ 2142 0038 012582E3 		orr	r2, r2, #4194304
+ 2143 003c 002083E5 		str	r2, [r3, #0]
+  19:../ma2000main.c **** }
+ 2144              		.loc 1 19 0
+ 2145 0040 00D08BE2 		add	sp, fp, #0
+ 2146 0044 0008BDE8 		ldmfd	sp!, {fp}
+ 2147 0048 1EFF2FE1 		bx	lr
+ 2148              		.cfi_endproc
+ 2149              	.LFE0:
+ 2151              		.align	2
+ 2152              		.global	Config_MCC_PINS
+ 2154              	Config_MCC_PINS:
+ 2155              	.LFB1:
+  20:../ma2000main.c **** 
+  21:../ma2000main.c **** void Config_MCC_PINS (void)
+  22:../ma2000main.c **** {
+ 2156              		.loc 1 22 0
+ 2157              		.cfi_startproc
+ 2158              		@ Function supports interworking.
+ 2159              		@ args = 0, pretend = 0, frame = 0
+ 2160              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2161              		@ link register save eliminated.
+ 2162 004c 04B02DE5 		str	fp, [sp, #-4]!
+ 2163              	.LCFI2:
+ 2164              		.cfi_def_cfa_offset 4
+ 2165 0050 00B08DE2 		add	fp, sp, #0
+ 2166              		.cfi_offset 11, -4
+ 2167              	.LCFI3:
+ 2168              		.cfi_def_cfa_register 11
+  23:../ma2000main.c **** 	//P0.3 P0.5 P0.10 P0.12 P0.17 P0.19
+  24:../ma2000main.c **** 
+  25:../ma2000main.c **** 	PINSEL0 &= ~((1<<6)|(1<<7)|(1<<10)|(1<<11)|(1<<20)|(1<<21)|(1<<24)|(1<<25));
+ 2169              		.loc 1 25 0
+ 2170 0054 0E32A0E3 		mov	r3, #-536870912
+ 2171 0058 0B3983E2 		add	r3, r3, #180224
+ 2172 005c 0E22A0E3 		mov	r2, #-536870912
+ 2173 0060 0B2982E2 		add	r2, r2, #180224
+ 2174 0064 002092E5 		ldr	r2, [r2, #0]
+ 2175 0068 3326C2E3 		bic	r2, r2, #53477376
+ 2176 006c 332DC2E3 		bic	r2, r2, #3264
+ 2177 0070 002083E5 		str	r2, [r3, #0]
+  26:../ma2000main.c **** 	PINSEL1 &= ~((1<<2)|(1<<3)|(1<<6)|(1<<7));
+ 2178              		.loc 1 26 0
+ 2179 0074 4E32A0E3 		mov	r3, #-536870908
+ 2180 0078 0B3983E2 		add	r3, r3, #180224
+ 2181 007c 4E22A0E3 		mov	r2, #-536870908
+ 2182 0080 0B2982E2 		add	r2, r2, #180224
+ 2183 0084 002092E5 		ldr	r2, [r2, #0]
+ 2184 0088 CC20C2E3 		bic	r2, r2, #204
+ 2185 008c 002083E5 		str	r2, [r3, #0]
+  27:../ma2000main.c **** 	IODIR0 |= ((1<<3)|(1<<5)|(1<<10)|(1<<12)|(1<<17)|(1<<19));
+ 2186              		.loc 1 27 0
+ 2187 0090 8E22A0E3 		mov	r2, #-536870904
+ 2188 0094 0A2982E2 		add	r2, r2, #163840
+ 2189 0098 8E32A0E3 		mov	r3, #-536870904
+ 2190 009c 0A3983E2 		add	r3, r3, #163840
+ 2191 00a0 003093E5 		ldr	r3, [r3, #0]
+ 2192 00a4 A13A83E3 		orr	r3, r3, #659456
+ 2193 00a8 423E83E3 		orr	r3, r3, #1056
+ 2194 00ac 083083E3 		orr	r3, r3, #8
+ 2195 00b0 003082E5 		str	r3, [r2, #0]
+  28:../ma2000main.c **** }
+ 2196              		.loc 1 28 0
+ 2197 00b4 00D08BE2 		add	sp, fp, #0
+ 2198 00b8 0008BDE8 		ldmfd	sp!, {fp}
+ 2199 00bc 1EFF2FE1 		bx	lr
+ 2200              		.cfi_endproc
+ 2201              	.LFE1:
+ 2203              		.align	2
+ 2204              		.global	main
+ 2206              	main:
+ 2207              	.LFB2:
+  29:../ma2000main.c **** 
+  30:../ma2000main.c **** int main (void)
+  31:../ma2000main.c **** {
+ 2208              		.loc 1 31 0
+ 2209              		.cfi_startproc
+ 2210              		@ Function supports interworking.
+ 2211              		@ args = 0, pretend = 0, frame = 24
+ 2212              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2213 00c0 00482DE9 		stmfd	sp!, {fp, lr}
+ 2214              	.LCFI4:
+ 2215              		.cfi_def_cfa_offset 8
+ 2216 00c4 04B08DE2 		add	fp, sp, #4
+ 2217              		.cfi_offset 14, -4
+ 2218              		.cfi_offset 11, -8
+ 2219              	.LCFI5:
+ 2220              		.cfi_def_cfa 11, 4
+ 2221 00c8 18D04DE2 		sub	sp, sp, #24
+  32:../ma2000main.c **** 	cpu_init();
+ 2222              		.loc 1 32 0
+ 2223 00cc FEFFFFEB 		bl	cpu_init
+  33:../ma2000main.c **** 
+  34:../ma2000main.c **** 	//ADCInit( ADC_CLK );
+  35:../ma2000main.c **** 
+  36:../ma2000main.c **** 	unsigned int resultado1 = 0;
+ 2224              		.loc 1 36 0
+ 2225 00d0 0030A0E3 		mov	r3, #0
+ 2226 00d4 0C300BE5 		str	r3, [fp, #-12]
+  37:../ma2000main.c **** 	unsigned int resultado2 = 0;
+ 2227              		.loc 1 37 0
+ 2228 00d8 0030A0E3 		mov	r3, #0
+ 2229 00dc 10300BE5 		str	r3, [fp, #-16]
+  38:../ma2000main.c **** 	unsigned int resultado3 = 0;
+ 2230              		.loc 1 38 0
+ 2231 00e0 0030A0E3 		mov	r3, #0
+ 2232 00e4 14300BE5 		str	r3, [fp, #-20]
+  39:../ma2000main.c **** 	unsigned int resultado4 = 0;
+ 2233              		.loc 1 39 0
+ 2234 00e8 0030A0E3 		mov	r3, #0
+ 2235 00ec 18300BE5 		str	r3, [fp, #-24]
+  40:../ma2000main.c **** 	unsigned int dif = 0;
+ 2236              		.loc 1 40 0
+ 2237 00f0 0030A0E3 		mov	r3, #0
+ 2238 00f4 08300BE5 		str	r3, [fp, #-8]
+  41:../ma2000main.c **** 
+  42:../ma2000main.c **** 	Config_MCC_PINS();
+ 2239              		.loc 1 42 0
+ 2240 00f8 FEFFFFEB 		bl	Config_MCC_PINS
+  43:../ma2000main.c **** 
+  44:../ma2000main.c **** 	pwm_init();
+ 2241              		.loc 1 44 0
+ 2242 00fc FEFFFFEB 		bl	pwm_init
+  45:../ma2000main.c **** 	int j=0;
+ 2243              		.loc 1 45 0
+ 2244 0100 0030A0E3 		mov	r3, #0
+ 2245 0104 1C300BE5 		str	r3, [fp, #-28]
+  46:../ma2000main.c **** 
+  47:../ma2000main.c **** 	ADCInit( ADC_CLK );
+ 2246              		.loc 1 47 0
+ 2247 0108 3D09A0E3 		mov	r0, #999424
+ 2248 010c 090D80E2 		add	r0, r0, #576
+ 2249 0110 FEFFFFEB 		bl	ADCInit
+  48:../ma2000main.c **** 
+  49:../ma2000main.c **** 	IOSET0 = ((1<<3)|(1<<5)|(1<<10)|(1<<12)|(1<<17)|(1<<19));
+ 2250              		.loc 1 49 0
+ 2251 0114 4E22A0E3 		mov	r2, #-536870908
+ 2252 0118 0A2982E2 		add	r2, r2, #163840
+ 2253 011c A13AA0E3 		mov	r3, #659456
+ 2254 0120 423E83E2 		add	r3, r3, #1056
+ 2255 0124 083083E2 		add	r3, r3, #8
+ 2256 0128 003082E5 		str	r3, [r2, #0]
+ 2257              	.L6:
+  50:../ma2000main.c **** 	//IOCLR0 = (1<<19);
+  51:../ma2000main.c **** 	while (1)
+  52:../ma2000main.c **** 	{
+  53:../ma2000main.c **** 		/*IOSET0 = (1<<3);
+  54:../ma2000main.c **** 		IOSET0 = (1<<5);
+  55:../ma2000main.c **** 		IOSET0 = (1<<10);
+  56:../ma2000main.c **** 		IOSET0 = (1<<12);
+  57:../ma2000main.c **** 		IOSET0 = (1<<17);
+  58:../ma2000main.c **** 		IOSET0 = (1<<19);
+  59:../ma2000main.c **** 		for (j = 0; j < rel; j++ ) asm volatile ("NOP");
+  60:../ma2000main.c **** 		IOCLR0 = (1<<3);
+  61:../ma2000main.c **** 		IOCLR0 = (1<<5);
+  62:../ma2000main.c **** 		IOCLR0 = (1<<10);
+  63:../ma2000main.c **** 		IOCLR0 = (1<<12);
+  64:../ma2000main.c **** 		IOCLR0 = (1<<17);
+  65:../ma2000main.c **** 		IOCLR0 = (1<<19);
+  66:../ma2000main.c **** 		for (j = 0; j < rel; j++ ) asm volatile ("NOP");*/
+  67:../ma2000main.c **** 
+  68:../ma2000main.c **** 		resultado1 = ADC0Read(1);
+ 2258              		.loc 1 68 0
+ 2259 012c 0100A0E3 		mov	r0, #1
+ 2260 0130 FEFFFFEB 		bl	ADC0Read
+ 2261 0134 0C000BE5 		str	r0, [fp, #-12]
+  69:../ma2000main.c **** 		resultado2 = ADC0Read(2);
+ 2262              		.loc 1 69 0
+ 2263 0138 0200A0E3 		mov	r0, #2
+ 2264 013c FEFFFFEB 		bl	ADC0Read
+ 2265 0140 10000BE5 		str	r0, [fp, #-16]
+  70:../ma2000main.c **** 		resultado3 = ADC0Read(3);
+ 2266              		.loc 1 70 0
+ 2267 0144 0300A0E3 		mov	r0, #3
+ 2268 0148 FEFFFFEB 		bl	ADC0Read
+ 2269 014c 14000BE5 		str	r0, [fp, #-20]
+  71:../ma2000main.c **** 		resultado4 = ADC0Read(4);
+ 2270              		.loc 1 71 0
+ 2271 0150 0400A0E3 		mov	r0, #4
+ 2272 0154 FEFFFFEB 		bl	ADC0Read
+ 2273 0158 18000BE5 		str	r0, [fp, #-24]
+  72:../ma2000main.c **** 
+  73:../ma2000main.c **** 
+  74:../ma2000main.c **** 
+  75:../ma2000main.c **** 		if(resultado1 > resultado4)
+ 2274              		.loc 1 75 0
+ 2275 015c 0C201BE5 		ldr	r2, [fp, #-12]
+ 2276 0160 18301BE5 		ldr	r3, [fp, #-24]
+ 2277 0164 030052E1 		cmp	r2, r3
+ 2278 0168 0B00009A 		bls	.L4
+  76:../ma2000main.c **** 		{
+  77:../ma2000main.c **** 			IOCLR0 = (1<<19);
+ 2279              		.loc 1 77 0
+ 2280 016c CE32A0E3 		mov	r3, #-536870900
+ 2281 0170 0A3983E2 		add	r3, r3, #163840
+ 2282 0174 0227A0E3 		mov	r2, #524288
+ 2283 0178 002083E5 		str	r2, [r3, #0]
+  78:../ma2000main.c **** 			IOSET0 = (1<<17);
+ 2284              		.loc 1 78 0
+ 2285 017c 4E32A0E3 		mov	r3, #-536870908
+ 2286 0180 0A3983E2 		add	r3, r3, #163840
+ 2287 0184 0228A0E3 		mov	r2, #131072
+ 2288 0188 002083E5 		str	r2, [r3, #0]
+  79:../ma2000main.c **** 			dif = resultado1 - resultado4;
+ 2289              		.loc 1 79 0
+ 2290 018c 0C201BE5 		ldr	r2, [fp, #-12]
+ 2291 0190 18301BE5 		ldr	r3, [fp, #-24]
+ 2292 0194 023063E0 		rsb	r3, r3, r2
+ 2293 0198 08300BE5 		str	r3, [fp, #-8]
+ 2294              	.L4:
+  80:../ma2000main.c **** 		}
+  81:../ma2000main.c **** 
+  82:../ma2000main.c **** 		if(resultado1 < resultado4)
+ 2295              		.loc 1 82 0
+ 2296 019c 0C201BE5 		ldr	r2, [fp, #-12]
+ 2297 01a0 18301BE5 		ldr	r3, [fp, #-24]
+ 2298 01a4 030052E1 		cmp	r2, r3
+ 2299 01a8 0B00002A 		bcs	.L5
+  83:../ma2000main.c **** 		{
+  84:../ma2000main.c **** 			IOCLR0 = (1<<17);
+ 2300              		.loc 1 84 0
+ 2301 01ac CE32A0E3 		mov	r3, #-536870900
+ 2302 01b0 0A3983E2 		add	r3, r3, #163840
+ 2303 01b4 0228A0E3 		mov	r2, #131072
+ 2304 01b8 002083E5 		str	r2, [r3, #0]
+  85:../ma2000main.c **** 			IOSET0 = (1<<19);
+ 2305              		.loc 1 85 0
+ 2306 01bc 4E32A0E3 		mov	r3, #-536870908
+ 2307 01c0 0A3983E2 		add	r3, r3, #163840
+ 2308 01c4 0227A0E3 		mov	r2, #524288
+ 2309 01c8 002083E5 		str	r2, [r3, #0]
+  86:../ma2000main.c **** 			dif = resultado4 - resultado1;
+ 2310              		.loc 1 86 0
+ 2311 01cc 18201BE5 		ldr	r2, [fp, #-24]
+ 2312 01d0 0C301BE5 		ldr	r3, [fp, #-12]
+ 2313 01d4 023063E0 		rsb	r3, r3, r2
+ 2314 01d8 08300BE5 		str	r3, [fp, #-8]
+ 2315              	.L5:
+  87:../ma2000main.c **** 		}
+  88:../ma2000main.c **** 
+  89:../ma2000main.c **** 		setpwm5cycle(dif);
+ 2316              		.loc 1 89 0
+ 2317 01dc 08001BE5 		ldr	r0, [fp, #-8]
+ 2318 01e0 FEFFFFEB 		bl	setpwm5cycle
+  90:../ma2000main.c **** 
+  91:../ma2000main.c **** 
+  92:../ma2000main.c **** 
+  93:../ma2000main.c **** 
+  94:../ma2000main.c **** 		//setpwm5cycle(resultado4); //PWM5 referente ao Fullbridge do DOF1
+  95:../ma2000main.c **** 		//setpwm2cycle(resultado4); //PWM2 referente ao Fullbridge do DOF2
+  96:../ma2000main.c **** 		//setpwm4cycle(resultado4); //PWM4 referente ao Fullbridge do DOF3
+  97:../ma2000main.c **** 
+  98:../ma2000main.c **** 	}
+ 2319              		.loc 1 98 0
+ 2320 01e4 D0FFFFEA 		b	.L6
+ 2321              		.cfi_endproc
+ 2322              	.LFE2:
+ 2324              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 ma2000main.c
+C:\Users\Daniel\AppData\Local\Temp\ccOhkAlj.s:2110   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccOhkAlj.s:2113   .text:00000000 Config_P022_LED
+C:\Users\Daniel\AppData\Local\Temp\ccOhkAlj.s:2154   .text:0000004c Config_MCC_PINS
+C:\Users\Daniel\AppData\Local\Temp\ccOhkAlj.s:2206   .text:000000c0 main
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+cpu_init
+pwm_init
+ADCInit
+ADC0Read
+setpwm5cycle

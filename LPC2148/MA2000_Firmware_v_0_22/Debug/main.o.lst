@@ -1,0 +1,312 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"main.c"
+  21              	.Ltext0:
+  22              		.file 1 "../main.c"
+ 2141              		.align	2
+ 2142              	.LC0:
+ 2143 0000 5345543A 		.ascii	"SET: %d POT: %d K: %d\015\012\000"
+ 2143      20256420 
+ 2143      504F543A 
+ 2143      20256420 
+ 2143      4B3A2025 
+ 2144              		.text
+ 2145              		.align	2
+ 2146              		.global	main
+ 2148              	main:
+ 2149              	.LFB0:
+   1:../main.c     **** /*
+   2:../main.c     ****  * main.c
+   3:../main.c     ****  *
+   4:../main.c     ****  *  Created on : 22/02/2013
+   5:../main.c     ****  *      Author: Daniel Teodoro G. Mariano
+   6:../main.c     ****  */
+   7:../main.c     **** //Function	  	  LPC2148 		Connector
+   8:../main.c     **** //PWM 2 (31)      EXT1-8		EXT1 20
+   9:../main.c     **** //PWM 4 (31)      				EXT1 17
+  10:../main.c     **** //PWM 5 (31)           			EXT1 9
+  11:../main.c     **** //P0.18 (53)      EXT1-19		EXT1 7
+  12:../main.c     **** //P0.19 (54)      EXT1-20		EXT1 8
+  13:../main.c     **** //AD0.1 (13)      EXT2-1		EXT2 25
+  14:../main.c     **** //AD0.2 (14)      EXT2-2		EXT2 26
+  15:../main.c     **** //
+  16:../main.c     **** //				  +3.3V   		EXT2-4
+  17:../main.c     **** //			      GND     		EXT2-1 e EXT1-2
+  18:../main.c     **** 
+  19:../main.c     **** #include "LPC214x.h"
+  20:../main.c     **** #include "cpu_init.h"
+  21:../main.c     **** //#include "MA2000/robot.h"
+  22:../main.c     **** #include "Modules/adc.h"
+  23:../main.c     **** #include "Modules/pwm.h"
+  24:../main.c     **** #include "Modules/gpio.h"
+  25:../main.c     **** #include "Modules/uart.h"
+  26:../main.c     **** #include "Modules/iprintf.h"
+  27:../main.c     **** 
+  28:../main.c     **** 
+  29:../main.c     **** int main (void)
+  30:../main.c     **** {
+ 2150              		.loc 1 30 0
+ 2151              		.cfi_startproc
+ 2152              		@ Function supports interworking.
+ 2153              		@ args = 0, pretend = 0, frame = 16
+ 2154              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2155 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 2156              	.LCFI0:
+ 2157              		.cfi_def_cfa_offset 8
+ 2158 0004 04B08DE2 		add	fp, sp, #4
+ 2159              		.cfi_offset 14, -4
+ 2160              		.cfi_offset 11, -8
+ 2161              	.LCFI1:
+ 2162              		.cfi_def_cfa 11, 4
+ 2163 0008 10D04DE2 		sub	sp, sp, #16
+  31:../main.c     **** 	cpu_init();
+ 2164              		.loc 1 31 0
+ 2165 000c FEFFFFEB 		bl	cpu_init
+  32:../main.c     **** 	//robot_setconfig();
+  33:../main.c     **** 	UART_Init(0,9600);
+ 2166              		.loc 1 33 0
+ 2167 0010 0000A0E3 		mov	r0, #0
+ 2168 0014 961DA0E3 		mov	r1, #9600
+ 2169 0018 FEFFFFEB 		bl	UART_Init
+  34:../main.c     **** 	GPIOInit();
+ 2170              		.loc 1 34 0
+ 2171 001c FEFFFFEB 		bl	GPIOInit
+  35:../main.c     **** 	PWMInit();
+ 2172              		.loc 1 35 0
+ 2173 0020 FEFFFFEB 		bl	PWMInit
+  36:../main.c     **** 	ADCInit(ADC_CLK);
+ 2174              		.loc 1 36 0
+ 2175 0024 3D09A0E3 		mov	r0, #999424
+ 2176 0028 090D80E2 		add	r0, r0, #576
+ 2177 002c FEFFFFEB 		bl	ADCInit
+  37:../main.c     **** 
+  38:../main.c     **** 	unsigned int setpoint_dof1=0;
+ 2178              		.loc 1 38 0
+ 2179 0030 0030A0E3 		mov	r3, #0
+ 2180 0034 10300BE5 		str	r3, [fp, #-16]
+  39:../main.c     **** 	unsigned int reostato_dof1=0;
+ 2181              		.loc 1 39 0
+ 2182 0038 0030A0E3 		mov	r3, #0
+ 2183 003c 14300BE5 		str	r3, [fp, #-20]
+  40:../main.c     **** 	unsigned int k = 0;
+ 2184              		.loc 1 40 0
+ 2185 0040 0030A0E3 		mov	r3, #0
+ 2186 0044 08300BE5 		str	r3, [fp, #-8]
+  41:../main.c     **** 	setDutyCycle(2,1022);
+ 2187              		.loc 1 41 0
+ 2188 0048 0200A0E3 		mov	r0, #2
+ 2189 004c FF1FA0E3 		mov	r1, #1020
+ 2190 0050 021081E2 		add	r1, r1, #2
+ 2191 0054 FEFFFFEB 		bl	setDutyCycle
+  42:../main.c     **** 	setDutyCycle(4,25);
+ 2192              		.loc 1 42 0
+ 2193 0058 0400A0E3 		mov	r0, #4
+ 2194 005c 1910A0E3 		mov	r1, #25
+ 2195 0060 FEFFFFEB 		bl	setDutyCycle
+  43:../main.c     **** 	setDutyCycle(5,50);
+ 2196              		.loc 1 43 0
+ 2197 0064 0500A0E3 		mov	r0, #5
+ 2198 0068 3210A0E3 		mov	r1, #50
+ 2199 006c FEFFFFEB 		bl	setDutyCycle
+ 2200 0070 000000EA 		b	.L8
+ 2201              	.L9:
+  44:../main.c     **** 
+  45:../main.c     **** 	while (1)
+  46:../main.c     **** 	{
+  47:../main.c     **** 		setpoint_dof1 = ADC0Read(1);
+  48:../main.c     **** 		asm volatile("NOP");
+  49:../main.c     **** 		reostato_dof1 = 950;
+  50:../main.c     **** 
+  51:../main.c     **** 		for(int i=0; i<50000;i++)
+  52:../main.c     **** 		{
+  53:../main.c     **** 			asm volatile("NOP");
+  54:../main.c     **** 		}
+  55:../main.c     **** 
+  56:../main.c     **** 		iprintf("SET: %d POT: %d K: %d\r\n", setpoint_dof1, reostato_dof1, k);
+  57:../main.c     **** 		asm volatile("NOP");
+  58:../main.c     **** 
+  59:../main.c     **** 		if((setpoint_dof1 > reostato_dof1) || (reostato_dof1 < 50))
+  60:../main.c     **** 		{
+  61:../main.c     **** 			IOCLR0 = (1<<19);
+  62:../main.c     **** 			IOSET0 = (1<<18);
+  63:../main.c     **** 			k = setpoint_dof1 - reostato_dof1;
+  64:../main.c     **** 			setDutyCycle(2,(setpoint_dof1 - reostato_dof1));
+  65:../main.c     **** 		}
+  66:../main.c     **** 		if((reostato_dof1 > setpoint_dof1) || (reostato_dof1 > 970))
+  67:../main.c     **** 		{
+  68:../main.c     **** 			IOCLR0 = (1<<18);
+  69:../main.c     **** 			IOSET0 = (1<<19);
+  70:../main.c     **** 			k = reostato_dof1 - setpoint_dof1;
+  71:../main.c     **** 			setDutyCycle(2,(reostato_dof1 - setpoint_dof1));
+  72:../main.c     **** 		}
+  73:../main.c     **** 		//setDutyCycle(2,23999);
+  74:../main.c     **** 	}
+ 2202              		.loc 1 74 0
+ 2203 0074 0000A0E1 		mov	r0, r0	@ nop
+ 2204              	.L8:
+  47:../main.c     **** 		setpoint_dof1 = ADC0Read(1);
+ 2205              		.loc 1 47 0
+ 2206 0078 0100A0E3 		mov	r0, #1
+ 2207 007c FEFFFFEB 		bl	ADC0Read
+ 2208 0080 10000BE5 		str	r0, [fp, #-16]
+  48:../main.c     **** 		asm volatile("NOP");
+ 2209              		.loc 1 48 0
+ 2210              	@ 48 "../main.c" 1
+ 2211 0084 0000A0E1 		NOP
+ 2212              	@ 0 "" 2
+  49:../main.c     **** 		reostato_dof1 = 950;
+ 2213              		.loc 1 49 0
+ 2214 0088 ED3FA0E3 		mov	r3, #948
+ 2215 008c 023083E2 		add	r3, r3, #2
+ 2216 0090 14300BE5 		str	r3, [fp, #-20]
+ 2217              	.LBB2:
+  51:../main.c     **** 		for(int i=0; i<50000;i++)
+ 2218              		.loc 1 51 0
+ 2219 0094 0030A0E3 		mov	r3, #0
+ 2220 0098 0C300BE5 		str	r3, [fp, #-12]
+ 2221 009c 030000EA 		b	.L2
+ 2222              	.L3:
+  53:../main.c     **** 			asm volatile("NOP");
+ 2223              		.loc 1 53 0 discriminator 2
+ 2224              	@ 53 "../main.c" 1
+ 2225 00a0 0000A0E1 		NOP
+ 2226              	@ 0 "" 2
+  51:../main.c     **** 		for(int i=0; i<50000;i++)
+ 2227              		.loc 1 51 0 discriminator 2
+ 2228 00a4 0C301BE5 		ldr	r3, [fp, #-12]
+ 2229 00a8 013083E2 		add	r3, r3, #1
+ 2230 00ac 0C300BE5 		str	r3, [fp, #-12]
+ 2231              	.L2:
+  51:../main.c     **** 		for(int i=0; i<50000;i++)
+ 2232              		.loc 1 51 0 is_stmt 0 discriminator 1
+ 2233 00b0 0C201BE5 		ldr	r2, [fp, #-12]
+ 2234 00b4 C33CA0E3 		mov	r3, #49920
+ 2235 00b8 4F3083E2 		add	r3, r3, #79
+ 2236 00bc 030052E1 		cmp	r2, r3
+ 2237 00c0 F6FFFFDA 		ble	.L3
+ 2238              	.LBE2:
+  56:../main.c     **** 		iprintf("SET: %d POT: %d K: %d\r\n", setpoint_dof1, reostato_dof1, k);
+ 2239              		.loc 1 56 0 is_stmt 1
+ 2240 00c4 E4009FE5 		ldr	r0, .L10
+ 2241 00c8 10101BE5 		ldr	r1, [fp, #-16]
+ 2242 00cc 14201BE5 		ldr	r2, [fp, #-20]
+ 2243 00d0 08301BE5 		ldr	r3, [fp, #-8]
+ 2244 00d4 FEFFFFEB 		bl	iprintf
+  57:../main.c     **** 		asm volatile("NOP");
+ 2245              		.loc 1 57 0
+ 2246              	@ 57 "../main.c" 1
+ 2247 00d8 0000A0E1 		NOP
+ 2248              	@ 0 "" 2
+  59:../main.c     **** 		if((setpoint_dof1 > reostato_dof1) || (reostato_dof1 < 50))
+ 2249              		.loc 1 59 0
+ 2250 00dc 10201BE5 		ldr	r2, [fp, #-16]
+ 2251 00e0 14301BE5 		ldr	r3, [fp, #-20]
+ 2252 00e4 030052E1 		cmp	r2, r3
+ 2253 00e8 0200008A 		bhi	.L4
+  59:../main.c     **** 		if((setpoint_dof1 > reostato_dof1) || (reostato_dof1 < 50))
+ 2254              		.loc 1 59 0 is_stmt 0 discriminator 1
+ 2255 00ec 14301BE5 		ldr	r3, [fp, #-20]
+ 2256 00f0 310053E3 		cmp	r3, #49
+ 2257 00f4 1100008A 		bhi	.L5
+ 2258              	.L4:
+  61:../main.c     **** 			IOCLR0 = (1<<19);
+ 2259              		.loc 1 61 0 is_stmt 1
+ 2260 00f8 CE32A0E3 		mov	r3, #-536870900
+ 2261 00fc 0A3983E2 		add	r3, r3, #163840
+ 2262 0100 0227A0E3 		mov	r2, #524288
+ 2263 0104 002083E5 		str	r2, [r3, #0]
+  62:../main.c     **** 			IOSET0 = (1<<18);
+ 2264              		.loc 1 62 0
+ 2265 0108 4E32A0E3 		mov	r3, #-536870908
+ 2266 010c 0A3983E2 		add	r3, r3, #163840
+ 2267 0110 0127A0E3 		mov	r2, #262144
+ 2268 0114 002083E5 		str	r2, [r3, #0]
+  63:../main.c     **** 			k = setpoint_dof1 - reostato_dof1;
+ 2269              		.loc 1 63 0
+ 2270 0118 10201BE5 		ldr	r2, [fp, #-16]
+ 2271 011c 14301BE5 		ldr	r3, [fp, #-20]
+ 2272 0120 023063E0 		rsb	r3, r3, r2
+ 2273 0124 08300BE5 		str	r3, [fp, #-8]
+  64:../main.c     **** 			setDutyCycle(2,(setpoint_dof1 - reostato_dof1));
+ 2274              		.loc 1 64 0
+ 2275 0128 10201BE5 		ldr	r2, [fp, #-16]
+ 2276 012c 14301BE5 		ldr	r3, [fp, #-20]
+ 2277 0130 023063E0 		rsb	r3, r3, r2
+ 2278 0134 0200A0E3 		mov	r0, #2
+ 2279 0138 0310A0E1 		mov	r1, r3
+ 2280 013c FEFFFFEB 		bl	setDutyCycle
+ 2281              	.L5:
+  66:../main.c     **** 		if((reostato_dof1 > setpoint_dof1) || (reostato_dof1 > 970))
+ 2282              		.loc 1 66 0
+ 2283 0140 14201BE5 		ldr	r2, [fp, #-20]
+ 2284 0144 10301BE5 		ldr	r3, [fp, #-16]
+ 2285 0148 030052E1 		cmp	r2, r3
+ 2286 014c 0400008A 		bhi	.L6
+  66:../main.c     **** 		if((reostato_dof1 > setpoint_dof1) || (reostato_dof1 > 970))
+ 2287              		.loc 1 66 0 is_stmt 0 discriminator 1
+ 2288 0150 14201BE5 		ldr	r2, [fp, #-20]
+ 2289 0154 F23FA0E3 		mov	r3, #968
+ 2290 0158 023083E2 		add	r3, r3, #2
+ 2291 015c 030052E1 		cmp	r2, r3
+ 2292 0160 C3FFFF9A 		bls	.L9
+ 2293              	.L6:
+  68:../main.c     **** 			IOCLR0 = (1<<18);
+ 2294              		.loc 1 68 0 is_stmt 1
+ 2295 0164 CE32A0E3 		mov	r3, #-536870900
+ 2296 0168 0A3983E2 		add	r3, r3, #163840
+ 2297 016c 0127A0E3 		mov	r2, #262144
+ 2298 0170 002083E5 		str	r2, [r3, #0]
+  69:../main.c     **** 			IOSET0 = (1<<19);
+ 2299              		.loc 1 69 0
+ 2300 0174 4E32A0E3 		mov	r3, #-536870908
+ 2301 0178 0A3983E2 		add	r3, r3, #163840
+ 2302 017c 0227A0E3 		mov	r2, #524288
+ 2303 0180 002083E5 		str	r2, [r3, #0]
+  70:../main.c     **** 			k = reostato_dof1 - setpoint_dof1;
+ 2304              		.loc 1 70 0
+ 2305 0184 14201BE5 		ldr	r2, [fp, #-20]
+ 2306 0188 10301BE5 		ldr	r3, [fp, #-16]
+ 2307 018c 023063E0 		rsb	r3, r3, r2
+ 2308 0190 08300BE5 		str	r3, [fp, #-8]
+  71:../main.c     **** 			setDutyCycle(2,(reostato_dof1 - setpoint_dof1));
+ 2309              		.loc 1 71 0
+ 2310 0194 14201BE5 		ldr	r2, [fp, #-20]
+ 2311 0198 10301BE5 		ldr	r3, [fp, #-16]
+ 2312 019c 023063E0 		rsb	r3, r3, r2
+ 2313 01a0 0200A0E3 		mov	r0, #2
+ 2314 01a4 0310A0E1 		mov	r1, r3
+ 2315 01a8 FEFFFFEB 		bl	setDutyCycle
+ 2316              		.loc 1 74 0
+ 2317 01ac B1FFFFEA 		b	.L8
+ 2318              	.L11:
+ 2319              		.align	2
+ 2320              	.L10:
+ 2321 01b0 00000000 		.word	.LC0
+ 2322              		.cfi_endproc
+ 2323              	.LFE0:
+ 2325              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+C:\Users\ufu\AppData\Local\Temp\ccBu2Lvx.s:2141   .rodata:00000000 $d
+C:\Users\ufu\AppData\Local\Temp\ccBu2Lvx.s:2145   .text:00000000 $a
+C:\Users\ufu\AppData\Local\Temp\ccBu2Lvx.s:2148   .text:00000000 main
+C:\Users\ufu\AppData\Local\Temp\ccBu2Lvx.s:2321   .text:000001b0 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+cpu_init
+UART_Init
+GPIOInit
+PWMInit
+ADCInit
+setDutyCycle
+ADC0Read
+iprintf

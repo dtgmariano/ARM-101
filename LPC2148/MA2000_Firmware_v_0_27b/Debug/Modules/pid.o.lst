@@ -1,0 +1,143 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"pid.c"
+  21              	.Ltext0:
+  22              		.file 1 "../Modules/pid.c"
+ 3003              		.align	2
+ 3004              		.global	Limit_value_unsigned
+ 3006              	Limit_value_unsigned:
+ 3007              	.LFB0:
+   1:../Modules/pid.c **** /*------------------------------------------------------------------------------------*/
+   2:../Modules/pid.c **** /*                                       HEADER                                       */
+   3:../Modules/pid.c **** /*------------------------------------------------------------------------------------*/
+   4:../Modules/pid.c **** 
+   5:../Modules/pid.c **** /***************************************************************************************
+   6:../Modules/pid.c ****  *Project Name: MA2000 Firmware
+   7:../Modules/pid.c ****  *	   Version: 0.24
+   8:../Modules/pid.c ****  *   File Name: pid.c
+   9:../Modules/pid.c ****  *  Created on: 19/03/2013
+  10:../Modules/pid.c ****  *      Author: Daniel Teodoro G. Mariano
+  11:../Modules/pid.c ****  *       Email: dtgm@uol.com.br
+  12:../Modules/pid.c ****  * Description: Sets PID Configuration for LPC2148, based on the MA2000 Robot Project
+  13:../Modules/pid.c **** ***************************************************************************************/
+  14:../Modules/pid.c **** 
+  15:../Modules/pid.c **** #include "LPC214x.h"
+  16:../Modules/pid.c **** #include "pid.h"
+  17:../Modules/pid.c **** #include <stdio.h>
+  18:../Modules/pid.c **** #include <stdint.h>
+  19:../Modules/pid.c **** 
+  20:../Modules/pid.c **** //int Reference = 0;                    	//Reference value 0 to 4000
+  21:../Modules/pid.c **** //int Feedback = 0;                    	//Readed value 0 to 4000
+  22:../Modules/pid.c **** //int Error = 0;                        	//Error (Reference - Feedback)
+  23:../Modules/pid.c **** //int Pid_Out = 0;                    	//Function Output 0 to 4000
+  24:../Modules/pid.c **** //
+  25:../Modules/pid.c **** //int Kp = 0;                             //Proportional gain  0 to 255
+  26:../Modules/pid.c **** //int Ki = 0;                             //Integral gain 0 to 255
+  27:../Modules/pid.c **** //int Kd = 0;                             //Derivative gain 0 to 255
+  28:../Modules/pid.c **** //
+  29:../Modules/pid.c **** //int PLimit = 0x7FFF;                    //Excursion Limit for Proportional component
+  30:../Modules/pid.c **** //int ILimit = 0x7FFF;                    //Excursion limit for Integrative component
+  31:../Modules/pid.c **** //int DLimit = 0x7FFF;                    //Excursion limit for Derivative component
+  32:../Modules/pid.c **** //int Out_Limit = 0x7FFF;                 //Excursion limit for Output
+  33:../Modules/pid.c **** //
+  34:../Modules/pid.c **** //unsigned int    PidPeriod;              //Period of Pid calculation 0=FFFF multiply of ms
+  35:../Modules/pid.c **** //unsigned int    IPeriod;                //Period for Integrative calculation 0=FFFF multiply of P
+  36:../Modules/pid.c **** //unsigned int    DPeriod;                //Period for Derivative calculation 0=FFFF multiply of Pi
+  37:../Modules/pid.c **** //unsigned int    PidCounter = 0;         //Counting for PID occourrence
+  38:../Modules/pid.c **** //unsigned int    ICounter = 0;           //Counter for Integrative  occourrence
+  39:../Modules/pid.c **** //unsigned int    DCounter = 0;           //Counter for Integrative occourrence
+  40:../Modules/pid.c **** //
+  41:../Modules/pid.c **** //int PTerm = 0;                       	//Calculated Proportional term
+  42:../Modules/pid.c **** //int ITerm = 0;                       	//Calculated Integral term
+  43:../Modules/pid.c **** //int DTerm = 0;                       	//Calculated Derivative term
+  44:../Modules/pid.c **** //
+  45:../Modules/pid.c **** //int IInstant;                       	//Instantaneous Integrative Compensation
+  46:../Modules/pid.c **** //int OldError;                        	//Old Derivative Compensation
+  47:../Modules/pid.c **** 
+  48:../Modules/pid.c **** 
+  49:../Modules/pid.c **** /*------------------------------------------------------------------------------------*/
+  50:../Modules/pid.c **** /*                               FUNCTIONS  IMPLEMENTATION                            */
+  51:../Modules/pid.c **** /*------------------------------------------------------------------------------------*/
+  52:../Modules/pid.c **** 
+  53:../Modules/pid.c **** //Limit_value_signed: limit value of signed Variable between Min_Value and Max_Value
+  54:../Modules/pid.c **** //Supply variable Address, Min and Max value within she has to be limited
+  55:../Modules/pid.c **** //Function return new value if limit take place
+  56:../Modules/pid.c **** //void Limit_value_signed(uint32_t Min_Value, uint32_t Max_Value, uint32_t Variable)
+  57:../Modules/pid.c **** //{
+  58:../Modules/pid.c **** //	if (Variable < Min_Value)
+  59:../Modules/pid.c **** //    {
+  60:../Modules/pid.c **** //		Variable = Min_Value;
+  61:../Modules/pid.c **** //    }
+  62:../Modules/pid.c **** //	if (Variable > Max_Value)
+  63:../Modules/pid.c **** //    {
+  64:../Modules/pid.c **** //		Variable = Max_Value;
+  65:../Modules/pid.c **** //    }
+  66:../Modules/pid.c **** //}
+  67:../Modules/pid.c **** unsigned int Limit_value_unsigned (int Variable,int Min_Value,int Max_Value)
+  68:../Modules/pid.c **** {
+ 3008              		.loc 1 68 0
+ 3009              		.cfi_startproc
+ 3010              		@ Function supports interworking.
+ 3011              		@ args = 0, pretend = 0, frame = 16
+ 3012              		@ frame_needed = 1, uses_anonymous_args = 0
+ 3013              		@ link register save eliminated.
+ 3014 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 3015              	.LCFI0:
+ 3016              		.cfi_def_cfa_offset 4
+ 3017 0004 00B08DE2 		add	fp, sp, #0
+ 3018              		.cfi_offset 11, -4
+ 3019              	.LCFI1:
+ 3020              		.cfi_def_cfa_register 11
+ 3021 0008 14D04DE2 		sub	sp, sp, #20
+ 3022 000c 08000BE5 		str	r0, [fp, #-8]
+ 3023 0010 0C100BE5 		str	r1, [fp, #-12]
+ 3024 0014 10200BE5 		str	r2, [fp, #-16]
+  69:../Modules/pid.c **** 	if (Variable < Min_Value)
+ 3025              		.loc 1 69 0
+ 3026 0018 08201BE5 		ldr	r2, [fp, #-8]
+ 3027 001c 0C301BE5 		ldr	r3, [fp, #-12]
+ 3028 0020 030052E1 		cmp	r2, r3
+ 3029 0024 010000AA 		bge	.L2
+  70:../Modules/pid.c ****     {Variable = Min_Value;}
+ 3030              		.loc 1 70 0
+ 3031 0028 0C301BE5 		ldr	r3, [fp, #-12]
+ 3032 002c 08300BE5 		str	r3, [fp, #-8]
+ 3033              	.L2:
+  71:../Modules/pid.c **** 	if (Variable > Max_Value)
+ 3034              		.loc 1 71 0
+ 3035 0030 08201BE5 		ldr	r2, [fp, #-8]
+ 3036 0034 10301BE5 		ldr	r3, [fp, #-16]
+ 3037 0038 030052E1 		cmp	r2, r3
+ 3038 003c 010000DA 		ble	.L3
+  72:../Modules/pid.c ****     {Variable = Max_Value;}
+ 3039              		.loc 1 72 0
+ 3040 0040 10301BE5 		ldr	r3, [fp, #-16]
+ 3041 0044 08300BE5 		str	r3, [fp, #-8]
+ 3042              	.L3:
+  73:../Modules/pid.c **** 	return Variable;
+ 3043              		.loc 1 73 0
+ 3044 0048 08301BE5 		ldr	r3, [fp, #-8]
+  74:../Modules/pid.c **** }
+ 3045              		.loc 1 74 0
+ 3046 004c 0300A0E1 		mov	r0, r3
+ 3047 0050 00D08BE2 		add	sp, fp, #0
+ 3048 0054 0008BDE8 		ldmfd	sp!, {fp}
+ 3049 0058 1EFF2FE1 		bx	lr
+ 3050              		.cfi_endproc
+ 3051              	.LFE0:
+ 3053              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 pid.c
+C:\Users\Daniel\AppData\Local\Temp\cccSkPPw.s:3003   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\cccSkPPw.s:3006   .text:00000000 Limit_value_unsigned
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

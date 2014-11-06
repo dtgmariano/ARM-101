@@ -1,0 +1,177 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"robot.c"
+  21              	.Ltext0:
+  22              		.file 1 "../MA2000/robot.c"
+ 2104              		.align	2
+ 2105              		.global	robot_setconfig
+ 2107              	robot_setconfig:
+ 2108              	.LFB0:
+   1:../MA2000/robot.c **** /*
+   2:../MA2000/robot.c ****  * robot.c
+   3:../MA2000/robot.c ****  *
+   4:../MA2000/robot.c ****  *  Created on: 22 de Fev de 2013
+   5:../MA2000/robot.c ****  *      Author: Daniel Teodoro G Mariano
+   6:../MA2000/robot.c ****  */
+   7:../MA2000/robot.c **** 
+   8:../MA2000/robot.c **** #include "LPC214x.h"
+   9:../MA2000/robot.c **** #include "Modules/pwm.h"
+  10:../MA2000/robot.c **** #include "Modules/adc.h"
+  11:../MA2000/robot.c **** #include "Modules/gpio.h"
+  12:../MA2000/robot.c **** #include "Modules/uart.h"
+  13:../MA2000/robot.c **** #include "Modules/iprintf.h"
+  14:../MA2000/robot.c **** 
+  15:../MA2000/robot.c **** unsigned int position_dof1;
+  16:../MA2000/robot.c **** 
+  17:../MA2000/robot.c **** //Function to configure ADC Channels, PWM Channels and GPIO pins for DOF1 Control
+  18:../MA2000/robot.c **** void robot_setconfig()
+  19:../MA2000/robot.c **** {
+ 2109              		.loc 1 19 0
+ 2110              		.cfi_startproc
+ 2111              		@ Function supports interworking.
+ 2112              		@ args = 0, pretend = 0, frame = 0
+ 2113              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2114 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 2115              	.LCFI0:
+ 2116              		.cfi_def_cfa_offset 8
+ 2117 0004 04B08DE2 		add	fp, sp, #4
+ 2118              		.cfi_offset 14, -4
+ 2119              		.cfi_offset 11, -8
+ 2120              	.LCFI1:
+ 2121              		.cfi_def_cfa 11, 4
+  20:../MA2000/robot.c **** 	//UART_Init(0,9600);
+  21:../MA2000/robot.c **** 	ADCInit(ADC_CLK);
+ 2122              		.loc 1 21 0
+ 2123 0008 3D09A0E3 		mov	r0, #999424
+ 2124 000c 090D80E2 		add	r0, r0, #576
+ 2125 0010 FEFFFFEB 		bl	ADCInit
+  22:../MA2000/robot.c **** 	PWMInit();
+ 2126              		.loc 1 22 0
+ 2127 0014 FEFFFFEB 		bl	PWMInit
+  23:../MA2000/robot.c **** 	GPIOInit();
+ 2128              		.loc 1 23 0
+ 2129 0018 FEFFFFEB 		bl	GPIOInit
+  24:../MA2000/robot.c **** }
+ 2130              		.loc 1 24 0
+ 2131 001c 04D04BE2 		sub	sp, fp, #4
+ 2132 0020 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2133 0024 1EFF2FE1 		bx	lr
+ 2134              		.cfi_endproc
+ 2135              	.LFE0:
+ 2137              		.align	2
+ 2138              		.global	control_dof1
+ 2140              	control_dof1:
+ 2141              	.LFB1:
+  25:../MA2000/robot.c **** 
+  26:../MA2000/robot.c **** //Function to control DOF1
+  27:../MA2000/robot.c **** void control_dof1(unsigned int setpoint_dof1)
+  28:../MA2000/robot.c **** {
+ 2142              		.loc 1 28 0
+ 2143              		.cfi_startproc
+ 2144              		@ Function supports interworking.
+ 2145              		@ args = 0, pretend = 0, frame = 8
+ 2146              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2147 0028 00482DE9 		stmfd	sp!, {fp, lr}
+ 2148              	.LCFI2:
+ 2149              		.cfi_def_cfa_offset 8
+ 2150 002c 04B08DE2 		add	fp, sp, #4
+ 2151              		.cfi_offset 14, -4
+ 2152              		.cfi_offset 11, -8
+ 2153              	.LCFI3:
+ 2154              		.cfi_def_cfa 11, 4
+ 2155 0030 08D04DE2 		sub	sp, sp, #8
+ 2156 0034 08000BE5 		str	r0, [fp, #-8]
+  29:../MA2000/robot.c **** 	position_dof1 = ADC0Read(1);
+ 2157              		.loc 1 29 0
+ 2158 0038 0100A0E3 		mov	r0, #1
+ 2159 003c FEFFFFEB 		bl	ADC0Read
+ 2160 0040 0020A0E1 		mov	r2, r0
+ 2161 0044 80309FE5 		ldr	r3, .L5
+ 2162 0048 002083E5 		str	r2, [r3, #0]
+  30:../MA2000/robot.c **** 	if(setpoint_dof1 > position_dof1)
+ 2163              		.loc 1 30 0
+ 2164 004c 78309FE5 		ldr	r3, .L5
+ 2165 0050 003093E5 		ldr	r3, [r3, #0]
+ 2166 0054 08201BE5 		ldr	r2, [fp, #-8]
+ 2167 0058 030052E1 		cmp	r2, r3
+ 2168 005c 0700009A 		bls	.L3
+  31:../MA2000/robot.c **** 	{
+  32:../MA2000/robot.c **** 		IOCLR0 = (1<<19);
+ 2169              		.loc 1 32 0
+ 2170 0060 CE32A0E3 		mov	r3, #-536870900
+ 2171 0064 0A3983E2 		add	r3, r3, #163840
+ 2172 0068 0227A0E3 		mov	r2, #524288
+ 2173 006c 002083E5 		str	r2, [r3, #0]
+  33:../MA2000/robot.c **** 		IOSET0 = (1<<18);
+ 2174              		.loc 1 33 0
+ 2175 0070 4E32A0E3 		mov	r3, #-536870908
+ 2176 0074 0A3983E2 		add	r3, r3, #163840
+ 2177 0078 0127A0E3 		mov	r2, #262144
+ 2178 007c 002083E5 		str	r2, [r3, #0]
+ 2179              	.L3:
+  34:../MA2000/robot.c **** 		//setDutyCycle(2,(setpoint_dof1 - position_dof1)*100/1024);
+  35:../MA2000/robot.c **** 	}
+  36:../MA2000/robot.c **** 	if(position_dof1 > setpoint_dof1)
+ 2180              		.loc 1 36 0
+ 2181 0080 44309FE5 		ldr	r3, .L5
+ 2182 0084 002093E5 		ldr	r2, [r3, #0]
+ 2183 0088 08301BE5 		ldr	r3, [fp, #-8]
+ 2184 008c 030052E1 		cmp	r2, r3
+ 2185 0090 0700009A 		bls	.L4
+  37:../MA2000/robot.c **** 	{
+  38:../MA2000/robot.c **** 		IOCLR0 = (1<<18);
+ 2186              		.loc 1 38 0
+ 2187 0094 CE32A0E3 		mov	r3, #-536870900
+ 2188 0098 0A3983E2 		add	r3, r3, #163840
+ 2189 009c 0127A0E3 		mov	r2, #262144
+ 2190 00a0 002083E5 		str	r2, [r3, #0]
+  39:../MA2000/robot.c **** 		IOSET0 = (1<<19);
+ 2191              		.loc 1 39 0
+ 2192 00a4 4E32A0E3 		mov	r3, #-536870908
+ 2193 00a8 0A3983E2 		add	r3, r3, #163840
+ 2194 00ac 0227A0E3 		mov	r2, #524288
+ 2195 00b0 002083E5 		str	r2, [r3, #0]
+ 2196              	.L4:
+  40:../MA2000/robot.c **** 		//setDutyCycle(2,(position_dof1 - setpoint_dof1)*100/1024);
+  41:../MA2000/robot.c **** 	}
+  42:../MA2000/robot.c **** 	setDutyCycle(2,85);
+ 2197              		.loc 1 42 0
+ 2198 00b4 0200A0E3 		mov	r0, #2
+ 2199 00b8 5510A0E3 		mov	r1, #85
+ 2200 00bc FEFFFFEB 		bl	setDutyCycle
+  43:../MA2000/robot.c **** 	//iprintf("Position: %d     Setpoint: %d\r\n",position_dof1, setpoint_dof1);
+  44:../MA2000/robot.c **** }
+ 2201              		.loc 1 44 0
+ 2202 00c0 04D04BE2 		sub	sp, fp, #4
+ 2203 00c4 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2204 00c8 1EFF2FE1 		bx	lr
+ 2205              	.L6:
+ 2206              		.align	2
+ 2207              	.L5:
+ 2208 00cc 00000000 		.word	position_dof1
+ 2209              		.cfi_endproc
+ 2210              	.LFE1:
+ 2212              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 robot.c
+                            *COM*:00000004 position_dof1
+C:\Users\Daniel\AppData\Local\Temp\cclDcDNj.s:2104   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\cclDcDNj.s:2107   .text:00000000 robot_setconfig
+C:\Users\Daniel\AppData\Local\Temp\cclDcDNj.s:2140   .text:00000028 control_dof1
+C:\Users\Daniel\AppData\Local\Temp\cclDcDNj.s:2208   .text:000000cc $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+ADCInit
+PWMInit
+GPIOInit
+ADC0Read
+setDutyCycle

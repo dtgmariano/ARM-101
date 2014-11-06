@@ -1,0 +1,70 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"main.c"
+  21              	.Ltext0:
+  22              		.file 1 "../main.c"
+ 1828              		.align	2
+ 1829              		.global	main
+ 1831              	main:
+ 1832              	.LFB0:
+   1:../main.c     **** /*
+   2:../main.c     ****  * pwm_module.c
+   3:../main.c     ****  *
+   4:../main.c     ****  *  Created on: 30/11/2012
+   5:../main.c     ****  *      Author: Daniel T. G. Mariano
+   6:../main.c     ****  *    Filename: main.
+   7:../main.c     ****  *     Version: 0.0
+   8:../main.c     ****  * Description: Main program for MA2000 Firmware
+   9:../main.c     ****  */
+  10:../main.c     **** 
+  11:../main.c     **** #include "LPC214x.h"
+  12:../main.c     **** #include "cpu_init.h"
+  13:../main.c     **** #include "pwm_module.h"
+  14:../main.c     **** 
+  15:../main.c     **** #define rel 500000
+  16:../main.c     **** 
+  17:../main.c     **** int main (void)
+  18:../main.c     **** {
+ 1833              		.loc 1 18 0
+ 1834              		.cfi_startproc
+ 1835              		@ Function supports interworking.
+ 1836              		@ args = 0, pretend = 0, frame = 0
+ 1837              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1838 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 1839              	.LCFI0:
+ 1840              		.cfi_def_cfa_offset 8
+ 1841 0004 04B08DE2 		add	fp, sp, #4
+ 1842              		.cfi_offset 14, -4
+ 1843              		.cfi_offset 11, -8
+ 1844              	.LCFI1:
+ 1845              		.cfi_def_cfa 11, 4
+  19:../main.c     **** 	cpu_init();
+ 1846              		.loc 1 19 0
+ 1847 0008 FEFFFFEB 		bl	cpu_init
+ 1848              	.L2:
+  20:../main.c     **** 
+  21:../main.c     **** 	while (1)
+  22:../main.c     **** 	{
+  23:../main.c     **** 
+  24:../main.c     **** 	}
+ 1849              		.loc 1 24 0 discriminator 1
+ 1850 000c FEFFFFEA 		b	.L2
+ 1851              		.cfi_endproc
+ 1852              	.LFE0:
+ 1854              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+C:\Users\Daniel\AppData\Local\Temp\ccA5HwoS.s:1828   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccA5HwoS.s:1831   .text:00000000 main
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+cpu_init

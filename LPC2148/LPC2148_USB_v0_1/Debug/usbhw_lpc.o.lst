@@ -1,0 +1,1995 @@
+   1              		.cpu arm7tdmi-s
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"usbhw_lpc.c"
+  21              	.Ltext0:
+  22              		.file 1 "../usbhw_lpc.c"
+ 1535              		.align	2
+ 1536              	_pfnDevIntHandler:
+ 1537 0000 00000000 		.space	4
+ 1538              		.align	2
+ 1539              	_apfnEPIntHandlers:
+ 1540 0004 00000000 		.space	64
+ 1540      00000000 
+ 1540      00000000 
+ 1540      00000000 
+ 1540      00000000 
+ 1541              		.align	2
+ 1542              	_pfnFrameHandler:
+ 1543 0044 00000000 		.space	4
+ 1544              		.text
+ 1545              		.align	2
+ 1547              	Wait4DevInt:
+ 1548              	.LFB0:
+   1:../usbhw_lpc.c **** /*
+   2:../usbhw_lpc.c **** 	LPCUSB, an USB device driver for LPC microcontrollers
+   3:../usbhw_lpc.c **** 	Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
+   4:../usbhw_lpc.c **** 
+   5:../usbhw_lpc.c **** 	Redistribution and use in source and binary forms, with or without
+   6:../usbhw_lpc.c **** 	modification, are permitted provided that the following conditions are met:
+   7:../usbhw_lpc.c **** 
+   8:../usbhw_lpc.c **** 	1. Redistributions of source code must retain the above copyright
+   9:../usbhw_lpc.c **** 	   notice, this list of conditions and the following disclaimer.
+  10:../usbhw_lpc.c **** 	2. Redistributions in binary form must reproduce the above copyright
+  11:../usbhw_lpc.c **** 	   notice, this list of conditions and the following disclaimer in the
+  12:../usbhw_lpc.c **** 	   documentation and/or other materials provided with the distribution.
+  13:../usbhw_lpc.c **** 	3. The name of the author may not be used to endorse or promote products
+  14:../usbhw_lpc.c **** 	   derived from this software without specific prior written permission.
+  15:../usbhw_lpc.c **** 
+  16:../usbhw_lpc.c **** 	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+  17:../usbhw_lpc.c **** 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  18:../usbhw_lpc.c **** 	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+  19:../usbhw_lpc.c **** 	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+  20:../usbhw_lpc.c **** 	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+  21:../usbhw_lpc.c **** 	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  22:../usbhw_lpc.c **** 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  23:../usbhw_lpc.c **** 	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  24:../usbhw_lpc.c **** 	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+  25:../usbhw_lpc.c **** 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  26:../usbhw_lpc.c **** */
+  27:../usbhw_lpc.c **** 
+  28:../usbhw_lpc.c **** 
+  29:../usbhw_lpc.c **** /** @file
+  30:../usbhw_lpc.c **** 	USB hardware layer
+  31:../usbhw_lpc.c ****  */
+  32:../usbhw_lpc.c **** 
+  33:../usbhw_lpc.c **** #include "type.h"
+  34:../usbhw_lpc.c **** #include "usbdebug.h"
+  35:../usbhw_lpc.c **** #include "usbhw_lpc.h"
+  36:../usbhw_lpc.c **** #include "usbapi.h"
+  37:../usbhw_lpc.c **** 
+  38:../usbhw_lpc.c **** 
+  39:../usbhw_lpc.c **** #ifdef DEBUG
+  40:../usbhw_lpc.c **** // comment out the following line if you don't want to use debug LEDs
+  41:../usbhw_lpc.c **** //#define DEBUG_LED
+  42:../usbhw_lpc.c **** #endif
+  43:../usbhw_lpc.c **** 
+  44:../usbhw_lpc.c **** #ifdef DEBUG_LED
+  45:../usbhw_lpc.c **** #define DEBUG_LED_ON(x)		IOCLR0 = (1 << x);
+  46:../usbhw_lpc.c **** #define DEBUG_LED_OFF(x)	IOSET0 = (1 << x);
+  47:../usbhw_lpc.c **** #define DEBUG_LED_INIT(x)	PINSEL0 &= ~(0x3 << (2*x)); IODIR0 |= (1 << x); DEBUG_LED_OFF(x);
+  48:../usbhw_lpc.c **** #else
+  49:../usbhw_lpc.c **** #define DEBUG_LED_INIT(x)	/**< LED initialisation macro */
+  50:../usbhw_lpc.c **** #define DEBUG_LED_ON(x)		/**< turn LED on */
+  51:../usbhw_lpc.c **** #define DEBUG_LED_OFF(x)	/**< turn LED off */
+  52:../usbhw_lpc.c **** #endif
+  53:../usbhw_lpc.c **** 
+  54:../usbhw_lpc.c **** /** Installed device interrupt handler */
+  55:../usbhw_lpc.c **** static TFnDevIntHandler *_pfnDevIntHandler = NULL;
+  56:../usbhw_lpc.c **** /** Installed endpoint interrupt handlers */
+  57:../usbhw_lpc.c **** static TFnEPIntHandler	*_apfnEPIntHandlers[16];
+  58:../usbhw_lpc.c **** /** Installed frame interrupt handlers */
+  59:../usbhw_lpc.c **** static TFnFrameHandler	*_pfnFrameHandler = NULL;
+  60:../usbhw_lpc.c **** 
+  61:../usbhw_lpc.c **** /** convert from endpoint address to endpoint index */
+  62:../usbhw_lpc.c **** #define EP2IDX(bEP)	((((bEP)&0xF)<<1)|(((bEP)&0x80)>>7))
+  63:../usbhw_lpc.c **** /** convert from endpoint index to endpoint address */
+  64:../usbhw_lpc.c **** #define IDX2EP(idx)	((((idx)<<7)&0x80)|(((idx)>>1)&0xF))
+  65:../usbhw_lpc.c **** 
+  66:../usbhw_lpc.c **** 
+  67:../usbhw_lpc.c **** 
+  68:../usbhw_lpc.c **** /**
+  69:../usbhw_lpc.c **** 	Local function to wait for a device interrupt (and clear it)
+  70:../usbhw_lpc.c **** 
+  71:../usbhw_lpc.c **** 	@param [in]	dwIntr		Bitmask of interrupts to wait for
+  72:../usbhw_lpc.c ****  */
+  73:../usbhw_lpc.c **** static void Wait4DevInt(U32 dwIntr)
+  74:../usbhw_lpc.c **** {
+ 1549              		.loc 1 74 0
+ 1550              		.cfi_startproc
+ 1551              		@ Function supports interworking.
+ 1552              		@ args = 0, pretend = 0, frame = 8
+ 1553              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1554              		@ link register save eliminated.
+ 1555 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 1556              	.LCFI0:
+ 1557              		.cfi_def_cfa_offset 4
+ 1558 0004 00B08DE2 		add	fp, sp, #0
+ 1559              		.cfi_offset 11, -4
+ 1560              	.LCFI1:
+ 1561              		.cfi_def_cfa_register 11
+ 1562 0008 0CD04DE2 		sub	sp, sp, #12
+ 1563 000c 08000BE5 		str	r0, [fp, #-8]
+  75:../usbhw_lpc.c **** 	// wait for specific interrupt
+  76:../usbhw_lpc.c **** 	while ((USBDevIntSt & dwIntr) != dwIntr);
+ 1564              		.loc 1 76 0
+ 1565 0010 0000A0E1 		mov	r0, r0	@ nop
+ 1566              	.L2:
+ 1567              		.loc 1 76 0 is_stmt 0 discriminator 1
+ 1568 0014 2C309FE5 		ldr	r3, .L3
+ 1569 0018 002093E5 		ldr	r2, [r3, #0]
+ 1570 001c 08301BE5 		ldr	r3, [fp, #-8]
+ 1571 0020 032002E0 		and	r2, r2, r3
+ 1572 0024 08301BE5 		ldr	r3, [fp, #-8]
+ 1573 0028 030052E1 		cmp	r2, r3
+ 1574 002c F8FFFF1A 		bne	.L2
+  77:../usbhw_lpc.c **** 	// clear the interrupt bits
+  78:../usbhw_lpc.c **** 	USBDevIntClr = dwIntr;
+ 1575              		.loc 1 78 0 is_stmt 1
+ 1576 0030 14309FE5 		ldr	r3, .L3+4
+ 1577 0034 08201BE5 		ldr	r2, [fp, #-8]
+ 1578 0038 002083E5 		str	r2, [r3, #0]
+  79:../usbhw_lpc.c **** }
+ 1579              		.loc 1 79 0
+ 1580 003c 00D08BE2 		add	sp, fp, #0
+ 1581 0040 04B09DE4 		ldmfd	sp!, {fp}
+ 1582 0044 1EFF2FE1 		bx	lr
+ 1583              	.L4:
+ 1584              		.align	2
+ 1585              	.L3:
+ 1586 0048 000009E0 		.word	-536281088
+ 1587 004c 080009E0 		.word	-536281080
+ 1588              		.cfi_endproc
+ 1589              	.LFE0:
+ 1591              		.align	2
+ 1593              	USBHwCmd:
+ 1594              	.LFB1:
+  80:../usbhw_lpc.c **** 
+  81:../usbhw_lpc.c **** 
+  82:../usbhw_lpc.c **** /**
+  83:../usbhw_lpc.c **** 	Local function to send a command to the USB protocol engine
+  84:../usbhw_lpc.c **** 
+  85:../usbhw_lpc.c **** 	@param [in]	bCmd		Command to send
+  86:../usbhw_lpc.c ****  */
+  87:../usbhw_lpc.c **** static void USBHwCmd(U8 bCmd)
+  88:../usbhw_lpc.c **** {
+ 1595              		.loc 1 88 0
+ 1596              		.cfi_startproc
+ 1597              		@ Function supports interworking.
+ 1598              		@ args = 0, pretend = 0, frame = 8
+ 1599              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1600 0050 00482DE9 		stmfd	sp!, {fp, lr}
+ 1601              	.LCFI2:
+ 1602              		.cfi_def_cfa_offset 8
+ 1603 0054 04B08DE2 		add	fp, sp, #4
+ 1604              		.cfi_offset 14, -4
+ 1605              		.cfi_offset 11, -8
+ 1606              	.LCFI3:
+ 1607              		.cfi_def_cfa 11, 4
+ 1608 0058 08D04DE2 		sub	sp, sp, #8
+ 1609 005c 0030A0E1 		mov	r3, r0
+ 1610 0060 05304BE5 		strb	r3, [fp, #-5]
+  89:../usbhw_lpc.c **** 	// clear CDFULL/CCEMTY
+  90:../usbhw_lpc.c **** 	USBDevIntClr = CDFULL | CCEMTY;
+ 1611              		.loc 1 90 0
+ 1612 0064 2C309FE5 		ldr	r3, .L6
+ 1613 0068 3020A0E3 		mov	r2, #48
+ 1614 006c 002083E5 		str	r2, [r3, #0]
+  91:../usbhw_lpc.c **** 	// write command code
+  92:../usbhw_lpc.c **** 	USBCmdCode = 0x00000500 | (bCmd << 16);
+ 1615              		.loc 1 92 0
+ 1616 0070 24309FE5 		ldr	r3, .L6+4
+ 1617 0074 05205BE5 		ldrb	r2, [fp, #-5]	@ zero_extendqisi2
+ 1618 0078 0228A0E1 		mov	r2, r2, asl #16
+ 1619 007c 052C82E3 		orr	r2, r2, #1280
+ 1620 0080 002083E5 		str	r2, [r3, #0]
+  93:../usbhw_lpc.c **** 	Wait4DevInt(CCEMTY);
+ 1621              		.loc 1 93 0
+ 1622 0084 1000A0E3 		mov	r0, #16
+ 1623 0088 DCFFFFEB 		bl	Wait4DevInt
+  94:../usbhw_lpc.c **** }
+ 1624              		.loc 1 94 0
+ 1625 008c 04D04BE2 		sub	sp, fp, #4
+ 1626 0090 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1627 0094 1EFF2FE1 		bx	lr
+ 1628              	.L7:
+ 1629              		.align	2
+ 1630              	.L6:
+ 1631 0098 080009E0 		.word	-536281080
+ 1632 009c 100009E0 		.word	-536281072
+ 1633              		.cfi_endproc
+ 1634              	.LFE1:
+ 1636              		.align	2
+ 1638              	USBHwCmdWrite:
+ 1639              	.LFB2:
+  95:../usbhw_lpc.c **** 
+  96:../usbhw_lpc.c **** 
+  97:../usbhw_lpc.c **** /**
+  98:../usbhw_lpc.c **** 	Local function to send a command + data to the USB protocol engine
+  99:../usbhw_lpc.c **** 
+ 100:../usbhw_lpc.c **** 	@param [in]	bCmd		Command to send
+ 101:../usbhw_lpc.c **** 	@param [in]	bData		Data to send
+ 102:../usbhw_lpc.c ****  */
+ 103:../usbhw_lpc.c **** static void USBHwCmdWrite(U8 bCmd, U16 bData)
+ 104:../usbhw_lpc.c **** {
+ 1640              		.loc 1 104 0
+ 1641              		.cfi_startproc
+ 1642              		@ Function supports interworking.
+ 1643              		@ args = 0, pretend = 0, frame = 8
+ 1644              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1645 00a0 00482DE9 		stmfd	sp!, {fp, lr}
+ 1646              	.LCFI4:
+ 1647              		.cfi_def_cfa_offset 8
+ 1648 00a4 04B08DE2 		add	fp, sp, #4
+ 1649              		.cfi_offset 14, -4
+ 1650              		.cfi_offset 11, -8
+ 1651              	.LCFI5:
+ 1652              		.cfi_def_cfa 11, 4
+ 1653 00a8 08D04DE2 		sub	sp, sp, #8
+ 1654 00ac 0020A0E1 		mov	r2, r0
+ 1655 00b0 0130A0E1 		mov	r3, r1
+ 1656 00b4 05204BE5 		strb	r2, [fp, #-5]
+ 1657 00b8 B8304BE1 		strh	r3, [fp, #-8]	@ movhi
+ 105:../usbhw_lpc.c **** 	// write command code
+ 106:../usbhw_lpc.c **** 	USBHwCmd(bCmd);
+ 1658              		.loc 1 106 0
+ 1659 00bc 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 1660 00c0 0300A0E1 		mov	r0, r3
+ 1661 00c4 E1FFFFEB 		bl	USBHwCmd
+ 107:../usbhw_lpc.c **** 
+ 108:../usbhw_lpc.c **** 	// write command data
+ 109:../usbhw_lpc.c **** 	USBCmdCode = 0x00000100 | (bData << 16);
+ 1662              		.loc 1 109 0
+ 1663 00c8 20309FE5 		ldr	r3, .L9
+ 1664 00cc B8205BE1 		ldrh	r2, [fp, #-8]
+ 1665 00d0 0228A0E1 		mov	r2, r2, asl #16
+ 1666 00d4 012C82E3 		orr	r2, r2, #256
+ 1667 00d8 002083E5 		str	r2, [r3, #0]
+ 110:../usbhw_lpc.c **** 	Wait4DevInt(CCEMTY);
+ 1668              		.loc 1 110 0
+ 1669 00dc 1000A0E3 		mov	r0, #16
+ 1670 00e0 C6FFFFEB 		bl	Wait4DevInt
+ 111:../usbhw_lpc.c **** }
+ 1671              		.loc 1 111 0
+ 1672 00e4 04D04BE2 		sub	sp, fp, #4
+ 1673 00e8 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1674 00ec 1EFF2FE1 		bx	lr
+ 1675              	.L10:
+ 1676              		.align	2
+ 1677              	.L9:
+ 1678 00f0 100009E0 		.word	-536281072
+ 1679              		.cfi_endproc
+ 1680              	.LFE2:
+ 1682              		.align	2
+ 1684              	USBHwCmdRead:
+ 1685              	.LFB3:
+ 112:../usbhw_lpc.c **** 
+ 113:../usbhw_lpc.c **** 
+ 114:../usbhw_lpc.c **** /**
+ 115:../usbhw_lpc.c **** 	Local function to send a command to the USB protocol engine and read data
+ 116:../usbhw_lpc.c **** 
+ 117:../usbhw_lpc.c **** 	@param [in]	bCmd		Command to send
+ 118:../usbhw_lpc.c **** 
+ 119:../usbhw_lpc.c **** 	@return the data
+ 120:../usbhw_lpc.c ****  */
+ 121:../usbhw_lpc.c **** static U8 USBHwCmdRead(U8 bCmd)
+ 122:../usbhw_lpc.c **** {
+ 1686              		.loc 1 122 0
+ 1687              		.cfi_startproc
+ 1688              		@ Function supports interworking.
+ 1689              		@ args = 0, pretend = 0, frame = 8
+ 1690              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1691 00f4 00482DE9 		stmfd	sp!, {fp, lr}
+ 1692              	.LCFI6:
+ 1693              		.cfi_def_cfa_offset 8
+ 1694 00f8 04B08DE2 		add	fp, sp, #4
+ 1695              		.cfi_offset 14, -4
+ 1696              		.cfi_offset 11, -8
+ 1697              	.LCFI7:
+ 1698              		.cfi_def_cfa 11, 4
+ 1699 00fc 08D04DE2 		sub	sp, sp, #8
+ 1700 0100 0030A0E1 		mov	r3, r0
+ 1701 0104 05304BE5 		strb	r3, [fp, #-5]
+ 123:../usbhw_lpc.c **** 	// write command code
+ 124:../usbhw_lpc.c **** 	USBHwCmd(bCmd);
+ 1702              		.loc 1 124 0
+ 1703 0108 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 1704 010c 0300A0E1 		mov	r0, r3
+ 1705 0110 CEFFFFEB 		bl	USBHwCmd
+ 125:../usbhw_lpc.c **** 
+ 126:../usbhw_lpc.c **** 	// get data
+ 127:../usbhw_lpc.c **** 	USBCmdCode = 0x00000200 | (bCmd << 16);
+ 1706              		.loc 1 127 0
+ 1707 0114 30309FE5 		ldr	r3, .L12
+ 1708 0118 05205BE5 		ldrb	r2, [fp, #-5]	@ zero_extendqisi2
+ 1709 011c 0228A0E1 		mov	r2, r2, asl #16
+ 1710 0120 022C82E3 		orr	r2, r2, #512
+ 1711 0124 002083E5 		str	r2, [r3, #0]
+ 128:../usbhw_lpc.c **** 	Wait4DevInt(CDFULL);
+ 1712              		.loc 1 128 0
+ 1713 0128 2000A0E3 		mov	r0, #32
+ 1714 012c B3FFFFEB 		bl	Wait4DevInt
+ 129:../usbhw_lpc.c **** 	return USBCmdData;
+ 1715              		.loc 1 129 0
+ 1716 0130 18309FE5 		ldr	r3, .L12+4
+ 1717 0134 003093E5 		ldr	r3, [r3, #0]
+ 1718 0138 FF3003E2 		and	r3, r3, #255
+ 130:../usbhw_lpc.c **** }
+ 1719              		.loc 1 130 0
+ 1720 013c 0300A0E1 		mov	r0, r3
+ 1721 0140 04D04BE2 		sub	sp, fp, #4
+ 1722 0144 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1723 0148 1EFF2FE1 		bx	lr
+ 1724              	.L13:
+ 1725              		.align	2
+ 1726              	.L12:
+ 1727 014c 100009E0 		.word	-536281072
+ 1728 0150 140009E0 		.word	-536281068
+ 1729              		.cfi_endproc
+ 1730              	.LFE3:
+ 1732              		.align	2
+ 1734              	USBHwEPRealize:
+ 1735              	.LFB4:
+ 131:../usbhw_lpc.c **** 
+ 132:../usbhw_lpc.c **** 
+ 133:../usbhw_lpc.c **** /**
+ 134:../usbhw_lpc.c **** 	'Realizes' an endpoint, meaning that buffer space is reserved for
+ 135:../usbhw_lpc.c **** 	it. An endpoint needs to be realised before it can be used.
+ 136:../usbhw_lpc.c **** 
+ 137:../usbhw_lpc.c **** 	From experiments, it appears that a USB reset causes USBReEP to
+ 138:../usbhw_lpc.c **** 	re-initialise to 3 (= just the control endpoints).
+ 139:../usbhw_lpc.c **** 	However, a USB bus reset does not disturb the USBMaxPSize settings.
+ 140:../usbhw_lpc.c **** 
+ 141:../usbhw_lpc.c **** 	@param [in]	idx			Endpoint index
+ 142:../usbhw_lpc.c **** 	@param [in] wMaxPSize	Maximum packet size for this endpoint
+ 143:../usbhw_lpc.c ****  */
+ 144:../usbhw_lpc.c **** static void USBHwEPRealize(int idx, U16 wMaxPSize)
+ 145:../usbhw_lpc.c **** {
+ 1736              		.loc 1 145 0
+ 1737              		.cfi_startproc
+ 1738              		@ Function supports interworking.
+ 1739              		@ args = 0, pretend = 0, frame = 8
+ 1740              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1741 0154 00482DE9 		stmfd	sp!, {fp, lr}
+ 1742              	.LCFI8:
+ 1743              		.cfi_def_cfa_offset 8
+ 1744 0158 04B08DE2 		add	fp, sp, #4
+ 1745              		.cfi_offset 14, -4
+ 1746              		.cfi_offset 11, -8
+ 1747              	.LCFI9:
+ 1748              		.cfi_def_cfa 11, 4
+ 1749 015c 08D04DE2 		sub	sp, sp, #8
+ 1750 0160 08000BE5 		str	r0, [fp, #-8]
+ 1751 0164 0130A0E1 		mov	r3, r1
+ 1752 0168 BA304BE1 		strh	r3, [fp, #-10]	@ movhi
+ 146:../usbhw_lpc.c **** 	USBReEP |= (1 << idx);
+ 1753              		.loc 1 146 0
+ 1754 016c 44309FE5 		ldr	r3, .L15
+ 1755 0170 40209FE5 		ldr	r2, .L15
+ 1756 0174 001092E5 		ldr	r1, [r2, #0]
+ 1757 0178 0100A0E3 		mov	r0, #1
+ 1758 017c 08201BE5 		ldr	r2, [fp, #-8]
+ 1759 0180 1022A0E1 		mov	r2, r0, asl r2
+ 1760 0184 022081E1 		orr	r2, r1, r2
+ 1761 0188 002083E5 		str	r2, [r3, #0]
+ 147:../usbhw_lpc.c **** 	USBEpInd = idx;
+ 1762              		.loc 1 147 0
+ 1763 018c 28309FE5 		ldr	r3, .L15+4
+ 1764 0190 08201BE5 		ldr	r2, [fp, #-8]
+ 1765 0194 002083E5 		str	r2, [r3, #0]
+ 148:../usbhw_lpc.c **** 	USBMaxPSize = wMaxPSize;
+ 1766              		.loc 1 148 0
+ 1767 0198 20309FE5 		ldr	r3, .L15+8
+ 1768 019c BA205BE1 		ldrh	r2, [fp, #-10]
+ 1769 01a0 002083E5 		str	r2, [r3, #0]
+ 149:../usbhw_lpc.c **** 	Wait4DevInt(EP_RLZED);
+ 1770              		.loc 1 149 0
+ 1771 01a4 010CA0E3 		mov	r0, #256
+ 1772 01a8 94FFFFEB 		bl	Wait4DevInt
+ 150:../usbhw_lpc.c **** }
+ 1773              		.loc 1 150 0
+ 1774 01ac 04D04BE2 		sub	sp, fp, #4
+ 1775 01b0 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1776 01b4 1EFF2FE1 		bx	lr
+ 1777              	.L16:
+ 1778              		.align	2
+ 1779              	.L15:
+ 1780 01b8 440009E0 		.word	-536281020
+ 1781 01bc 480009E0 		.word	-536281016
+ 1782 01c0 4C0009E0 		.word	-536281012
+ 1783              		.cfi_endproc
+ 1784              	.LFE4:
+ 1786              		.align	2
+ 1788              	USBHwEPEnable:
+ 1789              	.LFB5:
+ 151:../usbhw_lpc.c **** 
+ 152:../usbhw_lpc.c **** 
+ 153:../usbhw_lpc.c **** /**
+ 154:../usbhw_lpc.c **** 	Enables or disables an endpoint
+ 155:../usbhw_lpc.c **** 
+ 156:../usbhw_lpc.c **** 	@param [in]	idx		Endpoint index
+ 157:../usbhw_lpc.c **** 	@param [in]	fEnable	TRUE to enable, FALSE to disable
+ 158:../usbhw_lpc.c ****  */
+ 159:../usbhw_lpc.c **** static void USBHwEPEnable(int idx, BOOL fEnable)
+ 160:../usbhw_lpc.c **** {
+ 1790              		.loc 1 160 0
+ 1791              		.cfi_startproc
+ 1792              		@ Function supports interworking.
+ 1793              		@ args = 0, pretend = 0, frame = 8
+ 1794              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1795 01c4 00482DE9 		stmfd	sp!, {fp, lr}
+ 1796              	.LCFI10:
+ 1797              		.cfi_def_cfa_offset 8
+ 1798 01c8 04B08DE2 		add	fp, sp, #4
+ 1799              		.cfi_offset 14, -4
+ 1800              		.cfi_offset 11, -8
+ 1801              	.LCFI11:
+ 1802              		.cfi_def_cfa 11, 4
+ 1803 01cc 08D04DE2 		sub	sp, sp, #8
+ 1804 01d0 08000BE5 		str	r0, [fp, #-8]
+ 1805 01d4 0C100BE5 		str	r1, [fp, #-12]
+ 161:../usbhw_lpc.c **** 	USBHwCmdWrite(CMD_EP_SET_STATUS | idx, fEnable ? 0 : EP_DA);
+ 1806              		.loc 1 161 0
+ 1807 01d8 08301BE5 		ldr	r3, [fp, #-8]
+ 1808 01dc FF3003E2 		and	r3, r3, #255
+ 1809 01e0 403083E3 		orr	r3, r3, #64
+ 1810 01e4 FF3003E2 		and	r3, r3, #255
+ 1811 01e8 FF2003E2 		and	r2, r3, #255
+ 1812 01ec 0C301BE5 		ldr	r3, [fp, #-12]
+ 1813 01f0 000053E3 		cmp	r3, #0
+ 1814 01f4 0100000A 		beq	.L18
+ 1815              		.loc 1 161 0 is_stmt 0 discriminator 1
+ 1816 01f8 0030A0E3 		mov	r3, #0
+ 1817 01fc 000000EA 		b	.L19
+ 1818              	.L18:
+ 1819              		.loc 1 161 0 discriminator 2
+ 1820 0200 2030A0E3 		mov	r3, #32
+ 1821              	.L19:
+ 1822              		.loc 1 161 0 discriminator 3
+ 1823 0204 0200A0E1 		mov	r0, r2
+ 1824 0208 0310A0E1 		mov	r1, r3
+ 1825 020c A3FFFFEB 		bl	USBHwCmdWrite
+ 162:../usbhw_lpc.c **** }
+ 1826              		.loc 1 162 0 is_stmt 1 discriminator 3
+ 1827 0210 04D04BE2 		sub	sp, fp, #4
+ 1828 0214 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1829 0218 1EFF2FE1 		bx	lr
+ 1830              		.cfi_endproc
+ 1831              	.LFE5:
+ 1833              		.align	2
+ 1834              		.global	USBHwEPConfig
+ 1836              	USBHwEPConfig:
+ 1837              	.LFB6:
+ 163:../usbhw_lpc.c **** 
+ 164:../usbhw_lpc.c **** 
+ 165:../usbhw_lpc.c **** /**
+ 166:../usbhw_lpc.c **** 	Configures an endpoint and enables it
+ 167:../usbhw_lpc.c **** 
+ 168:../usbhw_lpc.c **** 	@param [in]	bEP				Endpoint number
+ 169:../usbhw_lpc.c **** 	@param [in]	wMaxPacketSize	Maximum packet size for this EP
+ 170:../usbhw_lpc.c ****  */
+ 171:../usbhw_lpc.c **** void USBHwEPConfig(U8 bEP, U16 wMaxPacketSize)
+ 172:../usbhw_lpc.c **** {
+ 1838              		.loc 1 172 0
+ 1839              		.cfi_startproc
+ 1840              		@ Function supports interworking.
+ 1841              		@ args = 0, pretend = 0, frame = 16
+ 1842              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1843 021c 00482DE9 		stmfd	sp!, {fp, lr}
+ 1844              	.LCFI12:
+ 1845              		.cfi_def_cfa_offset 8
+ 1846 0220 04B08DE2 		add	fp, sp, #4
+ 1847              		.cfi_offset 14, -4
+ 1848              		.cfi_offset 11, -8
+ 1849              	.LCFI13:
+ 1850              		.cfi_def_cfa 11, 4
+ 1851 0224 10D04DE2 		sub	sp, sp, #16
+ 1852 0228 0020A0E1 		mov	r2, r0
+ 1853 022c 0130A0E1 		mov	r3, r1
+ 1854 0230 0D204BE5 		strb	r2, [fp, #-13]
+ 1855 0234 B0314BE1 		strh	r3, [fp, #-16]	@ movhi
+ 173:../usbhw_lpc.c **** 	int idx;
+ 174:../usbhw_lpc.c **** 
+ 175:../usbhw_lpc.c **** 	idx = EP2IDX(bEP);
+ 1856              		.loc 1 175 0
+ 1857 0238 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 1858 023c 0F3003E2 		and	r3, r3, #15
+ 1859 0240 8320A0E1 		mov	r2, r3, asl #1
+ 1860 0244 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 1861 0248 A333A0E1 		mov	r3, r3, lsr #7
+ 1862 024c FF3003E2 		and	r3, r3, #255
+ 1863 0250 033082E1 		orr	r3, r2, r3
+ 1864 0254 08300BE5 		str	r3, [fp, #-8]
+ 176:../usbhw_lpc.c **** 
+ 177:../usbhw_lpc.c **** 	// realise EP
+ 178:../usbhw_lpc.c **** 	USBHwEPRealize(idx, wMaxPacketSize);
+ 1865              		.loc 1 178 0
+ 1866 0258 B0315BE1 		ldrh	r3, [fp, #-16]
+ 1867 025c 08001BE5 		ldr	r0, [fp, #-8]
+ 1868 0260 0310A0E1 		mov	r1, r3
+ 1869 0264 BAFFFFEB 		bl	USBHwEPRealize
+ 179:../usbhw_lpc.c **** 
+ 180:../usbhw_lpc.c **** 	// enable EP
+ 181:../usbhw_lpc.c **** 	USBHwEPEnable(idx, TRUE);
+ 1870              		.loc 1 181 0
+ 1871 0268 08001BE5 		ldr	r0, [fp, #-8]
+ 1872 026c 0110A0E3 		mov	r1, #1
+ 1873 0270 D3FFFFEB 		bl	USBHwEPEnable
+ 182:../usbhw_lpc.c **** }
+ 1874              		.loc 1 182 0
+ 1875 0274 04D04BE2 		sub	sp, fp, #4
+ 1876 0278 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1877 027c 1EFF2FE1 		bx	lr
+ 1878              		.cfi_endproc
+ 1879              	.LFE6:
+ 1881              		.section	.rodata
+ 1882              		.align	2
+ 1883              	.LC0:
+ 1884 0000 0A417373 		.ascii	"\012Assertion '%s' failed in %s:%s#%d!\015\012\000"
+ 1884      65727469 
+ 1884      6F6E2027 
+ 1884      25732720 
+ 1884      6661696C 
+ 1885 0026 0000     		.align	2
+ 1886              	.LC1:
+ 1887 0028 6964783C 		.ascii	"idx<32\000"
+ 1887      333200
+ 1888 002f 00       		.align	2
+ 1889              	.LC2:
+ 1890 0030 2E2E2F75 		.ascii	"../usbhw_lpc.c\000"
+ 1890      73626877 
+ 1890      5F6C7063 
+ 1890      2E6300
+ 1891 003f 00       		.align	2
+ 1892              	.LC3:
+ 1893 0040 0D0A2D44 		.ascii	"\015\012-D- Registered handler for EP 0x%x\012\000"
+ 1893      2D205265 
+ 1893      67697374 
+ 1893      65726564 
+ 1893      2068616E 
+ 1894              		.text
+ 1895              		.align	2
+ 1896              		.global	USBHwRegisterEPIntHandler
+ 1898              	USBHwRegisterEPIntHandler:
+ 1899              	.LFB7:
+ 183:../usbhw_lpc.c **** 
+ 184:../usbhw_lpc.c **** 
+ 185:../usbhw_lpc.c **** /**
+ 186:../usbhw_lpc.c **** 	Registers an endpoint event callback
+ 187:../usbhw_lpc.c **** 
+ 188:../usbhw_lpc.c **** 	@param [in]	bEP				Endpoint number
+ 189:../usbhw_lpc.c **** 	@param [in]	pfnHandler		Callback function
+ 190:../usbhw_lpc.c ****  */
+ 191:../usbhw_lpc.c **** void USBHwRegisterEPIntHandler(U8 bEP, TFnEPIntHandler *pfnHandler)
+ 192:../usbhw_lpc.c **** {
+ 1900              		.loc 1 192 0
+ 1901              		.cfi_startproc
+ 1902              		@ Function supports interworking.
+ 1903              		@ args = 0, pretend = 0, frame = 16
+ 1904              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1905 0280 00482DE9 		stmfd	sp!, {fp, lr}
+ 1906              	.LCFI14:
+ 1907              		.cfi_def_cfa_offset 8
+ 1908 0284 04B08DE2 		add	fp, sp, #4
+ 1909              		.cfi_offset 14, -4
+ 1910              		.cfi_offset 11, -8
+ 1911              	.LCFI15:
+ 1912              		.cfi_def_cfa 11, 4
+ 1913 0288 18D04DE2 		sub	sp, sp, #24
+ 1914 028c 0030A0E1 		mov	r3, r0
+ 1915 0290 14100BE5 		str	r1, [fp, #-20]
+ 1916 0294 0D304BE5 		strb	r3, [fp, #-13]
+ 193:../usbhw_lpc.c **** 	int idx;
+ 194:../usbhw_lpc.c **** 
+ 195:../usbhw_lpc.c **** 	idx = EP2IDX(bEP);
+ 1917              		.loc 1 195 0
+ 1918 0298 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 1919 029c 0F3003E2 		and	r3, r3, #15
+ 1920 02a0 8320A0E1 		mov	r2, r3, asl #1
+ 1921 02a4 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 1922 02a8 A333A0E1 		mov	r3, r3, lsr #7
+ 1923 02ac FF3003E2 		and	r3, r3, #255
+ 1924 02b0 033082E1 		orr	r3, r2, r3
+ 1925 02b4 08300BE5 		str	r3, [fp, #-8]
+ 196:../usbhw_lpc.c **** 
+ 197:../usbhw_lpc.c **** 	ASSERT(idx<32);
+ 1926              		.loc 1 197 0
+ 1927 02b8 08301BE5 		ldr	r3, [fp, #-8]
+ 1928 02bc 1F0053E3 		cmp	r3, #31
+ 1929 02c0 070000DA 		ble	.L22
+ 1930              		.loc 1 197 0 is_stmt 0 discriminator 1
+ 1931 02c4 C530A0E3 		mov	r3, #197
+ 1932 02c8 00308DE5 		str	r3, [sp, #0]
+ 1933 02cc 80009FE5 		ldr	r0, .L24
+ 1934 02d0 80109FE5 		ldr	r1, .L24+4
+ 1935 02d4 80209FE5 		ldr	r2, .L24+8
+ 1936 02d8 80309FE5 		ldr	r3, .L24+12
+ 1937 02dc FEFFFFEB 		bl	iprintf
+ 1938              	.L23:
+ 1939              		.loc 1 197 0 discriminator 2
+ 1940 02e0 FEFFFFEA 		b	.L23
+ 1941              	.L22:
+ 198:../usbhw_lpc.c **** 
+ 199:../usbhw_lpc.c **** 	/* add handler to list of EP handlers */
+ 200:../usbhw_lpc.c **** 	_apfnEPIntHandlers[idx / 2] = pfnHandler;
+ 1942              		.loc 1 200 0 is_stmt 1
+ 1943 02e4 08301BE5 		ldr	r3, [fp, #-8]
+ 1944 02e8 A32FA0E1 		mov	r2, r3, lsr #31
+ 1945 02ec 033082E0 		add	r3, r2, r3
+ 1946 02f0 C330A0E1 		mov	r3, r3, asr #1
+ 1947 02f4 0320A0E1 		mov	r2, r3
+ 1948 02f8 64309FE5 		ldr	r3, .L24+16
+ 1949 02fc 14101BE5 		ldr	r1, [fp, #-20]
+ 1950 0300 021183E7 		str	r1, [r3, r2, asl #2]
+ 201:../usbhw_lpc.c **** 
+ 202:../usbhw_lpc.c **** 	/* enable EP interrupt */
+ 203:../usbhw_lpc.c **** 	USBEpIntEn |= (1 << idx);
+ 1951              		.loc 1 203 0
+ 1952 0304 5C309FE5 		ldr	r3, .L24+20
+ 1953 0308 58209FE5 		ldr	r2, .L24+20
+ 1954 030c 001092E5 		ldr	r1, [r2, #0]
+ 1955 0310 0100A0E3 		mov	r0, #1
+ 1956 0314 08201BE5 		ldr	r2, [fp, #-8]
+ 1957 0318 1022A0E1 		mov	r2, r0, asl r2
+ 1958 031c 022081E1 		orr	r2, r1, r2
+ 1959 0320 002083E5 		str	r2, [r3, #0]
+ 204:../usbhw_lpc.c **** 	USBDevIntEn |= EP_SLOW;
+ 1960              		.loc 1 204 0
+ 1961 0324 40309FE5 		ldr	r3, .L24+24
+ 1962 0328 3C209FE5 		ldr	r2, .L24+24
+ 1963 032c 002092E5 		ldr	r2, [r2, #0]
+ 1964 0330 042082E3 		orr	r2, r2, #4
+ 1965 0334 002083E5 		str	r2, [r3, #0]
+ 205:../usbhw_lpc.c **** 
+ 206:../usbhw_lpc.c **** //	DBG("Registered handler for EP 0x%x\n", bEP);
+ 207:../usbhw_lpc.c **** 	TRACE_DEBUG("Registered handler for EP 0x%x\n", bEP);
+ 1966              		.loc 1 207 0
+ 1967 0338 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 1968 033c 2C009FE5 		ldr	r0, .L24+28
+ 1969 0340 0310A0E1 		mov	r1, r3
+ 1970 0344 FEFFFFEB 		bl	iprintf
+ 208:../usbhw_lpc.c **** }
+ 1971              		.loc 1 208 0
+ 1972 0348 04D04BE2 		sub	sp, fp, #4
+ 1973 034c 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1974 0350 1EFF2FE1 		bx	lr
+ 1975              	.L25:
+ 1976              		.align	2
+ 1977              	.L24:
+ 1978 0354 00000000 		.word	.LC0
+ 1979 0358 28000000 		.word	.LC1
+ 1980 035c 30000000 		.word	.LC2
+ 1981 0360 B8000000 		.word	__FUNCTION__.4055
+ 1982 0364 04000000 		.word	_apfnEPIntHandlers
+ 1983 0368 340009E0 		.word	-536281036
+ 1984 036c 040009E0 		.word	-536281084
+ 1985 0370 40000000 		.word	.LC3
+ 1986              		.cfi_endproc
+ 1987              	.LFE7:
+ 1989              		.section	.rodata
+ 1990 0066 0000     		.align	2
+ 1991              	.LC4:
+ 1992 0068 0D0A2D44 		.ascii	"\015\012-D- Registered handler for device status\012"
+ 1992      2D205265 
+ 1992      67697374 
+ 1992      65726564 
+ 1992      2068616E 
+ 1993 0093 00       		.ascii	"\000"
+ 1994              		.text
+ 1995              		.align	2
+ 1996              		.global	USBHwRegisterDevIntHandler
+ 1998              	USBHwRegisterDevIntHandler:
+ 1999              	.LFB8:
+ 209:../usbhw_lpc.c **** 
+ 210:../usbhw_lpc.c **** 
+ 211:../usbhw_lpc.c **** /**
+ 212:../usbhw_lpc.c **** 	Registers an device status callback
+ 213:../usbhw_lpc.c **** 
+ 214:../usbhw_lpc.c **** 	@param [in]	pfnHandler	Callback function
+ 215:../usbhw_lpc.c ****  */
+ 216:../usbhw_lpc.c **** void USBHwRegisterDevIntHandler(TFnDevIntHandler *pfnHandler)
+ 217:../usbhw_lpc.c **** {
+ 2000              		.loc 1 217 0
+ 2001              		.cfi_startproc
+ 2002              		@ Function supports interworking.
+ 2003              		@ args = 0, pretend = 0, frame = 8
+ 2004              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2005 0374 00482DE9 		stmfd	sp!, {fp, lr}
+ 2006              	.LCFI16:
+ 2007              		.cfi_def_cfa_offset 8
+ 2008 0378 04B08DE2 		add	fp, sp, #4
+ 2009              		.cfi_offset 14, -4
+ 2010              		.cfi_offset 11, -8
+ 2011              	.LCFI17:
+ 2012              		.cfi_def_cfa 11, 4
+ 2013 037c 08D04DE2 		sub	sp, sp, #8
+ 2014 0380 08000BE5 		str	r0, [fp, #-8]
+ 218:../usbhw_lpc.c **** 	_pfnDevIntHandler = pfnHandler;
+ 2015              		.loc 1 218 0
+ 2016 0384 2C309FE5 		ldr	r3, .L27
+ 2017 0388 08201BE5 		ldr	r2, [fp, #-8]
+ 2018 038c 002083E5 		str	r2, [r3, #0]
+ 219:../usbhw_lpc.c **** 
+ 220:../usbhw_lpc.c **** 	// enable device interrupt
+ 221:../usbhw_lpc.c **** 	USBDevIntEn |= DEV_STAT;
+ 2019              		.loc 1 221 0
+ 2020 0390 24309FE5 		ldr	r3, .L27+4
+ 2021 0394 20209FE5 		ldr	r2, .L27+4
+ 2022 0398 002092E5 		ldr	r2, [r2, #0]
+ 2023 039c 082082E3 		orr	r2, r2, #8
+ 2024 03a0 002083E5 		str	r2, [r3, #0]
+ 222:../usbhw_lpc.c **** 
+ 223:../usbhw_lpc.c **** //	DBG("Registered handler for device status\n");
+ 224:../usbhw_lpc.c **** 	TRACE_DEBUG("Registered handler for device status\n");
+ 2025              		.loc 1 224 0
+ 2026 03a4 14009FE5 		ldr	r0, .L27+8
+ 2027 03a8 FEFFFFEB 		bl	iprintf
+ 225:../usbhw_lpc.c **** }
+ 2028              		.loc 1 225 0
+ 2029 03ac 04D04BE2 		sub	sp, fp, #4
+ 2030 03b0 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2031 03b4 1EFF2FE1 		bx	lr
+ 2032              	.L28:
+ 2033              		.align	2
+ 2034              	.L27:
+ 2035 03b8 00000000 		.word	_pfnDevIntHandler
+ 2036 03bc 040009E0 		.word	-536281084
+ 2037 03c0 68000000 		.word	.LC4
+ 2038              		.cfi_endproc
+ 2039              	.LFE8:
+ 2041              		.section	.rodata
+ 2042              		.align	2
+ 2043              	.LC5:
+ 2044 0094 0D0A2D44 		.ascii	"\015\012-D- Registered handler for frame\012\000"
+ 2044      2D205265 
+ 2044      67697374 
+ 2044      65726564 
+ 2044      2068616E 
+ 2045              		.text
+ 2046              		.align	2
+ 2047              		.global	USBHwRegisterFrameHandler
+ 2049              	USBHwRegisterFrameHandler:
+ 2050              	.LFB9:
+ 226:../usbhw_lpc.c **** 
+ 227:../usbhw_lpc.c **** 
+ 228:../usbhw_lpc.c **** /**
+ 229:../usbhw_lpc.c **** 	Registers the frame callback
+ 230:../usbhw_lpc.c **** 
+ 231:../usbhw_lpc.c **** 	@param [in]	pfnHandler	Callback function
+ 232:../usbhw_lpc.c ****  */
+ 233:../usbhw_lpc.c **** void USBHwRegisterFrameHandler(TFnFrameHandler *pfnHandler)
+ 234:../usbhw_lpc.c **** {
+ 2051              		.loc 1 234 0
+ 2052              		.cfi_startproc
+ 2053              		@ Function supports interworking.
+ 2054              		@ args = 0, pretend = 0, frame = 8
+ 2055              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2056 03c4 00482DE9 		stmfd	sp!, {fp, lr}
+ 2057              	.LCFI18:
+ 2058              		.cfi_def_cfa_offset 8
+ 2059 03c8 04B08DE2 		add	fp, sp, #4
+ 2060              		.cfi_offset 14, -4
+ 2061              		.cfi_offset 11, -8
+ 2062              	.LCFI19:
+ 2063              		.cfi_def_cfa 11, 4
+ 2064 03cc 08D04DE2 		sub	sp, sp, #8
+ 2065 03d0 08000BE5 		str	r0, [fp, #-8]
+ 235:../usbhw_lpc.c **** 	_pfnFrameHandler = pfnHandler;
+ 2066              		.loc 1 235 0
+ 2067 03d4 2C309FE5 		ldr	r3, .L30
+ 2068 03d8 08201BE5 		ldr	r2, [fp, #-8]
+ 2069 03dc 002083E5 		str	r2, [r3, #0]
+ 236:../usbhw_lpc.c **** 
+ 237:../usbhw_lpc.c **** 	// enable device interrupt
+ 238:../usbhw_lpc.c **** 	USBDevIntEn |= FRAME;
+ 2070              		.loc 1 238 0
+ 2071 03e0 24309FE5 		ldr	r3, .L30+4
+ 2072 03e4 20209FE5 		ldr	r2, .L30+4
+ 2073 03e8 002092E5 		ldr	r2, [r2, #0]
+ 2074 03ec 012082E3 		orr	r2, r2, #1
+ 2075 03f0 002083E5 		str	r2, [r3, #0]
+ 239:../usbhw_lpc.c **** 
+ 240:../usbhw_lpc.c **** //	DBG("Registered handler for frame\n");
+ 241:../usbhw_lpc.c **** 	TRACE_DEBUG("Registered handler for frame\n");
+ 2076              		.loc 1 241 0
+ 2077 03f4 14009FE5 		ldr	r0, .L30+8
+ 2078 03f8 FEFFFFEB 		bl	iprintf
+ 242:../usbhw_lpc.c **** }
+ 2079              		.loc 1 242 0
+ 2080 03fc 04D04BE2 		sub	sp, fp, #4
+ 2081 0400 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2082 0404 1EFF2FE1 		bx	lr
+ 2083              	.L31:
+ 2084              		.align	2
+ 2085              	.L30:
+ 2086 0408 44000000 		.word	_pfnFrameHandler
+ 2087 040c 040009E0 		.word	-536281084
+ 2088 0410 94000000 		.word	.LC5
+ 2089              		.cfi_endproc
+ 2090              	.LFE9:
+ 2092              		.align	2
+ 2093              		.global	USBHwSetAddress
+ 2095              	USBHwSetAddress:
+ 2096              	.LFB10:
+ 243:../usbhw_lpc.c **** 
+ 244:../usbhw_lpc.c **** 
+ 245:../usbhw_lpc.c **** /**
+ 246:../usbhw_lpc.c **** 	Sets the USB address.
+ 247:../usbhw_lpc.c **** 
+ 248:../usbhw_lpc.c **** 	@param [in]	bAddr		Device address to set
+ 249:../usbhw_lpc.c ****  */
+ 250:../usbhw_lpc.c **** void USBHwSetAddress(U8 bAddr)
+ 251:../usbhw_lpc.c **** {
+ 2097              		.loc 1 251 0
+ 2098              		.cfi_startproc
+ 2099              		@ Function supports interworking.
+ 2100              		@ args = 0, pretend = 0, frame = 8
+ 2101              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2102 0414 00482DE9 		stmfd	sp!, {fp, lr}
+ 2103              	.LCFI20:
+ 2104              		.cfi_def_cfa_offset 8
+ 2105 0418 04B08DE2 		add	fp, sp, #4
+ 2106              		.cfi_offset 14, -4
+ 2107              		.cfi_offset 11, -8
+ 2108              	.LCFI21:
+ 2109              		.cfi_def_cfa 11, 4
+ 2110 041c 08D04DE2 		sub	sp, sp, #8
+ 2111 0420 0030A0E1 		mov	r3, r0
+ 2112 0424 05304BE5 		strb	r3, [fp, #-5]
+ 252:../usbhw_lpc.c **** 	USBHwCmdWrite(CMD_DEV_SET_ADDRESS, DEV_EN | bAddr);
+ 2113              		.loc 1 252 0
+ 2114 0428 05305BE5 		ldrb	r3, [fp, #-5]
+ 2115 042c 833CE0E1 		mvn	r3, r3, asl #25
+ 2116 0430 A33CE0E1 		mvn	r3, r3, lsr #25
+ 2117 0434 FF3003E2 		and	r3, r3, #255
+ 2118 0438 D000A0E3 		mov	r0, #208
+ 2119 043c 0310A0E1 		mov	r1, r3
+ 2120 0440 16FFFFEB 		bl	USBHwCmdWrite
+ 253:../usbhw_lpc.c **** }
+ 2121              		.loc 1 253 0
+ 2122 0444 04D04BE2 		sub	sp, fp, #4
+ 2123 0448 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2124 044c 1EFF2FE1 		bx	lr
+ 2125              		.cfi_endproc
+ 2126              	.LFE10:
+ 2128              		.align	2
+ 2129              		.global	USBHwConnect
+ 2131              	USBHwConnect:
+ 2132              	.LFB11:
+ 254:../usbhw_lpc.c **** 
+ 255:../usbhw_lpc.c **** 
+ 256:../usbhw_lpc.c **** /**
+ 257:../usbhw_lpc.c **** 	Connects or disconnects from the USB bus
+ 258:../usbhw_lpc.c **** 
+ 259:../usbhw_lpc.c **** 	@param [in]	fConnect	If TRUE, connect, otherwise disconnect
+ 260:../usbhw_lpc.c ****  */
+ 261:../usbhw_lpc.c **** void USBHwConnect(BOOL fConnect)
+ 262:../usbhw_lpc.c **** {
+ 2133              		.loc 1 262 0
+ 2134              		.cfi_startproc
+ 2135              		@ Function supports interworking.
+ 2136              		@ args = 0, pretend = 0, frame = 8
+ 2137              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2138 0450 00482DE9 		stmfd	sp!, {fp, lr}
+ 2139              	.LCFI22:
+ 2140              		.cfi_def_cfa_offset 8
+ 2141 0454 04B08DE2 		add	fp, sp, #4
+ 2142              		.cfi_offset 14, -4
+ 2143              		.cfi_offset 11, -8
+ 2144              	.LCFI23:
+ 2145              		.cfi_def_cfa 11, 4
+ 2146 0458 08D04DE2 		sub	sp, sp, #8
+ 2147 045c 08000BE5 		str	r0, [fp, #-8]
+ 263:../usbhw_lpc.c **** 	USBHwCmdWrite(CMD_DEV_STATUS, fConnect ? CON : 0);
+ 2148              		.loc 1 263 0
+ 2149 0460 08301BE5 		ldr	r3, [fp, #-8]
+ 2150 0464 000053E3 		cmp	r3, #0
+ 2151 0468 0030A003 		moveq	r3, #0
+ 2152 046c 0130A013 		movne	r3, #1
+ 2153 0470 0338A0E1 		mov	r3, r3, asl #16
+ 2154 0474 2338A0E1 		mov	r3, r3, lsr #16
+ 2155 0478 FE00A0E3 		mov	r0, #254
+ 2156 047c 0310A0E1 		mov	r1, r3
+ 2157 0480 06FFFFEB 		bl	USBHwCmdWrite
+ 264:../usbhw_lpc.c **** }
+ 2158              		.loc 1 264 0
+ 2159 0484 04D04BE2 		sub	sp, fp, #4
+ 2160 0488 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2161 048c 1EFF2FE1 		bx	lr
+ 2162              		.cfi_endproc
+ 2163              	.LFE11:
+ 2165              		.align	2
+ 2166              		.global	USBHwNakIntEnable
+ 2168              	USBHwNakIntEnable:
+ 2169              	.LFB12:
+ 265:../usbhw_lpc.c **** 
+ 266:../usbhw_lpc.c **** 
+ 267:../usbhw_lpc.c **** /**
+ 268:../usbhw_lpc.c **** 	Enables interrupt on NAK condition
+ 269:../usbhw_lpc.c **** 
+ 270:../usbhw_lpc.c **** 	For IN endpoints a NAK is generated when the host wants to read data
+ 271:../usbhw_lpc.c **** 	from the device, but none is available in the endpoint buffer.
+ 272:../usbhw_lpc.c **** 	For OUT endpoints a NAK is generated when the host wants to write data
+ 273:../usbhw_lpc.c **** 	to the device, but the endpoint buffer is still full.
+ 274:../usbhw_lpc.c **** 
+ 275:../usbhw_lpc.c **** 	The endpoint interrupt handlers can distinguish regular (ACK) interrupts
+ 276:../usbhw_lpc.c **** 	from NAK interrupt by checking the bits in their bEPStatus argument.
+ 277:../usbhw_lpc.c **** 
+ 278:../usbhw_lpc.c **** 	@param [in]	bIntBits	Bitmap indicating which NAK interrupts to enable
+ 279:../usbhw_lpc.c ****  */
+ 280:../usbhw_lpc.c **** void USBHwNakIntEnable(U8 bIntBits)
+ 281:../usbhw_lpc.c **** {
+ 2170              		.loc 1 281 0
+ 2171              		.cfi_startproc
+ 2172              		@ Function supports interworking.
+ 2173              		@ args = 0, pretend = 0, frame = 8
+ 2174              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2175 0490 00482DE9 		stmfd	sp!, {fp, lr}
+ 2176              	.LCFI24:
+ 2177              		.cfi_def_cfa_offset 8
+ 2178 0494 04B08DE2 		add	fp, sp, #4
+ 2179              		.cfi_offset 14, -4
+ 2180              		.cfi_offset 11, -8
+ 2181              	.LCFI25:
+ 2182              		.cfi_def_cfa 11, 4
+ 2183 0498 08D04DE2 		sub	sp, sp, #8
+ 2184 049c 0030A0E1 		mov	r3, r0
+ 2185 04a0 05304BE5 		strb	r3, [fp, #-5]
+ 282:../usbhw_lpc.c **** 	USBHwCmdWrite(CMD_DEV_SET_MODE, bIntBits);
+ 2186              		.loc 1 282 0
+ 2187 04a4 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 2188 04a8 0338A0E1 		mov	r3, r3, asl #16
+ 2189 04ac 2338A0E1 		mov	r3, r3, lsr #16
+ 2190 04b0 F300A0E3 		mov	r0, #243
+ 2191 04b4 0310A0E1 		mov	r1, r3
+ 2192 04b8 F8FEFFEB 		bl	USBHwCmdWrite
+ 283:../usbhw_lpc.c **** }
+ 2193              		.loc 1 283 0
+ 2194 04bc 04D04BE2 		sub	sp, fp, #4
+ 2195 04c0 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2196 04c4 1EFF2FE1 		bx	lr
+ 2197              		.cfi_endproc
+ 2198              	.LFE12:
+ 2200              		.align	2
+ 2201              		.global	USBHwEPGetStatus
+ 2203              	USBHwEPGetStatus:
+ 2204              	.LFB13:
+ 284:../usbhw_lpc.c **** 
+ 285:../usbhw_lpc.c **** 
+ 286:../usbhw_lpc.c **** /**
+ 287:../usbhw_lpc.c **** 	Gets the status from a specific endpoint.
+ 288:../usbhw_lpc.c **** 
+ 289:../usbhw_lpc.c **** 	@param [in]	bEP		Endpoint number
+ 290:../usbhw_lpc.c **** 	@return Endpoint status byte (containing EP_STATUS_xxx bits)
+ 291:../usbhw_lpc.c ****  */
+ 292:../usbhw_lpc.c **** U8	USBHwEPGetStatus(U8 bEP)
+ 293:../usbhw_lpc.c **** {
+ 2205              		.loc 1 293 0
+ 2206              		.cfi_startproc
+ 2207              		@ Function supports interworking.
+ 2208              		@ args = 0, pretend = 0, frame = 16
+ 2209              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2210 04c8 00482DE9 		stmfd	sp!, {fp, lr}
+ 2211              	.LCFI26:
+ 2212              		.cfi_def_cfa_offset 8
+ 2213 04cc 04B08DE2 		add	fp, sp, #4
+ 2214              		.cfi_offset 14, -4
+ 2215              		.cfi_offset 11, -8
+ 2216              	.LCFI27:
+ 2217              		.cfi_def_cfa 11, 4
+ 2218 04d0 10D04DE2 		sub	sp, sp, #16
+ 2219 04d4 0030A0E1 		mov	r3, r0
+ 2220 04d8 0D304BE5 		strb	r3, [fp, #-13]
+ 294:../usbhw_lpc.c **** 	int idx = EP2IDX(bEP);
+ 2221              		.loc 1 294 0
+ 2222 04dc 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2223 04e0 0F3003E2 		and	r3, r3, #15
+ 2224 04e4 8320A0E1 		mov	r2, r3, asl #1
+ 2225 04e8 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2226 04ec A333A0E1 		mov	r3, r3, lsr #7
+ 2227 04f0 FF3003E2 		and	r3, r3, #255
+ 2228 04f4 033082E1 		orr	r3, r2, r3
+ 2229 04f8 08300BE5 		str	r3, [fp, #-8]
+ 295:../usbhw_lpc.c **** 
+ 296:../usbhw_lpc.c **** 	return USBHwCmdRead(CMD_EP_SELECT | idx);
+ 2230              		.loc 1 296 0
+ 2231 04fc 08301BE5 		ldr	r3, [fp, #-8]
+ 2232 0500 FF3003E2 		and	r3, r3, #255
+ 2233 0504 0300A0E1 		mov	r0, r3
+ 2234 0508 F9FEFFEB 		bl	USBHwCmdRead
+ 2235 050c 0030A0E1 		mov	r3, r0
+ 297:../usbhw_lpc.c **** }
+ 2236              		.loc 1 297 0
+ 2237 0510 0300A0E1 		mov	r0, r3
+ 2238 0514 04D04BE2 		sub	sp, fp, #4
+ 2239 0518 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2240 051c 1EFF2FE1 		bx	lr
+ 2241              		.cfi_endproc
+ 2242              	.LFE13:
+ 2244              		.align	2
+ 2245              		.global	USBHwEPStall
+ 2247              	USBHwEPStall:
+ 2248              	.LFB14:
+ 298:../usbhw_lpc.c **** 
+ 299:../usbhw_lpc.c **** 
+ 300:../usbhw_lpc.c **** /**
+ 301:../usbhw_lpc.c **** 	Sets the stalled property of an endpoint
+ 302:../usbhw_lpc.c **** 
+ 303:../usbhw_lpc.c **** 	@param [in]	bEP		Endpoint number
+ 304:../usbhw_lpc.c **** 	@param [in]	fStall	TRUE to stall, FALSE to unstall
+ 305:../usbhw_lpc.c ****  */
+ 306:../usbhw_lpc.c **** void USBHwEPStall(U8 bEP, BOOL fStall)
+ 307:../usbhw_lpc.c **** {
+ 2249              		.loc 1 307 0
+ 2250              		.cfi_startproc
+ 2251              		@ Function supports interworking.
+ 2252              		@ args = 0, pretend = 0, frame = 16
+ 2253              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2254 0520 00482DE9 		stmfd	sp!, {fp, lr}
+ 2255              	.LCFI28:
+ 2256              		.cfi_def_cfa_offset 8
+ 2257 0524 04B08DE2 		add	fp, sp, #4
+ 2258              		.cfi_offset 14, -4
+ 2259              		.cfi_offset 11, -8
+ 2260              	.LCFI29:
+ 2261              		.cfi_def_cfa 11, 4
+ 2262 0528 10D04DE2 		sub	sp, sp, #16
+ 2263 052c 0030A0E1 		mov	r3, r0
+ 2264 0530 14100BE5 		str	r1, [fp, #-20]
+ 2265 0534 0D304BE5 		strb	r3, [fp, #-13]
+ 308:../usbhw_lpc.c **** 	int idx = EP2IDX(bEP);
+ 2266              		.loc 1 308 0
+ 2267 0538 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2268 053c 0F3003E2 		and	r3, r3, #15
+ 2269 0540 8320A0E1 		mov	r2, r3, asl #1
+ 2270 0544 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2271 0548 A333A0E1 		mov	r3, r3, lsr #7
+ 2272 054c FF3003E2 		and	r3, r3, #255
+ 2273 0550 033082E1 		orr	r3, r2, r3
+ 2274 0554 08300BE5 		str	r3, [fp, #-8]
+ 309:../usbhw_lpc.c **** 
+ 310:../usbhw_lpc.c **** 	USBHwCmdWrite(CMD_EP_SET_STATUS | idx, fStall ? EP_ST : 0);
+ 2275              		.loc 1 310 0
+ 2276 0558 08301BE5 		ldr	r3, [fp, #-8]
+ 2277 055c FF3003E2 		and	r3, r3, #255
+ 2278 0560 403083E3 		orr	r3, r3, #64
+ 2279 0564 FF3003E2 		and	r3, r3, #255
+ 2280 0568 FF2003E2 		and	r2, r3, #255
+ 2281 056c 14301BE5 		ldr	r3, [fp, #-20]
+ 2282 0570 000053E3 		cmp	r3, #0
+ 2283 0574 0030A003 		moveq	r3, #0
+ 2284 0578 0130A013 		movne	r3, #1
+ 2285 057c 0338A0E1 		mov	r3, r3, asl #16
+ 2286 0580 2338A0E1 		mov	r3, r3, lsr #16
+ 2287 0584 0200A0E1 		mov	r0, r2
+ 2288 0588 0310A0E1 		mov	r1, r3
+ 2289 058c C3FEFFEB 		bl	USBHwCmdWrite
+ 311:../usbhw_lpc.c **** }
+ 2290              		.loc 1 311 0
+ 2291 0590 04D04BE2 		sub	sp, fp, #4
+ 2292 0594 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2293 0598 1EFF2FE1 		bx	lr
+ 2294              		.cfi_endproc
+ 2295              	.LFE14:
+ 2297              		.align	2
+ 2298              		.global	USBHwEPWrite
+ 2300              	USBHwEPWrite:
+ 2301              	.LFB15:
+ 312:../usbhw_lpc.c **** 
+ 313:../usbhw_lpc.c **** 
+ 314:../usbhw_lpc.c **** /**
+ 315:../usbhw_lpc.c **** 	Writes data to an endpoint buffer
+ 316:../usbhw_lpc.c **** 
+ 317:../usbhw_lpc.c **** 	@param [in]	bEP		Endpoint number
+ 318:../usbhw_lpc.c **** 	@param [in]	pbBuf	Endpoint data
+ 319:../usbhw_lpc.c **** 	@param [in]	iLen	Number of bytes to write
+ 320:../usbhw_lpc.c **** 
+ 321:../usbhw_lpc.c **** 	@return TRUE if the data was successfully written or <0 in case of error.
+ 322:../usbhw_lpc.c **** */
+ 323:../usbhw_lpc.c **** int USBHwEPWrite(U8 bEP, U8 *pbBuf, int iLen)
+ 324:../usbhw_lpc.c **** {
+ 2302              		.loc 1 324 0
+ 2303              		.cfi_startproc
+ 2304              		@ Function supports interworking.
+ 2305              		@ args = 0, pretend = 0, frame = 24
+ 2306              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2307 059c 00482DE9 		stmfd	sp!, {fp, lr}
+ 2308              	.LCFI30:
+ 2309              		.cfi_def_cfa_offset 8
+ 2310 05a0 04B08DE2 		add	fp, sp, #4
+ 2311              		.cfi_offset 14, -4
+ 2312              		.cfi_offset 11, -8
+ 2313              	.LCFI31:
+ 2314              		.cfi_def_cfa 11, 4
+ 2315 05a4 18D04DE2 		sub	sp, sp, #24
+ 2316 05a8 0030A0E1 		mov	r3, r0
+ 2317 05ac 14100BE5 		str	r1, [fp, #-20]
+ 2318 05b0 18200BE5 		str	r2, [fp, #-24]
+ 2319 05b4 0D304BE5 		strb	r3, [fp, #-13]
+ 325:../usbhw_lpc.c **** 	int idx;
+ 326:../usbhw_lpc.c **** 
+ 327:../usbhw_lpc.c **** 	idx = EP2IDX(bEP);
+ 2320              		.loc 1 327 0
+ 2321 05b8 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2322 05bc 0F3003E2 		and	r3, r3, #15
+ 2323 05c0 8320A0E1 		mov	r2, r3, asl #1
+ 2324 05c4 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2325 05c8 A333A0E1 		mov	r3, r3, lsr #7
+ 2326 05cc FF3003E2 		and	r3, r3, #255
+ 2327 05d0 033082E1 		orr	r3, r2, r3
+ 2328 05d4 08300BE5 		str	r3, [fp, #-8]
+ 328:../usbhw_lpc.c **** 
+ 329:../usbhw_lpc.c **** 	// set write enable for specific endpoint
+ 330:../usbhw_lpc.c **** 	USBCtrl = WR_EN | ((bEP & 0xF) << 2);
+ 2329              		.loc 1 330 0
+ 2330 05d8 B8309FE5 		ldr	r3, .L40
+ 2331 05dc 0D205BE5 		ldrb	r2, [fp, #-13]	@ zero_extendqisi2
+ 2332 05e0 0F2002E2 		and	r2, r2, #15
+ 2333 05e4 0221A0E1 		mov	r2, r2, asl #2
+ 2334 05e8 022082E3 		orr	r2, r2, #2
+ 2335 05ec 002083E5 		str	r2, [r3, #0]
+ 331:../usbhw_lpc.c **** 
+ 332:../usbhw_lpc.c **** 	// set packet length
+ 333:../usbhw_lpc.c **** 	USBTxPLen = iLen;
+ 2336              		.loc 1 333 0
+ 2337 05f0 A4309FE5 		ldr	r3, .L40+4
+ 2338 05f4 18201BE5 		ldr	r2, [fp, #-24]
+ 2339 05f8 002083E5 		str	r2, [r3, #0]
+ 334:../usbhw_lpc.c **** 
+ 335:../usbhw_lpc.c **** 	// write data
+ 336:../usbhw_lpc.c **** 	while (USBCtrl & WR_EN) {
+ 2340              		.loc 1 336 0
+ 2341 05fc 150000EA 		b	.L38
+ 2342              	.L39:
+ 337:../usbhw_lpc.c **** 		USBTxData = (pbBuf[3] << 24) | (pbBuf[2] << 16) | (pbBuf[1] << 8) | pbBuf[0];
+ 2343              		.loc 1 337 0
+ 2344 0600 98309FE5 		ldr	r3, .L40+8
+ 2345 0604 14201BE5 		ldr	r2, [fp, #-20]
+ 2346 0608 032082E2 		add	r2, r2, #3
+ 2347 060c 0020D2E5 		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 2348 0610 021CA0E1 		mov	r1, r2, asl #24
+ 2349 0614 14201BE5 		ldr	r2, [fp, #-20]
+ 2350 0618 022082E2 		add	r2, r2, #2
+ 2351 061c 0020D2E5 		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 2352 0620 0228A0E1 		mov	r2, r2, asl #16
+ 2353 0624 021081E1 		orr	r1, r1, r2
+ 2354 0628 14201BE5 		ldr	r2, [fp, #-20]
+ 2355 062c 012082E2 		add	r2, r2, #1
+ 2356 0630 0020D2E5 		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 2357 0634 0224A0E1 		mov	r2, r2, asl #8
+ 2358 0638 021081E1 		orr	r1, r1, r2
+ 2359 063c 14201BE5 		ldr	r2, [fp, #-20]
+ 2360 0640 0020D2E5 		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 2361 0644 022081E1 		orr	r2, r1, r2
+ 2362 0648 002083E5 		str	r2, [r3, #0]
+ 338:../usbhw_lpc.c **** 		pbBuf += 4;
+ 2363              		.loc 1 338 0
+ 2364 064c 14301BE5 		ldr	r3, [fp, #-20]
+ 2365 0650 043083E2 		add	r3, r3, #4
+ 2366 0654 14300BE5 		str	r3, [fp, #-20]
+ 2367              	.L38:
+ 336:../usbhw_lpc.c **** 	while (USBCtrl & WR_EN) {
+ 2368              		.loc 1 336 0 discriminator 1
+ 2369 0658 38309FE5 		ldr	r3, .L40
+ 2370 065c 003093E5 		ldr	r3, [r3, #0]
+ 2371 0660 023003E2 		and	r3, r3, #2
+ 2372 0664 000053E3 		cmp	r3, #0
+ 2373 0668 E4FFFF1A 		bne	.L39
+ 339:../usbhw_lpc.c **** 	}
+ 340:../usbhw_lpc.c **** 
+ 341:../usbhw_lpc.c **** 	// select endpoint and validate buffer
+ 342:../usbhw_lpc.c **** 	USBHwCmd(CMD_EP_SELECT | idx);
+ 2374              		.loc 1 342 0
+ 2375 066c 08301BE5 		ldr	r3, [fp, #-8]
+ 2376 0670 FF3003E2 		and	r3, r3, #255
+ 2377 0674 0300A0E1 		mov	r0, r3
+ 2378 0678 74FEFFEB 		bl	USBHwCmd
+ 343:../usbhw_lpc.c **** 	USBHwCmd(CMD_EP_VALIDATE_BUFFER);
+ 2379              		.loc 1 343 0
+ 2380 067c FA00A0E3 		mov	r0, #250
+ 2381 0680 72FEFFEB 		bl	USBHwCmd
+ 344:../usbhw_lpc.c **** 
+ 345:../usbhw_lpc.c **** 	return iLen;
+ 2382              		.loc 1 345 0
+ 2383 0684 18301BE5 		ldr	r3, [fp, #-24]
+ 346:../usbhw_lpc.c **** }
+ 2384              		.loc 1 346 0
+ 2385 0688 0300A0E1 		mov	r0, r3
+ 2386 068c 04D04BE2 		sub	sp, fp, #4
+ 2387 0690 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2388 0694 1EFF2FE1 		bx	lr
+ 2389              	.L41:
+ 2390              		.align	2
+ 2391              	.L40:
+ 2392 0698 280009E0 		.word	-536281048
+ 2393 069c 240009E0 		.word	-536281052
+ 2394 06a0 1C0009E0 		.word	-536281060
+ 2395              		.cfi_endproc
+ 2396              	.LFE15:
+ 2398              		.align	2
+ 2399              		.global	USBHwEPRead
+ 2401              	USBHwEPRead:
+ 2402              	.LFB16:
+ 347:../usbhw_lpc.c **** 
+ 348:../usbhw_lpc.c **** 
+ 349:../usbhw_lpc.c **** /**
+ 350:../usbhw_lpc.c **** 	Reads data from an endpoint buffer
+ 351:../usbhw_lpc.c **** 
+ 352:../usbhw_lpc.c **** 	@param [in]	bEP		Endpoint number
+ 353:../usbhw_lpc.c **** 	@param [in]	pbBuf	Endpoint data
+ 354:../usbhw_lpc.c **** 	@param [in]	iMaxLen	Maximum number of bytes to read
+ 355:../usbhw_lpc.c **** 
+ 356:../usbhw_lpc.c **** 	@return the number of bytes available in the EP (possibly more than iMaxLen),
+ 357:../usbhw_lpc.c **** 	or <0 in case of error.
+ 358:../usbhw_lpc.c ****  */
+ 359:../usbhw_lpc.c **** int USBHwEPRead(U8 bEP, U8 *pbBuf, int iMaxLen)
+ 360:../usbhw_lpc.c **** {
+ 2403              		.loc 1 360 0
+ 2404              		.cfi_startproc
+ 2405              		@ Function supports interworking.
+ 2406              		@ args = 0, pretend = 0, frame = 32
+ 2407              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2408 06a4 00482DE9 		stmfd	sp!, {fp, lr}
+ 2409              	.LCFI32:
+ 2410              		.cfi_def_cfa_offset 8
+ 2411 06a8 04B08DE2 		add	fp, sp, #4
+ 2412              		.cfi_offset 14, -4
+ 2413              		.cfi_offset 11, -8
+ 2414              	.LCFI33:
+ 2415              		.cfi_def_cfa 11, 4
+ 2416 06ac 20D04DE2 		sub	sp, sp, #32
+ 2417 06b0 0030A0E1 		mov	r3, r0
+ 2418 06b4 1C100BE5 		str	r1, [fp, #-28]
+ 2419 06b8 20200BE5 		str	r2, [fp, #-32]
+ 2420 06bc 15304BE5 		strb	r3, [fp, #-21]
+ 361:../usbhw_lpc.c **** 	int i, idx;
+ 362:../usbhw_lpc.c **** 	U32	dwData, dwLen;
+ 363:../usbhw_lpc.c **** 
+ 364:../usbhw_lpc.c **** 	idx = EP2IDX(bEP);
+ 2421              		.loc 1 364 0
+ 2422 06c0 15305BE5 		ldrb	r3, [fp, #-21]	@ zero_extendqisi2
+ 2423 06c4 0F3003E2 		and	r3, r3, #15
+ 2424 06c8 8320A0E1 		mov	r2, r3, asl #1
+ 2425 06cc 15305BE5 		ldrb	r3, [fp, #-21]	@ zero_extendqisi2
+ 2426 06d0 A333A0E1 		mov	r3, r3, lsr #7
+ 2427 06d4 FF3003E2 		and	r3, r3, #255
+ 2428 06d8 033082E1 		orr	r3, r2, r3
+ 2429 06dc 10300BE5 		str	r3, [fp, #-16]
+ 365:../usbhw_lpc.c **** 
+ 366:../usbhw_lpc.c **** 	// set read enable bit for specific endpoint
+ 367:../usbhw_lpc.c **** 	USBCtrl = RD_EN | ((bEP & 0xF) << 2);
+ 2430              		.loc 1 367 0
+ 2431 06e0 18319FE5 		ldr	r3, .L50
+ 2432 06e4 15205BE5 		ldrb	r2, [fp, #-21]	@ zero_extendqisi2
+ 2433 06e8 0F2002E2 		and	r2, r2, #15
+ 2434 06ec 0221A0E1 		mov	r2, r2, asl #2
+ 2435 06f0 012082E3 		orr	r2, r2, #1
+ 2436 06f4 002083E5 		str	r2, [r3, #0]
+ 2437              	.L43:
+ 368:../usbhw_lpc.c **** 
+ 369:../usbhw_lpc.c **** 	// wait for PKT_RDY
+ 370:../usbhw_lpc.c **** 	do {
+ 371:../usbhw_lpc.c **** 		dwLen = USBRxPLen;
+ 2438              		.loc 1 371 0 discriminator 1
+ 2439 06f8 04319FE5 		ldr	r3, .L50+4
+ 2440 06fc 003093E5 		ldr	r3, [r3, #0]
+ 2441 0700 14300BE5 		str	r3, [fp, #-20]
+ 372:../usbhw_lpc.c **** 	} while ((dwLen & PKT_RDY) == 0);
+ 2442              		.loc 1 372 0 discriminator 1
+ 2443 0704 14301BE5 		ldr	r3, [fp, #-20]
+ 2444 0708 023B03E2 		and	r3, r3, #2048
+ 2445 070c 000053E3 		cmp	r3, #0
+ 2446 0710 F8FFFF0A 		beq	.L43
+ 373:../usbhw_lpc.c **** 
+ 374:../usbhw_lpc.c **** 	// packet valid?
+ 375:../usbhw_lpc.c **** 	if ((dwLen & DV) == 0) {
+ 2447              		.loc 1 375 0
+ 2448 0714 14301BE5 		ldr	r3, [fp, #-20]
+ 2449 0718 013B03E2 		and	r3, r3, #1024
+ 2450 071c 000053E3 		cmp	r3, #0
+ 2451 0720 0100001A 		bne	.L44
+ 376:../usbhw_lpc.c **** 		return -1;
+ 2452              		.loc 1 376 0
+ 2453 0724 0030E0E3 		mvn	r3, #0
+ 2454 0728 300000EA 		b	.L45
+ 2455              	.L44:
+ 377:../usbhw_lpc.c **** 	}
+ 378:../usbhw_lpc.c **** 
+ 379:../usbhw_lpc.c **** 	// get length
+ 380:../usbhw_lpc.c **** 	dwLen &= PKT_LNGTH_MASK;
+ 2456              		.loc 1 380 0
+ 2457 072c 14301BE5 		ldr	r3, [fp, #-20]
+ 2458 0730 033BA0E1 		mov	r3, r3, asl #22
+ 2459 0734 233BA0E1 		mov	r3, r3, lsr #22
+ 2460 0738 14300BE5 		str	r3, [fp, #-20]
+ 381:../usbhw_lpc.c **** 
+ 382:../usbhw_lpc.c **** 	// get data
+ 383:../usbhw_lpc.c **** 	dwData = 0;
+ 2461              		.loc 1 383 0
+ 2462 073c 0030A0E3 		mov	r3, #0
+ 2463 0740 0C300BE5 		str	r3, [fp, #-12]
+ 384:../usbhw_lpc.c **** 	for (i = 0; i < dwLen; i++) {
+ 2464              		.loc 1 384 0
+ 2465 0744 0030A0E3 		mov	r3, #0
+ 2466 0748 08300BE5 		str	r3, [fp, #-8]
+ 2467 074c 190000EA 		b	.L46
+ 2468              	.L49:
+ 385:../usbhw_lpc.c **** 		if ((i % 4) == 0) {
+ 2469              		.loc 1 385 0
+ 2470 0750 08301BE5 		ldr	r3, [fp, #-8]
+ 2471 0754 033003E2 		and	r3, r3, #3
+ 2472 0758 000053E3 		cmp	r3, #0
+ 2473 075c 0200001A 		bne	.L47
+ 386:../usbhw_lpc.c **** 			dwData = USBRxData;
+ 2474              		.loc 1 386 0
+ 2475 0760 A0309FE5 		ldr	r3, .L50+8
+ 2476 0764 003093E5 		ldr	r3, [r3, #0]
+ 2477 0768 0C300BE5 		str	r3, [fp, #-12]
+ 2478              	.L47:
+ 387:../usbhw_lpc.c **** 		}
+ 388:../usbhw_lpc.c **** 		if ((pbBuf != NULL) && (i < iMaxLen)) {
+ 2479              		.loc 1 388 0
+ 2480 076c 1C301BE5 		ldr	r3, [fp, #-28]
+ 2481 0770 000053E3 		cmp	r3, #0
+ 2482 0774 0900000A 		beq	.L48
+ 2483              		.loc 1 388 0 is_stmt 0 discriminator 1
+ 2484 0778 08201BE5 		ldr	r2, [fp, #-8]
+ 2485 077c 20301BE5 		ldr	r3, [fp, #-32]
+ 2486 0780 030052E1 		cmp	r2, r3
+ 2487 0784 050000AA 		bge	.L48
+ 389:../usbhw_lpc.c **** 			pbBuf[i] = dwData & 0xFF;
+ 2488              		.loc 1 389 0 is_stmt 1
+ 2489 0788 08301BE5 		ldr	r3, [fp, #-8]
+ 2490 078c 1C201BE5 		ldr	r2, [fp, #-28]
+ 2491 0790 033082E0 		add	r3, r2, r3
+ 2492 0794 0C201BE5 		ldr	r2, [fp, #-12]
+ 2493 0798 FF2002E2 		and	r2, r2, #255
+ 2494 079c 0020C3E5 		strb	r2, [r3, #0]
+ 2495              	.L48:
+ 390:../usbhw_lpc.c **** 		}
+ 391:../usbhw_lpc.c **** 		dwData >>= 8;
+ 2496              		.loc 1 391 0
+ 2497 07a0 0C301BE5 		ldr	r3, [fp, #-12]
+ 2498 07a4 2334A0E1 		mov	r3, r3, lsr #8
+ 2499 07a8 0C300BE5 		str	r3, [fp, #-12]
+ 384:../usbhw_lpc.c **** 	for (i = 0; i < dwLen; i++) {
+ 2500              		.loc 1 384 0
+ 2501 07ac 08301BE5 		ldr	r3, [fp, #-8]
+ 2502 07b0 013083E2 		add	r3, r3, #1
+ 2503 07b4 08300BE5 		str	r3, [fp, #-8]
+ 2504              	.L46:
+ 384:../usbhw_lpc.c **** 	for (i = 0; i < dwLen; i++) {
+ 2505              		.loc 1 384 0 is_stmt 0 discriminator 1
+ 2506 07b8 08201BE5 		ldr	r2, [fp, #-8]
+ 2507 07bc 14301BE5 		ldr	r3, [fp, #-20]
+ 2508 07c0 030052E1 		cmp	r2, r3
+ 2509 07c4 E1FFFF3A 		bcc	.L49
+ 392:../usbhw_lpc.c **** 	}
+ 393:../usbhw_lpc.c **** 
+ 394:../usbhw_lpc.c **** 	// make sure RD_EN is clear
+ 395:../usbhw_lpc.c **** 	USBCtrl = 0;
+ 2510              		.loc 1 395 0 is_stmt 1
+ 2511 07c8 30309FE5 		ldr	r3, .L50
+ 2512 07cc 0020A0E3 		mov	r2, #0
+ 2513 07d0 002083E5 		str	r2, [r3, #0]
+ 396:../usbhw_lpc.c **** 
+ 397:../usbhw_lpc.c **** 	// select endpoint and clear buffer
+ 398:../usbhw_lpc.c **** 	USBHwCmd(CMD_EP_SELECT | idx);
+ 2514              		.loc 1 398 0
+ 2515 07d4 10301BE5 		ldr	r3, [fp, #-16]
+ 2516 07d8 FF3003E2 		and	r3, r3, #255
+ 2517 07dc 0300A0E1 		mov	r0, r3
+ 2518 07e0 1AFEFFEB 		bl	USBHwCmd
+ 399:../usbhw_lpc.c **** 	USBHwCmd(CMD_EP_CLEAR_BUFFER);
+ 2519              		.loc 1 399 0
+ 2520 07e4 F200A0E3 		mov	r0, #242
+ 2521 07e8 18FEFFEB 		bl	USBHwCmd
+ 400:../usbhw_lpc.c **** 
+ 401:../usbhw_lpc.c **** 	return dwLen;
+ 2522              		.loc 1 401 0
+ 2523 07ec 14301BE5 		ldr	r3, [fp, #-20]
+ 2524              	.L45:
+ 402:../usbhw_lpc.c **** }
+ 2525              		.loc 1 402 0
+ 2526 07f0 0300A0E1 		mov	r0, r3
+ 2527 07f4 04D04BE2 		sub	sp, fp, #4
+ 2528 07f8 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2529 07fc 1EFF2FE1 		bx	lr
+ 2530              	.L51:
+ 2531              		.align	2
+ 2532              	.L50:
+ 2533 0800 280009E0 		.word	-536281048
+ 2534 0804 200009E0 		.word	-536281056
+ 2535 0808 180009E0 		.word	-536281064
+ 2536              		.cfi_endproc
+ 2537              	.LFE16:
+ 2539              		.align	2
+ 2540              		.global	USBHwConfigDevice
+ 2542              	USBHwConfigDevice:
+ 2543              	.LFB17:
+ 403:../usbhw_lpc.c **** 
+ 404:../usbhw_lpc.c **** 
+ 405:../usbhw_lpc.c **** /**
+ 406:../usbhw_lpc.c **** 	Sets the 'configured' state.
+ 407:../usbhw_lpc.c **** 
+ 408:../usbhw_lpc.c **** 	All registered endpoints are 'realised' and enabled, and the
+ 409:../usbhw_lpc.c **** 	'configured' bit is set in the device status register.
+ 410:../usbhw_lpc.c **** 
+ 411:../usbhw_lpc.c **** 	@param [in]	fConfigured	If TRUE, configure device, else unconfigure
+ 412:../usbhw_lpc.c ****  */
+ 413:../usbhw_lpc.c **** void USBHwConfigDevice(BOOL fConfigured)
+ 414:../usbhw_lpc.c **** {
+ 2544              		.loc 1 414 0
+ 2545              		.cfi_startproc
+ 2546              		@ Function supports interworking.
+ 2547              		@ args = 0, pretend = 0, frame = 8
+ 2548              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2549 080c 00482DE9 		stmfd	sp!, {fp, lr}
+ 2550              	.LCFI34:
+ 2551              		.cfi_def_cfa_offset 8
+ 2552 0810 04B08DE2 		add	fp, sp, #4
+ 2553              		.cfi_offset 14, -4
+ 2554              		.cfi_offset 11, -8
+ 2555              	.LCFI35:
+ 2556              		.cfi_def_cfa 11, 4
+ 2557 0814 08D04DE2 		sub	sp, sp, #8
+ 2558 0818 08000BE5 		str	r0, [fp, #-8]
+ 415:../usbhw_lpc.c **** 	// set configured bit
+ 416:../usbhw_lpc.c **** 	USBHwCmdWrite(CMD_DEV_CONFIG, fConfigured ? CONF_DEVICE : 0);
+ 2559              		.loc 1 416 0
+ 2560 081c 08301BE5 		ldr	r3, [fp, #-8]
+ 2561 0820 000053E3 		cmp	r3, #0
+ 2562 0824 0030A003 		moveq	r3, #0
+ 2563 0828 0130A013 		movne	r3, #1
+ 2564 082c 0338A0E1 		mov	r3, r3, asl #16
+ 2565 0830 2338A0E1 		mov	r3, r3, lsr #16
+ 2566 0834 D800A0E3 		mov	r0, #216
+ 2567 0838 0310A0E1 		mov	r1, r3
+ 2568 083c 17FEFFEB 		bl	USBHwCmdWrite
+ 417:../usbhw_lpc.c **** }
+ 2569              		.loc 1 417 0
+ 2570 0840 04D04BE2 		sub	sp, fp, #4
+ 2571 0844 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2572 0848 1EFF2FE1 		bx	lr
+ 2573              		.cfi_endproc
+ 2574              	.LFE17:
+ 2576              		.align	2
+ 2577              		.global	USBHwISR
+ 2579              	USBHwISR:
+ 2580              	.LFB18:
+ 418:../usbhw_lpc.c **** 
+ 419:../usbhw_lpc.c **** 
+ 420:../usbhw_lpc.c **** /**
+ 421:../usbhw_lpc.c **** 	USB interrupt handler
+ 422:../usbhw_lpc.c **** 
+ 423:../usbhw_lpc.c **** 	@todo Get all 11 bits of frame number instead of just 8
+ 424:../usbhw_lpc.c **** 
+ 425:../usbhw_lpc.c **** 	Endpoint interrupts are mapped to the slow interrupt
+ 426:../usbhw_lpc.c ****  */
+ 427:../usbhw_lpc.c **** void USBHwISR(void)
+ 428:../usbhw_lpc.c **** {
+ 2581              		.loc 1 428 0
+ 2582              		.cfi_startproc
+ 2583              		@ Function supports interworking.
+ 2584              		@ args = 0, pretend = 0, frame = 24
+ 2585              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2586 084c 00482DE9 		stmfd	sp!, {fp, lr}
+ 2587              	.LCFI36:
+ 2588              		.cfi_def_cfa_offset 8
+ 2589 0850 04B08DE2 		add	fp, sp, #4
+ 2590              		.cfi_offset 14, -4
+ 2591              		.cfi_offset 11, -8
+ 2592              	.LCFI37:
+ 2593              		.cfi_def_cfa 11, 4
+ 2594 0854 18D04DE2 		sub	sp, sp, #24
+ 429:../usbhw_lpc.c ****   U32	dwStatus;
+ 430:../usbhw_lpc.c ****   U32 dwIntBit;
+ 431:../usbhw_lpc.c ****   U8	bEPStat, bDevStat, bStat;
+ 432:../usbhw_lpc.c ****   int i;
+ 433:../usbhw_lpc.c ****   U16	wFrame;
+ 434:../usbhw_lpc.c **** 
+ 435:../usbhw_lpc.c ****   // LED9 monitors total time in interrupt routine
+ 436:../usbhw_lpc.c ****   DEBUG_LED_ON(9);
+ 437:../usbhw_lpc.c **** 
+ 438:../usbhw_lpc.c ****   // handle device interrupts
+ 439:../usbhw_lpc.c ****   dwStatus = USBDevIntSt;
+ 2595              		.loc 1 439 0
+ 2596 0858 EC319FE5 		ldr	r3, .L60
+ 2597 085c 003093E5 		ldr	r3, [r3, #0]
+ 2598 0860 0C300BE5 		str	r3, [fp, #-12]
+ 440:../usbhw_lpc.c **** 
+ 441:../usbhw_lpc.c ****   // frame interrupt
+ 442:../usbhw_lpc.c ****   if (dwStatus & FRAME)
+ 2599              		.loc 1 442 0
+ 2600 0864 0C301BE5 		ldr	r3, [fp, #-12]
+ 2601 0868 013003E2 		and	r3, r3, #1
+ 2602 086c FF3003E2 		and	r3, r3, #255
+ 2603 0870 000053E3 		cmp	r3, #0
+ 2604 0874 1000000A 		beq	.L54
+ 443:../usbhw_lpc.c ****   {
+ 444:../usbhw_lpc.c ****     // clear int
+ 445:../usbhw_lpc.c ****     USBDevIntClr = FRAME;
+ 2605              		.loc 1 445 0
+ 2606 0878 D0319FE5 		ldr	r3, .L60+4
+ 2607 087c 0120A0E3 		mov	r2, #1
+ 2608 0880 002083E5 		str	r2, [r3, #0]
+ 446:../usbhw_lpc.c ****     // call handler
+ 447:../usbhw_lpc.c ****     if (_pfnFrameHandler != NULL)
+ 2609              		.loc 1 447 0
+ 2610 0884 C8319FE5 		ldr	r3, .L60+8
+ 2611 0888 003093E5 		ldr	r3, [r3, #0]
+ 2612 088c 000053E3 		cmp	r3, #0
+ 2613 0890 0900000A 		beq	.L54
+ 448:../usbhw_lpc.c ****     {
+ 449:../usbhw_lpc.c ****       wFrame = USBHwCmdRead(CMD_DEV_READ_CUR_FRAME_NR);
+ 2614              		.loc 1 449 0
+ 2615 0894 F500A0E3 		mov	r0, #245
+ 2616 0898 15FEFFEB 		bl	USBHwCmdRead
+ 2617 089c 0030A0E1 		mov	r3, r0
+ 2618 08a0 BE304BE1 		strh	r3, [fp, #-14]	@ movhi
+ 450:../usbhw_lpc.c ****       _pfnFrameHandler(wFrame);
+ 2619              		.loc 1 450 0
+ 2620 08a4 A8319FE5 		ldr	r3, .L60+8
+ 2621 08a8 003093E5 		ldr	r3, [r3, #0]
+ 2622 08ac BE205BE1 		ldrh	r2, [fp, #-14]
+ 2623 08b0 0200A0E1 		mov	r0, r2
+ 2624 08b4 0FE0A0E1 		mov	lr, pc
+ 2625 08b8 13FF2FE1 		bx	r3
+ 2626              	.L54:
+ 451:../usbhw_lpc.c ****     }
+ 452:../usbhw_lpc.c ****   }
+ 453:../usbhw_lpc.c **** 
+ 454:../usbhw_lpc.c ****   // device status interrupt
+ 455:../usbhw_lpc.c ****   if (dwStatus & DEV_STAT)
+ 2627              		.loc 1 455 0
+ 2628 08bc 0C301BE5 		ldr	r3, [fp, #-12]
+ 2629 08c0 083003E2 		and	r3, r3, #8
+ 2630 08c4 000053E3 		cmp	r3, #0
+ 2631 08c8 1700000A 		beq	.L55
+ 456:../usbhw_lpc.c ****   {
+ 457:../usbhw_lpc.c ****     /*	Clear DEV_STAT interrupt before reading DEV_STAT register.
+ 458:../usbhw_lpc.c **** 			This prevents corrupted device status reads, see
+ 459:../usbhw_lpc.c **** 			LPC2148 User manual revision 2, 25 july 2006.
+ 460:../usbhw_lpc.c ****      */
+ 461:../usbhw_lpc.c ****     USBDevIntClr = DEV_STAT;
+ 2632              		.loc 1 461 0
+ 2633 08cc 7C319FE5 		ldr	r3, .L60+4
+ 2634 08d0 0820A0E3 		mov	r2, #8
+ 2635 08d4 002083E5 		str	r2, [r3, #0]
+ 462:../usbhw_lpc.c ****     bDevStat = USBHwCmdRead(CMD_DEV_STATUS);
+ 2636              		.loc 1 462 0
+ 2637 08d8 FE00A0E3 		mov	r0, #254
+ 2638 08dc 04FEFFEB 		bl	USBHwCmdRead
+ 2639 08e0 0030A0E1 		mov	r3, r0
+ 2640 08e4 0F304BE5 		strb	r3, [fp, #-15]
+ 463:../usbhw_lpc.c ****     if (bDevStat & (CON_CH | SUS_CH | RST))
+ 2641              		.loc 1 463 0
+ 2642 08e8 0F305BE5 		ldrb	r3, [fp, #-15]	@ zero_extendqisi2
+ 2643 08ec 1A3003E2 		and	r3, r3, #26
+ 2644 08f0 000053E3 		cmp	r3, #0
+ 2645 08f4 0C00000A 		beq	.L55
+ 464:../usbhw_lpc.c ****     {
+ 465:../usbhw_lpc.c ****       // convert device status into something HW independent
+ 466:../usbhw_lpc.c ****       bStat = ((bDevStat & CON) ? DEV_STATUS_CONNECT : 0) |
+ 2646              		.loc 1 466 0
+ 2647 08f8 0F305BE5 		ldrb	r3, [fp, #-15]
+ 2648 08fc 153003E2 		and	r3, r3, #21
+ 2649 0900 10304BE5 		strb	r3, [fp, #-16]
+ 467:../usbhw_lpc.c ****           ((bDevStat & SUS) ? DEV_STATUS_SUSPEND : 0) |
+ 468:../usbhw_lpc.c ****           ((bDevStat & RST) ? DEV_STATUS_RESET : 0);
+ 469:../usbhw_lpc.c ****       // call handler
+ 470:../usbhw_lpc.c ****       if (_pfnDevIntHandler != NULL)
+ 2650              		.loc 1 470 0
+ 2651 0904 4C319FE5 		ldr	r3, .L60+12
+ 2652 0908 003093E5 		ldr	r3, [r3, #0]
+ 2653 090c 000053E3 		cmp	r3, #0
+ 2654 0910 0500000A 		beq	.L55
+ 471:../usbhw_lpc.c ****       {
+ 472:../usbhw_lpc.c ****         DEBUG_LED_ON(8);
+ 473:../usbhw_lpc.c ****         _pfnDevIntHandler(bStat);
+ 2655              		.loc 1 473 0
+ 2656 0914 3C319FE5 		ldr	r3, .L60+12
+ 2657 0918 003093E5 		ldr	r3, [r3, #0]
+ 2658 091c 10205BE5 		ldrb	r2, [fp, #-16]	@ zero_extendqisi2
+ 2659 0920 0200A0E1 		mov	r0, r2
+ 2660 0924 0FE0A0E1 		mov	lr, pc
+ 2661 0928 13FF2FE1 		bx	r3
+ 2662              	.L55:
+ 474:../usbhw_lpc.c ****         DEBUG_LED_OFF(8);
+ 475:../usbhw_lpc.c ****       }
+ 476:../usbhw_lpc.c ****     }
+ 477:../usbhw_lpc.c ****   }
+ 478:../usbhw_lpc.c **** 
+ 479:../usbhw_lpc.c ****   // endpoint interrupt
+ 480:../usbhw_lpc.c ****   if (dwStatus & EP_SLOW)
+ 2663              		.loc 1 480 0
+ 2664 092c 0C301BE5 		ldr	r3, [fp, #-12]
+ 2665 0930 043003E2 		and	r3, r3, #4
+ 2666 0934 000053E3 		cmp	r3, #0
+ 2667 0938 4000000A 		beq	.L53
+ 481:../usbhw_lpc.c ****   {
+ 482:../usbhw_lpc.c ****     // clear EP_SLOW
+ 483:../usbhw_lpc.c ****     USBDevIntClr = EP_SLOW;
+ 2668              		.loc 1 483 0
+ 2669 093c 0C319FE5 		ldr	r3, .L60+4
+ 2670 0940 0420A0E3 		mov	r2, #4
+ 2671 0944 002083E5 		str	r2, [r3, #0]
+ 484:../usbhw_lpc.c ****     // check all endpoints
+ 485:../usbhw_lpc.c ****     for (i = 0; i < 32; i++)
+ 2672              		.loc 1 485 0
+ 2673 0948 0030A0E3 		mov	r3, #0
+ 2674 094c 08300BE5 		str	r3, [fp, #-8]
+ 2675 0950 370000EA 		b	.L57
+ 2676              	.L59:
+ 486:../usbhw_lpc.c ****     {
+ 487:../usbhw_lpc.c ****       dwIntBit = (1 << i);
+ 2677              		.loc 1 487 0
+ 2678 0954 0120A0E3 		mov	r2, #1
+ 2679 0958 08301BE5 		ldr	r3, [fp, #-8]
+ 2680 095c 1233A0E1 		mov	r3, r2, asl r3
+ 2681 0960 14300BE5 		str	r3, [fp, #-20]
+ 488:../usbhw_lpc.c ****       if (USBEpIntSt & dwIntBit)
+ 2682              		.loc 1 488 0
+ 2683 0964 F0309FE5 		ldr	r3, .L60+16
+ 2684 0968 002093E5 		ldr	r2, [r3, #0]
+ 2685 096c 14301BE5 		ldr	r3, [fp, #-20]
+ 2686 0970 033002E0 		and	r3, r2, r3
+ 2687 0974 000053E3 		cmp	r3, #0
+ 2688 0978 2A00000A 		beq	.L58
+ 489:../usbhw_lpc.c ****       {
+ 490:../usbhw_lpc.c ****         // clear int (and retrieve status)
+ 491:../usbhw_lpc.c ****         USBEpIntClr = dwIntBit;
+ 2689              		.loc 1 491 0
+ 2690 097c DC309FE5 		ldr	r3, .L60+20
+ 2691 0980 14201BE5 		ldr	r2, [fp, #-20]
+ 2692 0984 002083E5 		str	r2, [r3, #0]
+ 492:../usbhw_lpc.c ****         Wait4DevInt(CDFULL);
+ 2693              		.loc 1 492 0
+ 2694 0988 2000A0E3 		mov	r0, #32
+ 2695 098c 9BFDFFEB 		bl	Wait4DevInt
+ 493:../usbhw_lpc.c ****         bEPStat = USBCmdData;
+ 2696              		.loc 1 493 0
+ 2697 0990 CC309FE5 		ldr	r3, .L60+24
+ 2698 0994 003093E5 		ldr	r3, [r3, #0]
+ 2699 0998 15304BE5 		strb	r3, [fp, #-21]
+ 494:../usbhw_lpc.c ****         // convert EP pipe stat into something HW independent
+ 495:../usbhw_lpc.c ****         bStat = ((bEPStat & EPSTAT_FE) ? EP_STATUS_DATA : 0) |
+ 2700              		.loc 1 495 0
+ 2701 099c 15305BE5 		ldrb	r3, [fp, #-21]
+ 2702 09a0 1F3003E2 		and	r3, r3, #31
+ 2703 09a4 10304BE5 		strb	r3, [fp, #-16]
+ 496:../usbhw_lpc.c ****             ((bEPStat & EPSTAT_ST) ? EP_STATUS_STALLED : 0) |
+ 497:../usbhw_lpc.c ****             ((bEPStat & EPSTAT_STP) ? EP_STATUS_SETUP : 0) |
+ 498:../usbhw_lpc.c ****             ((bEPStat & EPSTAT_EPN) ? EP_STATUS_NACKED : 0) |
+ 499:../usbhw_lpc.c ****             ((bEPStat & EPSTAT_PO) ? EP_STATUS_ERROR : 0);
+ 500:../usbhw_lpc.c ****         // call handler
+ 501:../usbhw_lpc.c ****         if (_apfnEPIntHandlers[i / 2] != NULL)
+ 2704              		.loc 1 501 0
+ 2705 09a8 08301BE5 		ldr	r3, [fp, #-8]
+ 2706 09ac A32FA0E1 		mov	r2, r3, lsr #31
+ 2707 09b0 033082E0 		add	r3, r2, r3
+ 2708 09b4 C330A0E1 		mov	r3, r3, asr #1
+ 2709 09b8 0320A0E1 		mov	r2, r3
+ 2710 09bc A4309FE5 		ldr	r3, .L60+28
+ 2711 09c0 023193E7 		ldr	r3, [r3, r2, asl #2]
+ 2712 09c4 000053E3 		cmp	r3, #0
+ 2713 09c8 1600000A 		beq	.L58
+ 502:../usbhw_lpc.c ****         {
+ 503:../usbhw_lpc.c ****           DEBUG_LED_ON(10);
+ 504:../usbhw_lpc.c ****           _apfnEPIntHandlers[i / 2](IDX2EP(i), bStat);
+ 2714              		.loc 1 504 0
+ 2715 09cc 08301BE5 		ldr	r3, [fp, #-8]
+ 2716 09d0 A32FA0E1 		mov	r2, r3, lsr #31
+ 2717 09d4 033082E0 		add	r3, r2, r3
+ 2718 09d8 C330A0E1 		mov	r3, r3, asr #1
+ 2719 09dc 0320A0E1 		mov	r2, r3
+ 2720 09e0 80309FE5 		ldr	r3, .L60+28
+ 2721 09e4 023193E7 		ldr	r3, [r3, r2, asl #2]
+ 2722 09e8 08201BE5 		ldr	r2, [fp, #-8]
+ 2723 09ec 8223A0E1 		mov	r2, r2, asl #7
+ 2724 09f0 FF1002E2 		and	r1, r2, #255
+ 2725 09f4 08201BE5 		ldr	r2, [fp, #-8]
+ 2726 09f8 C220A0E1 		mov	r2, r2, asr #1
+ 2727 09fc FF2002E2 		and	r2, r2, #255
+ 2728 0a00 0F2002E2 		and	r2, r2, #15
+ 2729 0a04 FF2002E2 		and	r2, r2, #255
+ 2730 0a08 022081E1 		orr	r2, r1, r2
+ 2731 0a0c FF2002E2 		and	r2, r2, #255
+ 2732 0a10 FF1002E2 		and	r1, r2, #255
+ 2733 0a14 10205BE5 		ldrb	r2, [fp, #-16]	@ zero_extendqisi2
+ 2734 0a18 0100A0E1 		mov	r0, r1
+ 2735 0a1c 0210A0E1 		mov	r1, r2
+ 2736 0a20 0FE0A0E1 		mov	lr, pc
+ 2737 0a24 13FF2FE1 		bx	r3
+ 2738              	.L58:
+ 485:../usbhw_lpc.c ****     for (i = 0; i < 32; i++)
+ 2739              		.loc 1 485 0
+ 2740 0a28 08301BE5 		ldr	r3, [fp, #-8]
+ 2741 0a2c 013083E2 		add	r3, r3, #1
+ 2742 0a30 08300BE5 		str	r3, [fp, #-8]
+ 2743              	.L57:
+ 485:../usbhw_lpc.c ****     for (i = 0; i < 32; i++)
+ 2744              		.loc 1 485 0 is_stmt 0 discriminator 1
+ 2745 0a34 08301BE5 		ldr	r3, [fp, #-8]
+ 2746 0a38 1F0053E3 		cmp	r3, #31
+ 2747 0a3c C4FFFFDA 		ble	.L59
+ 2748              	.L53:
+ 505:../usbhw_lpc.c ****           DEBUG_LED_OFF(10);
+ 506:../usbhw_lpc.c ****         }
+ 507:../usbhw_lpc.c ****       }
+ 508:../usbhw_lpc.c ****     }
+ 509:../usbhw_lpc.c ****   }
+ 510:../usbhw_lpc.c **** 
+ 511:../usbhw_lpc.c ****   DEBUG_LED_OFF(9);
+ 512:../usbhw_lpc.c **** }
+ 2749              		.loc 1 512 0 is_stmt 1
+ 2750 0a40 04D04BE2 		sub	sp, fp, #4
+ 2751 0a44 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2752 0a48 1EFF2FE1 		bx	lr
+ 2753              	.L61:
+ 2754              		.align	2
+ 2755              	.L60:
+ 2756 0a4c 000009E0 		.word	-536281088
+ 2757 0a50 080009E0 		.word	-536281080
+ 2758 0a54 44000000 		.word	_pfnFrameHandler
+ 2759 0a58 00000000 		.word	_pfnDevIntHandler
+ 2760 0a5c 300009E0 		.word	-536281040
+ 2761 0a60 380009E0 		.word	-536281032
+ 2762 0a64 140009E0 		.word	-536281068
+ 2763 0a68 04000000 		.word	_apfnEPIntHandlers
+ 2764              		.cfi_endproc
+ 2765              	.LFE18:
+ 2767              		.align	2
+ 2768              		.global	USBHwInit
+ 2770              	USBHwInit:
+ 2771              	.LFB19:
+ 513:../usbhw_lpc.c **** 
+ 514:../usbhw_lpc.c **** 
+ 515:../usbhw_lpc.c **** 
+ 516:../usbhw_lpc.c **** /**
+ 517:../usbhw_lpc.c **** 	Initialises the USB hardware
+ 518:../usbhw_lpc.c **** 
+ 519:../usbhw_lpc.c **** 	This function assumes that the hardware is connected as shown in
+ 520:../usbhw_lpc.c **** 	section 10.1 of the LPC2148 data sheet:
+ 521:../usbhw_lpc.c **** 	* P0.31 controls a switch to connect a 1.5k pull-up to D+ if low.
+ 522:../usbhw_lpc.c **** 	* P0.23 is connected to USB VCC.
+ 523:../usbhw_lpc.c **** 
+ 524:../usbhw_lpc.c **** 	Embedded artists board: make sure to disconnect P0.23 LED as it
+ 525:../usbhw_lpc.c **** 	acts as a pull-up and so prevents detection of USB disconnect.
+ 526:../usbhw_lpc.c **** 
+ 527:../usbhw_lpc.c **** 	@return TRUE if the hardware was successfully initialised
+ 528:../usbhw_lpc.c ****  */
+ 529:../usbhw_lpc.c **** BOOL USBHwInit(void)
+ 530:../usbhw_lpc.c **** {
+ 2772              		.loc 1 530 0
+ 2773              		.cfi_startproc
+ 2774              		@ Function supports interworking.
+ 2775              		@ args = 0, pretend = 0, frame = 0
+ 2776              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2777 0a6c 00482DE9 		stmfd	sp!, {fp, lr}
+ 2778              	.LCFI38:
+ 2779              		.cfi_def_cfa_offset 8
+ 2780 0a70 04B08DE2 		add	fp, sp, #4
+ 2781              		.cfi_offset 14, -4
+ 2782              		.cfi_offset 11, -8
+ 2783              	.LCFI39:
+ 2784              		.cfi_def_cfa 11, 4
+ 531:../usbhw_lpc.c **** 	// configure P0.23 for Vbus sense
+ 532:../usbhw_lpc.c **** 	PINSEL1 = (PINSEL1 & ~(3 << 14)) | (1 << 14);	// P0.23
+ 2785              		.loc 1 532 0
+ 2786 0a74 0C319FE5 		ldr	r3, .L64
+ 2787 0a78 08219FE5 		ldr	r2, .L64
+ 2788 0a7c 002092E5 		ldr	r2, [r2, #0]
+ 2789 0a80 0329C2E3 		bic	r2, r2, #49152
+ 2790 0a84 012982E3 		orr	r2, r2, #16384
+ 2791 0a88 002083E5 		str	r2, [r3, #0]
+ 533:../usbhw_lpc.c **** 	// configure P0.31 for CONNECT
+ 534:../usbhw_lpc.c **** 	PINSEL1 = (PINSEL1 & ~(3 << 30)) | (2 << 30);	// P0.31
+ 2792              		.loc 1 534 0
+ 2793 0a8c F4309FE5 		ldr	r3, .L64
+ 2794 0a90 F0209FE5 		ldr	r2, .L64
+ 2795 0a94 002092E5 		ldr	r2, [r2, #0]
+ 2796 0a98 0321C2E3 		bic	r2, r2, #-1073741824
+ 2797 0a9c 022182E3 		orr	r2, r2, #-2147483648
+ 2798 0aa0 002083E5 		str	r2, [r3, #0]
+ 535:../usbhw_lpc.c **** 
+ 536:../usbhw_lpc.c **** 	// enable PUSB
+ 537:../usbhw_lpc.c **** 	PCONP |= (1 << 31);
+ 2799              		.loc 1 537 0
+ 2800 0aa4 E0309FE5 		ldr	r3, .L64+4
+ 2801 0aa8 DC209FE5 		ldr	r2, .L64+4
+ 2802 0aac 002092E5 		ldr	r2, [r2, #0]
+ 2803 0ab0 022182E3 		orr	r2, r2, #-2147483648
+ 2804 0ab4 002083E5 		str	r2, [r3, #0]
+ 538:../usbhw_lpc.c **** 
+ 539:../usbhw_lpc.c **** 	// initialise PLL
+ 540:../usbhw_lpc.c **** 	PLL1CON = 1;			// enable PLL
+ 2805              		.loc 1 540 0
+ 2806 0ab8 D0309FE5 		ldr	r3, .L64+8
+ 2807 0abc 0120A0E3 		mov	r2, #1
+ 2808 0ac0 002083E5 		str	r2, [r3, #0]
+ 541:../usbhw_lpc.c **** 	PLL1CFG = (1 << 5) | 3; // P = 2, M = 4
+ 2809              		.loc 1 541 0
+ 2810 0ac4 C8309FE5 		ldr	r3, .L64+12
+ 2811 0ac8 2320A0E3 		mov	r2, #35
+ 2812 0acc 002083E5 		str	r2, [r3, #0]
+ 542:../usbhw_lpc.c **** 	PLL1FEED = 0xAA;
+ 2813              		.loc 1 542 0
+ 2814 0ad0 C0309FE5 		ldr	r3, .L64+16
+ 2815 0ad4 AA20A0E3 		mov	r2, #170
+ 2816 0ad8 002083E5 		str	r2, [r3, #0]
+ 543:../usbhw_lpc.c **** 	PLL1FEED = 0x55;
+ 2817              		.loc 1 543 0
+ 2818 0adc B4309FE5 		ldr	r3, .L64+16
+ 2819 0ae0 5520A0E3 		mov	r2, #85
+ 2820 0ae4 002083E5 		str	r2, [r3, #0]
+ 544:../usbhw_lpc.c **** 	while ((PLL1STAT & (1 << 10)) == 0);
+ 2821              		.loc 1 544 0
+ 2822 0ae8 0000A0E1 		mov	r0, r0	@ nop
+ 2823              	.L63:
+ 2824              		.loc 1 544 0 is_stmt 0 discriminator 1
+ 2825 0aec A8309FE5 		ldr	r3, .L64+20
+ 2826 0af0 003093E5 		ldr	r3, [r3, #0]
+ 2827 0af4 013B03E2 		and	r3, r3, #1024
+ 2828 0af8 000053E3 		cmp	r3, #0
+ 2829 0afc FAFFFF0A 		beq	.L63
+ 545:../usbhw_lpc.c **** 
+ 546:../usbhw_lpc.c **** 	PLL1CON = 3;			// enable and connect
+ 2830              		.loc 1 546 0 is_stmt 1
+ 2831 0b00 88309FE5 		ldr	r3, .L64+8
+ 2832 0b04 0320A0E3 		mov	r2, #3
+ 2833 0b08 002083E5 		str	r2, [r3, #0]
+ 547:../usbhw_lpc.c **** 	PLL1FEED = 0xAA;
+ 2834              		.loc 1 547 0
+ 2835 0b0c 84309FE5 		ldr	r3, .L64+16
+ 2836 0b10 AA20A0E3 		mov	r2, #170
+ 2837 0b14 002083E5 		str	r2, [r3, #0]
+ 548:../usbhw_lpc.c **** 	PLL1FEED = 0x55;
+ 2838              		.loc 1 548 0
+ 2839 0b18 78309FE5 		ldr	r3, .L64+16
+ 2840 0b1c 5520A0E3 		mov	r2, #85
+ 2841 0b20 002083E5 		str	r2, [r3, #0]
+ 549:../usbhw_lpc.c **** 
+ 550:../usbhw_lpc.c **** 	// disable/clear all interrupts for now
+ 551:../usbhw_lpc.c **** 	USBDevIntEn = 0;
+ 2842              		.loc 1 551 0
+ 2843 0b24 74309FE5 		ldr	r3, .L64+24
+ 2844 0b28 0020A0E3 		mov	r2, #0
+ 2845 0b2c 002083E5 		str	r2, [r3, #0]
+ 552:../usbhw_lpc.c **** 	USBDevIntClr = 0xFFFFFFFF;
+ 2846              		.loc 1 552 0
+ 2847 0b30 6C309FE5 		ldr	r3, .L64+28
+ 2848 0b34 0020E0E3 		mvn	r2, #0
+ 2849 0b38 002083E5 		str	r2, [r3, #0]
+ 553:../usbhw_lpc.c **** 	USBDevIntPri = 0;
+ 2850              		.loc 1 553 0
+ 2851 0b3c 64309FE5 		ldr	r3, .L64+32
+ 2852 0b40 0020A0E3 		mov	r2, #0
+ 2853 0b44 002083E5 		str	r2, [r3, #0]
+ 554:../usbhw_lpc.c **** 
+ 555:../usbhw_lpc.c **** 	USBEpIntEn = 0;
+ 2854              		.loc 1 555 0
+ 2855 0b48 5C309FE5 		ldr	r3, .L64+36
+ 2856 0b4c 0020A0E3 		mov	r2, #0
+ 2857 0b50 002083E5 		str	r2, [r3, #0]
+ 556:../usbhw_lpc.c **** 	USBEpIntClr = 0xFFFFFFFF;
+ 2858              		.loc 1 556 0
+ 2859 0b54 54309FE5 		ldr	r3, .L64+40
+ 2860 0b58 0020E0E3 		mvn	r2, #0
+ 2861 0b5c 002083E5 		str	r2, [r3, #0]
+ 557:../usbhw_lpc.c **** 	USBEpIntPri = 0;
+ 2862              		.loc 1 557 0
+ 2863 0b60 4C309FE5 		ldr	r3, .L64+44
+ 2864 0b64 0020A0E3 		mov	r2, #0
+ 2865 0b68 002083E5 		str	r2, [r3, #0]
+ 558:../usbhw_lpc.c **** 
+ 559:../usbhw_lpc.c **** 	// by default, only ACKs generate interrupts
+ 560:../usbhw_lpc.c **** 	USBHwNakIntEnable(0);
+ 2866              		.loc 1 560 0
+ 2867 0b6c 0000A0E3 		mov	r0, #0
+ 2868 0b70 FEFFFFEB 		bl	USBHwNakIntEnable
+ 561:../usbhw_lpc.c **** 
+ 562:../usbhw_lpc.c **** 	// init debug leds
+ 563:../usbhw_lpc.c **** 	DEBUG_LED_INIT(8);
+ 564:../usbhw_lpc.c **** 	DEBUG_LED_INIT(9);
+ 565:../usbhw_lpc.c **** 	DEBUG_LED_INIT(10);
+ 566:../usbhw_lpc.c **** 
+ 567:../usbhw_lpc.c **** 	return TRUE;
+ 2869              		.loc 1 567 0
+ 2870 0b74 0130A0E3 		mov	r3, #1
+ 568:../usbhw_lpc.c **** }
+ 2871              		.loc 1 568 0
+ 2872 0b78 0300A0E1 		mov	r0, r3
+ 2873 0b7c 04D04BE2 		sub	sp, fp, #4
+ 2874 0b80 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2875 0b84 1EFF2FE1 		bx	lr
+ 2876              	.L65:
+ 2877              		.align	2
+ 2878              	.L64:
+ 2879 0b88 04C002E0 		.word	-536690684
+ 2880 0b8c C4C01FE0 		.word	-534789948
+ 2881 0b90 A0C01FE0 		.word	-534789984
+ 2882 0b94 A4C01FE0 		.word	-534789980
+ 2883 0b98 ACC01FE0 		.word	-534789972
+ 2884 0b9c A8C01FE0 		.word	-534789976
+ 2885 0ba0 040009E0 		.word	-536281084
+ 2886 0ba4 080009E0 		.word	-536281080
+ 2887 0ba8 2C0009E0 		.word	-536281044
+ 2888 0bac 340009E0 		.word	-536281036
+ 2889 0bb0 380009E0 		.word	-536281032
+ 2890 0bb4 400009E0 		.word	-536281024
+ 2891              		.cfi_endproc
+ 2892              	.LFE19:
+ 2894              		.section	.rodata
+ 2895              		.align	2
+ 2898              	__FUNCTION__.4055:
+ 2899 00b8 55534248 		.ascii	"USBHwRegisterEPIntHandler\000"
+ 2899      77526567 
+ 2899      69737465 
+ 2899      72455049 
+ 2899      6E744861 
+ 2900 00d2 0000     		.text
+ 2901              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 usbhw_lpc.c
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1535   .bss:00000000 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1536   .bss:00000000 _pfnDevIntHandler
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1539   .bss:00000004 _apfnEPIntHandlers
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1542   .bss:00000044 _pfnFrameHandler
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1545   .text:00000000 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1547   .text:00000000 Wait4DevInt
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1586   .text:00000048 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1591   .text:00000050 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1593   .text:00000050 USBHwCmd
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1631   .text:00000098 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1636   .text:000000a0 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1638   .text:000000a0 USBHwCmdWrite
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1678   .text:000000f0 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1682   .text:000000f4 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1684   .text:000000f4 USBHwCmdRead
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1727   .text:0000014c $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1732   .text:00000154 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1734   .text:00000154 USBHwEPRealize
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1780   .text:000001b8 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1786   .text:000001c4 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1788   .text:000001c4 USBHwEPEnable
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1836   .text:0000021c USBHwEPConfig
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1882   .rodata:00000000 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1898   .text:00000280 USBHwRegisterEPIntHandler
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1978   .text:00000354 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2898   .rodata:000000b8 __FUNCTION__.4055
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1995   .text:00000374 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:1998   .text:00000374 USBHwRegisterDevIntHandler
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2035   .text:000003b8 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2046   .text:000003c4 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2049   .text:000003c4 USBHwRegisterFrameHandler
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2086   .text:00000408 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2092   .text:00000414 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2095   .text:00000414 USBHwSetAddress
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2131   .text:00000450 USBHwConnect
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2168   .text:00000490 USBHwNakIntEnable
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2203   .text:000004c8 USBHwEPGetStatus
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2247   .text:00000520 USBHwEPStall
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2300   .text:0000059c USBHwEPWrite
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2392   .text:00000698 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2398   .text:000006a4 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2401   .text:000006a4 USBHwEPRead
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2533   .text:00000800 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2539   .text:0000080c $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2542   .text:0000080c USBHwConfigDevice
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2579   .text:0000084c USBHwISR
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2756   .text:00000a4c $d
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2767   .text:00000a6c $a
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2770   .text:00000a6c USBHwInit
+C:\Users\FELIPE\AppData\Local\Temp\ccWriUg0.s:2879   .text:00000b88 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+iprintf

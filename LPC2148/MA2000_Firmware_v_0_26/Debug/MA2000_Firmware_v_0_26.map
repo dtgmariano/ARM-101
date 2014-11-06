@@ -1,0 +1,540 @@
+Archive member included because of file (symbol)
+
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+                              ./Modules/adc.o (__aeabi_uidiv)
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+                              ./Modules/uart.o (__aeabi_idiv)
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+                              c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+
+Allocating common symbols
+Common symbol       size              file
+
+mptrfunc            0x4               ./Modules/timer.o
+DOF3_SETPOINT       0x4               ./main.o
+DOF3_ADC            0x4               ./main.o
+DOF2_SETPOINT       0x4               ./main.o
+DOF1_ADC            0x4               ./main.o
+DOF1_SETPOINT       0x4               ./main.o
+DOF1_ERROR          0x4               ./main.o
+DOF3_ERROR          0x4               ./main.o
+ADC0Value           0x20              ./Modules/adc.o
+ADC1Value           0x20              ./Modules/adc.o
+DOF2_ADC            0x4               ./main.o
+DOF2_ERROR          0x4               ./main.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+ROM              0x00000000         0x00080000         xr
+RAM              0x40000000         0x00010000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD ./cpu_init.o
+LOAD ./low_level_init.o
+LOAD ./main.o
+LOAD ./startup.o
+LOAD ./Modules/adc.o
+LOAD ./Modules/gpio.o
+LOAD ./Modules/iprintf.o
+LOAD ./Modules/iread.o
+LOAD ./Modules/pwm.o
+LOAD ./Modules/timer.o
+LOAD ./Modules/uart.o
+START GROUP
+LOAD c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a
+LOAD c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libg.a
+LOAD c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libc.a
+END GROUP
+                0x00000200                C_STACK_SIZE = 0x200
+                0x00000200                IRQ_STACK_SIZE = 0x200
+                0x00000000                FIQ_STACK_SIZE = 0x0
+                0x00000000                SVC_STACK_SIZE = 0x0
+                0x00000000                ABT_STACK_SIZE = 0x0
+                0x00000000                UND_STACK_SIZE = 0x0
+
+.reset          0x00000000      0x190
+ *startup.o(.text)
+ .text          0x00000000      0x190 ./startup.o
+                0x00000000                _start
+                0x00000118                ExitFunction
+                0x00000128                UndefHandler
+                0x0000012c                SWIHandler
+                0x00000130                PAbortHandler
+                0x00000138                IRQHandler
+                0x0000013c                FIQHandler
+                0x00000190                . = ALIGN (0x4)
+
+.ramvect        0x40000000       0x40
+                0x40000000                __ram_start = .
+                0x40000040                . = 0x40
+ *fill*         0x40000000       0x40 00
+
+.fastcode       0x40000040        0x0 load address 0x00000190
+                0x00000190                __fastcode_load = LOADADDR (.fastcode)
+                0x40000040                __fastcode_start = .
+ *(.glue_7t)
+ .glue_7t       0x00000000        0x0 linker stubs
+ *(.glue_7)
+ .glue_7        0x00000000        0x0 linker stubs
+ *isr.o(.text.*)
+ *(.text.fastcode)
+ *(.text.Blinky_dispatch)
+                0x40000040                . = ALIGN (0x4)
+                0x40000040                __fastcode_end = .
+
+.text           0x00000190     0x1c88
+ CREATE_OBJECT_SYMBOLS
+ *(.text .text.* .gnu.linkonce.t.*)
+ .text          0x00000190      0x100 ./cpu_init.o
+                0x00000190                cpu_init
+                0x00000254                feed
+ .text          0x00000290      0x228 ./low_level_init.o
+                0x00000290                low_level_init
+                0x0000041c                DAbortHandler
+ .text          0x000004b8      0x120 ./main.o
+                0x000004b8                main
+ .text          0x000005d8      0x394 ./Modules/adc.o
+                0x000005d8                ADC_Init
+                0x00000774                ADC0Read
+                0x00000870                ADC1Read
+ .text          0x0000096c      0x164 ./Modules/gpio.o
+                0x0000096c                GPIOInit
+ .text          0x00000ad0      0x720 ./Modules/iprintf.o
+                0x00001168                iprintf
+                0x000011a8                isprintf
+ .text          0x000011f0        0x0 ./Modules/iread.o
+ .text          0x000011f0      0x578 ./Modules/pwm.o
+                0x000011f0                PWM_Init
+                0x0000138c                setDutyCycle
+                0x00001618                setDOF1_PWM
+                0x00001720                setDOF1_DutyCycle
+ .text          0x00001768      0x180 ./Modules/timer.o
+                0x00001768                T0isr
+                0x000017cc                Timer_Init
+                0x0000187c                Timer_RegisterCallback
+                0x000018a8                Timer_Enable
+ .text          0x000018e8      0x2c8 ./Modules/uart.o
+                0x000018e8                vUART_ISR_Wrapper
+                0x000018f8                UART_Init
+                0x00001a20                UART_SendBuffer
+                0x00001ab8                UART_putc
+                0x00001b08                UART_ReceiveBuffer
+ .text          0x00001bb0      0x114 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+                0x00001bb0                __aeabi_uidiv
+                0x00001bb0                __udivsi3
+                0x00001ca4                __aeabi_uidivmod
+ .text          0x00001cc4      0x148 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+                0x00001cc4                __divsi3
+                0x00001cc4                __aeabi_idiv
+                0x00001dec                __aeabi_idivmod
+ .text          0x00001e0c        0x4 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+                0x00001e0c                __aeabi_idiv0
+                0x00001e0c                __aeabi_ldiv0
+ *(.plt)
+ *(.gnu.warning)
+ *(.glue_7t)
+ *(.glue_7)
+                0x00001e10                . = ALIGN (0x4)
+ *crtbegin.o(.ctors)
+ *(EXCLUDE_FILE(*crtend.o) .ctors)
+ *(SORT(.ctors.*))
+ *crtend.o(.ctors)
+ *crtbegin.o(.dtors)
+ *(EXCLUDE_FILE(*crtend.o) .dtors)
+ *(SORT(.dtors.*))
+ *crtend.o(.dtors)
+ *(.rodata .rodata.* .gnu.linkonce.r.*)
+ .rodata        0x00001e10        0x8 ./Modules/iprintf.o
+ *(.ARM.extab* .gnu.linkonce.armextab.*)
+ *(.gcc_except_table)
+ *(.eh_frame_hdr)
+ *(.eh_frame)
+ *(.init)
+ *(.fini)
+                0x00001e18                PROVIDE (__preinit_array_start, .)
+ *(.preinit_array)
+                0x00001e18                PROVIDE (__preinit_array_end, .)
+                0x00001e18                PROVIDE (__init_array_start, .)
+ *(SORT(.init_array.*))
+ *(.init_array)
+                0x00001e18                PROVIDE (__init_array_end, .)
+                0x00001e18                PROVIDE (__fini_array_start, .)
+ *(.fini_array)
+ *(SORT(.fini_array.*))
+                0x00001e18                PROVIDE (__fini_array_end, .)
+
+.vfp11_veneer   0x00001e18        0x0
+ .vfp11_veneer  0x00000000        0x0 linker stubs
+
+.v4_bx          0x00001e18        0x0
+ .v4_bx         0x00000000        0x0 linker stubs
+
+.ARM.exidx      0x00001e18        0x0
+                0x00001e18                __exidx_start = .
+ *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+                0x00001e18                __exidx_end = .
+                0x00001e18                _etext = .
+
+.data           0x40000040        0x0 load address 0x00001e18
+                0x00001e18                __data_load = LOADADDR (.data)
+                0x40000040                __data_start = .
+ *(.jcr)
+ *(.got.plt)
+ *(.got)
+ *(.shdata)
+ *(.data .data.* .gnu.linkonce.d.*)
+ .data          0x40000040        0x0 ./cpu_init.o
+ .data          0x40000040        0x0 ./low_level_init.o
+ .data          0x40000040        0x0 ./main.o
+ .data          0x40000040        0x0 ./startup.o
+ .data          0x40000040        0x0 ./Modules/adc.o
+ .data          0x40000040        0x0 ./Modules/gpio.o
+ .data          0x40000040        0x0 ./Modules/iprintf.o
+ .data          0x40000040        0x0 ./Modules/iread.o
+ .data          0x40000040        0x0 ./Modules/pwm.o
+ .data          0x40000040        0x0 ./Modules/timer.o
+ .data          0x40000040        0x0 ./Modules/uart.o
+ .data          0x40000040        0x0 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+ .data          0x40000040        0x0 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+ .data          0x40000040        0x0 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+                0x40000040                . = ALIGN (0x4)
+                0x40000040                _edata = .
+
+.bss            0x40000040       0x70 load address 0x00001e18
+                0x40000040                __bss_start__ = .
+ *(.shbss)
+ *(.bss .bss.* .gnu.linkonce.b.*)
+ .bss           0x40000040        0x0 ./cpu_init.o
+ .bss           0x40000040        0x0 ./low_level_init.o
+ .bss           0x40000040        0x0 ./main.o
+ .bss           0x40000040        0x0 ./startup.o
+ .bss           0x40000040        0x8 ./Modules/adc.o
+                0x40000040                ADC0IntDone
+                0x40000044                ADC1IntDone
+ .bss           0x40000048        0x0 ./Modules/gpio.o
+ .bss           0x40000048        0x0 ./Modules/iprintf.o
+ .bss           0x40000048        0x0 ./Modules/iread.o
+ .bss           0x40000048        0x0 ./Modules/pwm.o
+ .bss           0x40000048        0x0 ./Modules/timer.o
+ .bss           0x40000048        0x0 ./Modules/uart.o
+ .bss           0x40000048        0x0 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+ .bss           0x40000048        0x0 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+ .bss           0x40000048        0x0 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+ *(COMMON)
+ COMMON         0x40000048       0x24 ./main.o
+                0x40000048                DOF3_SETPOINT
+                0x4000004c                DOF3_ADC
+                0x40000050                DOF2_SETPOINT
+                0x40000054                DOF1_ADC
+                0x40000058                DOF1_SETPOINT
+                0x4000005c                DOF1_ERROR
+                0x40000060                DOF3_ERROR
+                0x40000064                DOF2_ADC
+                0x40000068                DOF2_ERROR
+ COMMON         0x4000006c       0x40 ./Modules/adc.o
+                0x4000006c                ADC0Value
+                0x4000008c                ADC1Value
+ COMMON         0x400000ac        0x4 ./Modules/timer.o
+                0x400000ac                mptrfunc
+                0x400000b0                . = ALIGN (0x8)
+                0x400000b0                __bss_end__ = .
+
+.stack          0x400000b0      0x400 load address 0x00001e18
+                0x400000b0                __stack_start__ = .
+                0x400002b0                . = (. + IRQ_STACK_SIZE)
+ *fill*         0x400000b0      0x200 00
+                0x400002b0                . = ALIGN (0x4)
+                0x400002b0                __irq_stack_top__ = .
+                0x400002b0                . = (. + FIQ_STACK_SIZE)
+                0x400002b0                . = ALIGN (0x4)
+                0x400002b0                __fiq_stack_top__ = .
+                0x400002b0                . = (. + SVC_STACK_SIZE)
+                0x400002b0                . = ALIGN (0x4)
+                0x400002b0                __svc_stack_top__ = .
+                0x400002b0                . = (. + ABT_STACK_SIZE)
+                0x400002b0                . = ALIGN (0x4)
+                0x400002b0                __abt_stack_top__ = .
+                0x400002b0                . = (. + UND_STACK_SIZE)
+                0x400002b0                . = ALIGN (0x4)
+                0x400002b0                __und_stack_top__ = .
+                0x400004b0                . = (. + C_STACK_SIZE)
+ *fill*         0x400002b0      0x200 00
+                0x400004b0                . = ALIGN (0x4)
+                0x400004b0                __c_stack_top__ = .
+                0x400004b0                __stack_end__ = .
+                0x400004b0                _end = .
+                0x400004b0                __end = .
+                0x400004b0                PROVIDE (end, .)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.comment        0x00000000       0x11
+ .comment       0x00000000       0x11 ./cpu_init.o
+                                 0x12 (size before relaxing)
+ .comment       0x00000000       0x12 ./low_level_init.o
+ .comment       0x00000000       0x12 ./main.o
+ .comment       0x00000000       0x12 ./Modules/adc.o
+ .comment       0x00000000       0x12 ./Modules/gpio.o
+ .comment       0x00000000       0x12 ./Modules/iprintf.o
+ .comment       0x00000000       0x12 ./Modules/iread.o
+ .comment       0x00000000       0x12 ./Modules/pwm.o
+ .comment       0x00000000       0x12 ./Modules/timer.o
+ .comment       0x00000000       0x12 ./Modules/uart.o
+
+.debug_aranges  0x00000000      0x1a0
+ *(.debug_aranges)
+ .debug_aranges
+                0x00000000       0x20 ./cpu_init.o
+ .debug_aranges
+                0x00000020       0x20 ./low_level_init.o
+ .debug_aranges
+                0x00000040       0x20 ./main.o
+ .debug_aranges
+                0x00000060       0x20 ./startup.o
+ .debug_aranges
+                0x00000080       0x20 ./Modules/adc.o
+ .debug_aranges
+                0x000000a0       0x20 ./Modules/gpio.o
+ .debug_aranges
+                0x000000c0       0x20 ./Modules/iprintf.o
+ .debug_aranges
+                0x000000e0       0x20 ./Modules/pwm.o
+ .debug_aranges
+                0x00000100       0x20 ./Modules/timer.o
+ .debug_aranges
+                0x00000120       0x20 ./Modules/uart.o
+ .debug_aranges
+                0x00000140       0x20 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+ .debug_aranges
+                0x00000160       0x20 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+ .debug_aranges
+                0x00000180       0x20 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+
+.debug_pubnames
+                0x00000000      0x2ec
+ *(.debug_pubnames)
+ .debug_pubnames
+                0x00000000       0x28 ./cpu_init.o
+ .debug_pubnames
+                0x00000028       0x37 ./low_level_init.o
+ .debug_pubnames
+                0x0000005f       0xa5 ./main.o
+ .debug_pubnames
+                0x00000104       0x75 ./Modules/adc.o
+ .debug_pubnames
+                0x00000179       0x1f ./Modules/gpio.o
+ .debug_pubnames
+                0x00000198       0x2b ./Modules/iprintf.o
+ .debug_pubnames
+                0x000001c3       0x56 ./Modules/pwm.o
+ .debug_pubnames
+                0x00000219       0x64 ./Modules/timer.o
+ .debug_pubnames
+                0x0000027d       0x6f ./Modules/uart.o
+
+.debug_info     0x00000000      0xe1d
+ *(.debug_info .gnu.linkonce.wi.*)
+ .debug_info    0x00000000       0x54 ./cpu_init.o
+ .debug_info    0x00000054       0xed ./low_level_init.o
+ .debug_info    0x00000141      0x180 ./main.o
+ .debug_info    0x000002c1       0x7d ./startup.o
+ .debug_info    0x0000033e      0x1a9 ./Modules/adc.o
+ .debug_info    0x000004e7       0x3e ./Modules/gpio.o
+ .debug_info    0x00000525      0x380 ./Modules/iprintf.o
+ .debug_info    0x000008a5       0x29 ./Modules/iread.o
+ .debug_info    0x000008ce       0xc7 ./Modules/pwm.o
+ .debug_info    0x00000995      0x104 ./Modules/timer.o
+ .debug_info    0x00000a99      0x1b6 ./Modules/uart.o
+ .debug_info    0x00000c4f       0x9a c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+ .debug_info    0x00000ce9       0x9a c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+ .debug_info    0x00000d83       0x9a c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+
+.debug_abbrev   0x00000000      0x548
+ *(.debug_abbrev)
+ .debug_abbrev  0x00000000       0x2b ./cpu_init.o
+ .debug_abbrev  0x0000002b       0x8c ./low_level_init.o
+ .debug_abbrev  0x000000b7       0x65 ./main.o
+ .debug_abbrev  0x0000011c       0x14 ./startup.o
+ .debug_abbrev  0x00000130       0x9a ./Modules/adc.o
+ .debug_abbrev  0x000001ca       0x29 ./Modules/gpio.o
+ .debug_abbrev  0x000001f3      0x12d ./Modules/iprintf.o
+ .debug_abbrev  0x00000320       0x16 ./Modules/iread.o
+ .debug_abbrev  0x00000336       0x6f ./Modules/pwm.o
+ .debug_abbrev  0x000003a5       0xac ./Modules/timer.o
+ .debug_abbrev  0x00000451       0xbb ./Modules/uart.o
+ .debug_abbrev  0x0000050c       0x14 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+ .debug_abbrev  0x00000520       0x14 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+ .debug_abbrev  0x00000534       0x14 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+
+.debug_line     0x00000000     0x1050
+ *(.debug_line)
+ .debug_line    0x00000000       0x79 ./cpu_init.o
+ .debug_line    0x00000079      0x116 ./low_level_init.o
+ .debug_line    0x0000018f      0x2e1 ./main.o
+ .debug_line    0x00000470       0x8f ./startup.o
+ .debug_line    0x000004ff      0x169 ./Modules/adc.o
+ .debug_line    0x00000668       0xa9 ./Modules/gpio.o
+ .debug_line    0x00000711      0x258 ./Modules/iprintf.o
+ .debug_line    0x00000969       0x33 ./Modules/iread.o
+ .debug_line    0x0000099c       0xfe ./Modules/pwm.o
+ .debug_line    0x00000a9a      0x2bd ./Modules/timer.o
+ .debug_line    0x00000d57      0x15d ./Modules/uart.o
+ .debug_line    0x00000eb4       0x93 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+ .debug_line    0x00000f47       0x9f c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+ .debug_line    0x00000fe6       0x6a c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+
+.debug_frame    0x00000000      0x454
+ *(.debug_frame)
+ .debug_frame   0x00000000       0x4c ./cpu_init.o
+ .debug_frame   0x0000004c       0x48 ./low_level_init.o
+ .debug_frame   0x00000094       0x30 ./main.o
+ .debug_frame   0x000000c4       0x68 ./Modules/adc.o
+ .debug_frame   0x0000012c       0x2c ./Modules/gpio.o
+ .debug_frame   0x00000158      0x10c ./Modules/iprintf.o
+ .debug_frame   0x00000264       0x88 ./Modules/pwm.o
+ .debug_frame   0x000002ec       0x94 ./Modules/timer.o
+ .debug_frame   0x00000380       0x94 ./Modules/uart.o
+ .debug_frame   0x00000414       0x20 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+ .debug_frame   0x00000434       0x20 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+
+.debug_str      0x00000000      0x419
+ *(.debug_str)
+ .debug_str     0x00000000       0x70 ./cpu_init.o
+ .debug_str     0x00000070       0xb5 ./low_level_init.o
+                                0x13d (size before relaxing)
+ .debug_str     0x00000125       0x75 ./main.o
+                                0x152 (size before relaxing)
+ .debug_str     0x0000019a       0x7b ./Modules/adc.o
+                                0x164 (size before relaxing)
+ .debug_str     0x00000215       0x1b ./Modules/gpio.o
+                                 0x6f (size before relaxing)
+ .debug_str     0x00000230       0x95 ./Modules/iprintf.o
+                                0x17a (size before relaxing)
+ .debug_str     0x000002c5       0x13 ./Modules/iread.o
+                                 0x67 (size before relaxing)
+ .debug_str     0x000002d8       0x6f ./Modules/pwm.o
+                                 0xd0 (size before relaxing)
+ .debug_str     0x00000347       0x51 ./Modules/timer.o
+                                0x136 (size before relaxing)
+ .debug_str     0x00000398       0x81 ./Modules/uart.o
+                                0x175 (size before relaxing)
+
+.debug_loc      0x00000000      0x4bc
+ *(.debug_loc)
+ .debug_loc     0x00000000       0x58 ./cpu_init.o
+ .debug_loc     0x00000058       0x58 ./low_level_init.o
+ .debug_loc     0x000000b0       0x2c ./main.o
+ .debug_loc     0x000000dc       0x84 ./Modules/adc.o
+ .debug_loc     0x00000160       0x2c ./Modules/gpio.o
+ .debug_loc     0x0000018c      0x120 ./Modules/iprintf.o
+ .debug_loc     0x000002ac       0xb0 ./Modules/pwm.o
+ .debug_loc     0x0000035c       0xb0 ./Modules/timer.o
+ .debug_loc     0x0000040c       0xb0 ./Modules/uart.o
+
+.debug_macinfo  0x00000000    0x38b90
+ *(.debug_macinfo)
+ .debug_macinfo
+                0x00000000     0x5e49 ./cpu_init.o
+ .debug_macinfo
+                0x00005e49     0x65e8 ./low_level_init.o
+ .debug_macinfo
+                0x0000c431     0x836c ./main.o
+ .debug_macinfo
+                0x0001479d     0x66b5 ./Modules/adc.o
+ .debug_macinfo
+                0x0001ae52     0x5cdd ./Modules/gpio.o
+ .debug_macinfo
+                0x00020b2f     0x1ffa ./Modules/iprintf.o
+ .debug_macinfo
+                0x00022b29     0x1571 ./Modules/iread.o
+ .debug_macinfo
+                0x0002409a     0x5d12 ./Modules/pwm.o
+ .debug_macinfo
+                0x00029dac     0x8773 ./Modules/timer.o
+ .debug_macinfo
+                0x0003251f     0x6671 ./Modules/uart.o
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.note.gnu.arm.ident
+ *(.note.gnu.arm.ident)
+
+.ARM.attributes
+                0x00000000       0x2e
+ *(.ARM.attributes)
+ .ARM.attributes
+                0x00000000       0x30 ./cpu_init.o
+ .ARM.attributes
+                0x00000030       0x30 ./low_level_init.o
+ .ARM.attributes
+                0x00000060       0x30 ./main.o
+ .ARM.attributes
+                0x00000090       0x20 ./startup.o
+ .ARM.attributes
+                0x000000b0       0x30 ./Modules/adc.o
+ .ARM.attributes
+                0x000000e0       0x30 ./Modules/gpio.o
+ .ARM.attributes
+                0x00000110       0x30 ./Modules/iprintf.o
+ .ARM.attributes
+                0x00000140       0x30 ./Modules/iread.o
+ .ARM.attributes
+                0x00000170       0x30 ./Modules/pwm.o
+ .ARM.attributes
+                0x000001a0       0x30 ./Modules/timer.o
+ .ARM.attributes
+                0x000001d0       0x30 ./Modules/uart.o
+ .ARM.attributes
+                0x00000200       0x18 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x00000218       0x18 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_divsi3.o)
+ .ARM.attributes
+                0x00000230       0x16 c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1\libgcc.a(_dvmd_tls.o)
+
+/DISCARD/
+ *(.note.GNU-stack)
+OUTPUT(MA2000_Firmware_v_0_26.elf elf32-littlearm)
+
+.debug_pubtypes
+                0x00000000       0xe4
+ .debug_pubtypes
+                0x00000000       0x2b ./low_level_init.o
+ .debug_pubtypes
+                0x0000002b       0x12 ./main.o
+ .debug_pubtypes
+                0x0000003d       0x2b ./Modules/adc.o
+ .debug_pubtypes
+                0x00000068       0x3f ./Modules/iprintf.o
+ .debug_pubtypes
+                0x000000a7       0x12 ./Modules/timer.o
+ .debug_pubtypes
+                0x000000b9       0x2b ./Modules/uart.o

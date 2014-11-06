@@ -1,0 +1,35 @@
+
+**** Build of configuration Debug for project MA2000_Firmware_v_0_23 ****
+
+make all 
+Building file: ../main.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\Dropbox\ARM\PROGRAMAS\LPC2148\MA2000_Firmware_v_0_23" -O0 -Wall -Wa,-adhlns="main.o.lst" -c -fmessage-length=0 -MMD -MP -MF"main.d" -MT"main.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"main.o" "../main.c"
+../main.c: In function 'main':
+../main.c:26:3: warning: implicit declaration of function 'setDutyCycle2'
+Finished building: ../main.c
+ 
+Building file: ../Modules/pwm.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\Dropbox\ARM\PROGRAMAS\LPC2148\MA2000_Firmware_v_0_23" -O0 -Wall -Wa,-adhlns="Modules/pwm.o.lst" -c -fmessage-length=0 -MMD -MP -MF"Modules/pwm.d" -MT"Modules/pwm.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"Modules/pwm.o" "../Modules/pwm.c"
+Finished building: ../Modules/pwm.c
+ 
+Building target: MA2000_Firmware_v_0_23.elf
+Invoking: ARM Yagarto Windows GCC C Linker
+arm-none-eabi-gcc -T"../lpc2148_rom.ld" -nostartfiles -Wl,-Map,MA2000_Firmware_v_0_23.map -mcpu=arm7tdmi -g3 -gdwarf-2 -o"MA2000_Firmware_v_0_23.elf"  ./cpu_init.o ./low_level_init.o ./main.o ./startup.o  ./Modules/adc.o ./Modules/functions.o ./Modules/pwm.o   
+Finished building target: MA2000_Firmware_v_0_23.elf
+ 
+Invoking: ARM Yagarto Windows GNU Create Flash Image
+arm-none-eabi-objcopy -O ihex MA2000_Firmware_v_0_23.elf "MA2000_Firmware_v_0_23.hex"
+Finished building: MA2000_Firmware_v_0_23.hex
+ 
+Invoking: ARM Yagarto Windows GNU Create Listing
+arm-none-eabi-objdump -h -S -C MA2000_Firmware_v_0_23.elf >"MA2000_Firmware_v_0_23.lst"
+Finished building: MA2000_Firmware_v_0_23.lst
+ 
+Invoking: ARM Yagarto Windows GNU Print Size
+arm-none-eabi-size  --format=berkeley -x MA2000_Firmware_v_0_23.elf
+   text	   data	    bss	    dec	    hex	filename
+  0xef0	    0x0	  0x290	   4480	   1180	MA2000_Firmware_v_0_23.elf
+Finished building: MA2000_Firmware_v_0_23.siz
+ 

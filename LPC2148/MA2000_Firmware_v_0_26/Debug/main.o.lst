@@ -1,0 +1,250 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"main.c"
+  21              	.Ltext0:
+  22              		.file 1 "../main.c"
+ 2731              		.align	2
+ 2732              		.global	main
+ 2734              	main:
+ 2735              	.LFB0:
+   1:../main.c     **** #include <string.h>
+   2:../main.c     **** #include "LPC214x.h"
+   3:../main.c     **** #include "cpu_init.h"
+   4:../main.c     **** #include "Modules/adc.h"
+   5:../main.c     **** #include "Modules/pwm.h"
+   6:../main.c     **** #include "Modules/gpio.h"
+   7:../main.c     **** #include "Modules/uart.h"
+   8:../main.c     **** #include "Modules/iprintf.h"
+   9:../main.c     **** #include "Modules/timer.h"
+  10:../main.c     **** 
+  11:../main.c     **** unsigned int DOF1_SETPOINT, DOF2_SETPOINT, DOF3_SETPOINT;
+  12:../main.c     **** unsigned int DOF1_ADC, DOF2_ADC, DOF3_ADC;
+  13:../main.c     **** unsigned int DOF1_ERROR, DOF2_ERROR, DOF3_ERROR;
+  14:../main.c     **** 
+  15:../main.c     **** int main (void)
+  16:../main.c     **** {
+ 2736              		.loc 1 16 0
+ 2737              		.cfi_startproc
+ 2738              		@ Function supports interworking.
+ 2739              		@ args = 0, pretend = 0, frame = 0
+ 2740              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2741 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 2742              	.LCFI0:
+ 2743              		.cfi_def_cfa_offset 8
+ 2744 0004 04B08DE2 		add	fp, sp, #4
+ 2745              		.cfi_offset 14, -4
+ 2746              		.cfi_offset 11, -8
+ 2747              	.LCFI1:
+ 2748              		.cfi_def_cfa 11, 4
+  17:../main.c     **** 	cpu_init();
+ 2749              		.loc 1 17 0
+ 2750 0008 FEFFFFEB 		bl	cpu_init
+  18:../main.c     **** 	PWM_Init();
+ 2751              		.loc 1 18 0
+ 2752 000c FEFFFFEB 		bl	PWM_Init
+  19:../main.c     **** 	ADC_Init(ADC_CLK);
+ 2753              		.loc 1 19 0
+ 2754 0010 3D09A0E3 		mov	r0, #999424
+ 2755 0014 090D80E2 		add	r0, r0, #576
+ 2756 0018 FEFFFFEB 		bl	ADC_Init
+  20:../main.c     **** 	GPIOInit();
+ 2757              		.loc 1 20 0
+ 2758 001c FEFFFFEB 		bl	GPIOInit
+  21:../main.c     **** 
+  22:../main.c     **** 	DOF1_SETPOINT = 800;
+ 2759              		.loc 1 22 0
+ 2760 0020 E0309FE5 		ldr	r3, .L3
+ 2761 0024 322EA0E3 		mov	r2, #800
+ 2762 0028 002083E5 		str	r2, [r3, #0]
+  23:../main.c     **** 	DOF2_SETPOINT = 800;
+ 2763              		.loc 1 23 0
+ 2764 002c D8309FE5 		ldr	r3, .L3+4
+ 2765 0030 322EA0E3 		mov	r2, #800
+ 2766 0034 002083E5 		str	r2, [r3, #0]
+  24:../main.c     **** 	DOF3_SETPOINT = 200;
+ 2767              		.loc 1 24 0
+ 2768 0038 D0309FE5 		ldr	r3, .L3+8
+ 2769 003c C820A0E3 		mov	r2, #200
+ 2770 0040 002083E5 		str	r2, [r3, #0]
+ 2771              	.L2:
+  25:../main.c     **** 
+  26:../main.c     **** 	while(1)
+  27:../main.c     **** 	{
+  28:../main.c     **** 		DOF2_ADC = ADC0Read(1);  //dof 2
+ 2772              		.loc 1 28 0 discriminator 1
+ 2773 0044 0100A0E3 		mov	r0, #1
+ 2774 0048 FEFFFFEB 		bl	ADC0Read
+ 2775 004c 0020A0E1 		mov	r2, r0
+ 2776 0050 BC309FE5 		ldr	r3, .L3+12
+ 2777 0054 002083E5 		str	r2, [r3, #0]
+  29:../main.c     **** 		DOF3_ADC = ADC0Read(2);  //dof 3
+ 2778              		.loc 1 29 0 discriminator 1
+ 2779 0058 0200A0E3 		mov	r0, #2
+ 2780 005c FEFFFFEB 		bl	ADC0Read
+ 2781 0060 0020A0E1 		mov	r2, r0
+ 2782 0064 AC309FE5 		ldr	r3, .L3+16
+ 2783 0068 002083E5 		str	r2, [r3, #0]
+  30:../main.c     **** 		DOF1_ADC = ADC0Read(3);  //dof 1
+ 2784              		.loc 1 30 0 discriminator 1
+ 2785 006c 0300A0E3 		mov	r0, #3
+ 2786 0070 FEFFFFEB 		bl	ADC0Read
+ 2787 0074 0020A0E1 		mov	r2, r0
+ 2788 0078 9C309FE5 		ldr	r3, .L3+20
+ 2789 007c 002083E5 		str	r2, [r3, #0]
+  31:../main.c     **** 		DOF1_SETPOINT = DOF2_ADC;
+ 2790              		.loc 1 31 0 discriminator 1
+ 2791 0080 8C309FE5 		ldr	r3, .L3+12
+ 2792 0084 002093E5 		ldr	r2, [r3, #0]
+ 2793 0088 78309FE5 		ldr	r3, .L3
+ 2794 008c 002083E5 		str	r2, [r3, #0]
+  32:../main.c     **** 		DOF3_SETPOINT = DOF2_ADC;
+ 2795              		.loc 1 32 0 discriminator 1
+ 2796 0090 7C309FE5 		ldr	r3, .L3+12
+ 2797 0094 002093E5 		ldr	r2, [r3, #0]
+ 2798 0098 70309FE5 		ldr	r3, .L3+8
+ 2799 009c 002083E5 		str	r2, [r3, #0]
+  33:../main.c     **** 		setDutyCycle(2,1000);  //dof 3
+ 2800              		.loc 1 33 0 discriminator 1
+ 2801 00a0 0200A0E3 		mov	r0, #2
+ 2802 00a4 FA1FA0E3 		mov	r1, #1000
+ 2803 00a8 FEFFFFEB 		bl	setDutyCycle
+  34:../main.c     **** 		setDutyCycle(4,1000);  //dof 2
+ 2804              		.loc 1 34 0 discriminator 1
+ 2805 00ac 0400A0E3 		mov	r0, #4
+ 2806 00b0 FA1FA0E3 		mov	r1, #1000
+ 2807 00b4 FEFFFFEB 		bl	setDutyCycle
+  35:../main.c     **** 		setDutyCycle(5,1000); //dof 1
+ 2808              		.loc 1 35 0 discriminator 1
+ 2809 00b8 0500A0E3 		mov	r0, #5
+ 2810 00bc FA1FA0E3 		mov	r1, #1000
+ 2811 00c0 FEFFFFEB 		bl	setDutyCycle
+  36:../main.c     **** 
+  37:../main.c     **** 		IOCLR0 = (1<<22);
+ 2812              		.loc 1 37 0 discriminator 1
+ 2813 00c4 CE32A0E3 		mov	r3, #-536870900
+ 2814 00c8 0A3983E2 		add	r3, r3, #163840
+ 2815 00cc 0125A0E3 		mov	r2, #4194304
+ 2816 00d0 002083E5 		str	r2, [r3, #0]
+  38:../main.c     **** 		IOSET0 = (1<<23);
+ 2817              		.loc 1 38 0 discriminator 1
+ 2818 00d4 4E32A0E3 		mov	r3, #-536870908
+ 2819 00d8 0A3983E2 		add	r3, r3, #163840
+ 2820 00dc 0225A0E3 		mov	r2, #8388608
+ 2821 00e0 002083E5 		str	r2, [r3, #0]
+  39:../main.c     **** 		IOCLR0 = (1<<17);
+ 2822              		.loc 1 39 0 discriminator 1
+ 2823 00e4 CE32A0E3 		mov	r3, #-536870900
+ 2824 00e8 0A3983E2 		add	r3, r3, #163840
+ 2825 00ec 0228A0E3 		mov	r2, #131072
+ 2826 00f0 002083E5 		str	r2, [r3, #0]
+  40:../main.c     **** 		IOSET0 = (1<<19);
+ 2827              		.loc 1 40 0 discriminator 1
+ 2828 00f4 4E32A0E3 		mov	r3, #-536870908
+ 2829 00f8 0A3983E2 		add	r3, r3, #163840
+ 2830 00fc 0227A0E3 		mov	r2, #524288
+ 2831 0100 002083E5 		str	r2, [r3, #0]
+  41:../main.c     **** 
+  42:../main.c     **** //		if((DOF1_SETPOINT>DOF1_ADC) || DOF1_ADC < 50)
+  43:../main.c     **** //		{
+  44:../main.c     **** //			IOCLR0 = (1<<22);
+  45:../main.c     **** //			IOSET0 = (1<<23);
+  46:../main.c     **** //			DOF1_ERROR = DOF1_SETPOINT - DOF1_ADC;
+  47:../main.c     **** //		}
+  48:../main.c     **** //		if((DOF1_SETPOINT<DOF1_ADC) || DOF1_ADC > 970)
+  49:../main.c     **** //		{
+  50:../main.c     **** //			IOCLR0 = (1<<23);
+  51:../main.c     **** //			IOSET0 = (1<<22);
+  52:../main.c     **** //			DOF1_ERROR = DOF1_ADC - DOF1_SETPOINT;
+  53:../main.c     **** //		}
+  54:../main.c     **** //
+  55:../main.c     **** //		if((DOF2_SETPOINT>DOF2_ADC) || DOF2_ADC < 50)
+  56:../main.c     **** //		{
+  57:../main.c     **** //			IOCLR0 = (1<<17);
+  58:../main.c     **** //			IOSET0 = (1<<19);
+  59:../main.c     **** //			DOF2_ERROR = DOF2_SETPOINT - DOF2_ADC;
+  60:../main.c     **** //		}
+  61:../main.c     **** //		if((DOF2_SETPOINT<DOF2_ADC) || DOF2_ADC > 970)
+  62:../main.c     **** //		{
+  63:../main.c     **** //			IOCLR0 = (1<<19);
+  64:../main.c     **** //			IOSET0 = (1<<17);
+  65:../main.c     **** //			DOF2_ERROR = DOF2_ADC - DOF2_SETPOINT;
+  66:../main.c     **** //		}
+  67:../main.c     **** //		if((DOF3_SETPOINT>DOF3_ADC) || DOF3_ADC < 50)
+  68:../main.c     **** //		{
+  69:../main.c     **** //			IOCLR0 = (1<<6);
+  70:../main.c     **** //			IOSET0 = (1<<9);
+  71:../main.c     **** //			DOF3_ERROR = DOF3_SETPOINT - DOF3_ADC;
+  72:../main.c     **** //		}
+  73:../main.c     **** //		if((DOF3_SETPOINT<DOF3_ADC) || DOF3_ADC > 970)
+  74:../main.c     **** //		{
+  75:../main.c     **** //			IOCLR0 = (1<<9);
+  76:../main.c     **** //			IOSET0 = (1<<6);
+  77:../main.c     **** //			DOF3_ERROR = DOF3_ADC - DOF3_SETPOINT;
+  78:../main.c     **** //		}
+  79:../main.c     **** 
+  80:../main.c     **** //		IOSET0 |= (1<<6);  //Input 1A (DOF1)
+  81:../main.c     **** //		IOSET0 |= (1<<9);  //Input 1B (DOF1)
+  82:../main.c     **** //		IOSET0 |= (1<<17); //Input 2A (DOF2)
+  83:../main.c     **** //		IOSET0 |= (1<<19); //Input 2B (DOF2)
+  84:../main.c     **** //		IOSET0 |= (1<<22); //Input 3A (DOF3)
+  85:../main.c     **** //		IOSET0 |= (1<<23); //Input 3B (DOF3)
+  86:../main.c     **** //		for(int i=0; i<5000; i++)
+  87:../main.c     **** //		{
+  88:../main.c     **** //			asm volatile("NOP");
+  89:../main.c     **** //		}
+  90:../main.c     **** //		IOCLR0 |= (1<<6);  //Input 1A (DOF1)
+  91:../main.c     **** //		IOCLR0 |= (1<<9);  //Input 1B (DOF1)
+  92:../main.c     **** //		IOCLR0 |= (1<<17); //Input 2A (DOF2)
+  93:../main.c     **** //		IOCLR0 |= (1<<19); //Input 2B (DOF2)
+  94:../main.c     **** //		IOCLR0 |= (1<<22); //Input 3A (DOF3)
+  95:../main.c     **** //		IOCLR0 |= (1<<23); //Input 3B (DOF3)
+  96:../main.c     **** //		for(int i=0; i<5000; i++)
+  97:../main.c     **** //		{
+  98:../main.c     **** //			asm volatile("NOP");
+  99:../main.c     **** //		}
+ 100:../main.c     **** 	}
+ 2832              		.loc 1 100 0 discriminator 1
+ 2833 0104 CEFFFFEA 		b	.L2
+ 2834              	.L4:
+ 2835              		.align	2
+ 2836              	.L3:
+ 2837 0108 00000000 		.word	DOF1_SETPOINT
+ 2838 010c 00000000 		.word	DOF2_SETPOINT
+ 2839 0110 00000000 		.word	DOF3_SETPOINT
+ 2840 0114 00000000 		.word	DOF2_ADC
+ 2841 0118 00000000 		.word	DOF3_ADC
+ 2842 011c 00000000 		.word	DOF1_ADC
+ 2843              		.cfi_endproc
+ 2844              	.LFE0:
+ 2846              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+                            *COM*:00000004 DOF1_SETPOINT
+                            *COM*:00000004 DOF2_SETPOINT
+                            *COM*:00000004 DOF3_SETPOINT
+                            *COM*:00000004 DOF1_ADC
+                            *COM*:00000004 DOF2_ADC
+                            *COM*:00000004 DOF3_ADC
+                            *COM*:00000004 DOF1_ERROR
+                            *COM*:00000004 DOF2_ERROR
+                            *COM*:00000004 DOF3_ERROR
+C:\Users\Daniel\AppData\Local\Temp\ccx4gsJS.s:2731   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccx4gsJS.s:2734   .text:00000000 main
+C:\Users\Daniel\AppData\Local\Temp\ccx4gsJS.s:2837   .text:00000108 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+cpu_init
+PWM_Init
+ADC_Init
+GPIOInit
+ADC0Read
+setDutyCycle

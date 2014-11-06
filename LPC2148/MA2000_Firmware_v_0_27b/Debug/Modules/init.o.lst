@@ -1,0 +1,209 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"init.c"
+  21              	.Ltext0:
+  22              		.file 1 "../Modules/init.c"
+ 2149              		.align	2
+ 2151              	feed:
+ 2152              	.LFB0:
+   1:../Modules/init.c **** /*
+   2:../Modules/init.c ****  * init.c
+   3:../Modules/init.c ****  *
+   4:../Modules/init.c ****  *  Created on: 15/04/2013
+   5:../Modules/init.c ****  *      Author: Daniel
+   6:../Modules/init.c ****  */
+   7:../Modules/init.c **** 
+   8:../Modules/init.c **** 
+   9:../Modules/init.c **** 
+  10:../Modules/init.c **** #include "LPC214x.h"
+  11:../Modules/init.c **** #include "Modules/adc.h"
+  12:../Modules/init.c **** #include "Modules/pwm.h"
+  13:../Modules/init.c **** #include "Modules/gpio.h"
+  14:../Modules/init.c **** #include "Modules/uart.h"
+  15:../Modules/init.c **** #include "Modules/iprintf.h"
+  16:../Modules/init.c **** #include "Modules/timer.h"
+  17:../Modules/init.c **** 
+  18:../Modules/init.c **** #define PLOCK 0x400
+  19:../Modules/init.c **** 
+  20:../Modules/init.c **** static void feed(void)
+  21:../Modules/init.c **** {
+ 2153              		.loc 1 21 0
+ 2154              		.cfi_startproc
+ 2155              		@ Function supports interworking.
+ 2156              		@ args = 0, pretend = 0, frame = 0
+ 2157              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2158              		@ link register save eliminated.
+ 2159 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 2160              	.LCFI0:
+ 2161              		.cfi_def_cfa_offset 4
+ 2162 0004 00B08DE2 		add	fp, sp, #0
+ 2163              		.cfi_offset 11, -4
+ 2164              	.LCFI1:
+ 2165              		.cfi_def_cfa_register 11
+  22:../Modules/init.c ****   PLLFEED = 0xAA;
+ 2166              		.loc 1 22 0
+ 2167 0008 0E32A0E3 		mov	r3, #-536870912
+ 2168 000c 7F3983E2 		add	r3, r3, #2080768
+ 2169 0010 8C3083E2 		add	r3, r3, #140
+ 2170 0014 AA20A0E3 		mov	r2, #170
+ 2171 0018 002083E5 		str	r2, [r3, #0]
+  23:../Modules/init.c ****   PLLFEED = 0x55;
+ 2172              		.loc 1 23 0
+ 2173 001c 0E32A0E3 		mov	r3, #-536870912
+ 2174 0020 7F3983E2 		add	r3, r3, #2080768
+ 2175 0024 8C3083E2 		add	r3, r3, #140
+ 2176 0028 5520A0E3 		mov	r2, #85
+ 2177 002c 002083E5 		str	r2, [r3, #0]
+  24:../Modules/init.c **** }
+ 2178              		.loc 1 24 0
+ 2179 0030 00D08BE2 		add	sp, fp, #0
+ 2180 0034 0008BDE8 		ldmfd	sp!, {fp}
+ 2181 0038 1EFF2FE1 		bx	lr
+ 2182              		.cfi_endproc
+ 2183              	.LFE0:
+ 2185              		.align	2
+ 2186              		.global	Initialize
+ 2188              	Initialize:
+ 2189              	.LFB1:
+  25:../Modules/init.c **** 
+  26:../Modules/init.c **** /***************************************************************************************
+  27:../Modules/init.c ****  * Function Name: Initialize(void)
+  28:../Modules/init.c ****  * 		 	Type: Void
+  29:../Modules/init.c ****  *	  Parameters:
+  30:../Modules/init.c ****  * 		 Returns: Void
+  31:../Modules/init.c ****  * 	 Description: Initiates CPU configurations,
+  32:../Modules/init.c ****  * 				  Configure Timer, PWM, ADC, UART Modules,
+  33:../Modules/init.c ****  * 				  Sets GPIO Pins.
+  34:../Modules/init.c **** ***************************************************************************************/
+  35:../Modules/init.c **** 
+  36:../Modules/init.c **** void Initialize(void)
+  37:../Modules/init.c **** {
+ 2190              		.loc 1 37 0
+ 2191              		.cfi_startproc
+ 2192              		@ Function supports interworking.
+ 2193              		@ args = 0, pretend = 0, frame = 0
+ 2194              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2195 003c 00482DE9 		stmfd	sp!, {fp, lr}
+ 2196              	.LCFI2:
+ 2197              		.cfi_def_cfa_offset 8
+ 2198 0040 04B08DE2 		add	fp, sp, #4
+ 2199              		.cfi_offset 14, -4
+ 2200              		.cfi_offset 11, -8
+ 2201              	.LCFI3:
+ 2202              		.cfi_def_cfa 11, 4
+  38:../Modules/init.c **** 	PLLCFG = 0x24; //Configura o multiplicador PLL para 4 e o divisor para 2
+ 2203              		.loc 1 38 0
+ 2204 0044 0E32A0E3 		mov	r3, #-536870912
+ 2205 0048 7F3983E2 		add	r3, r3, #2080768
+ 2206 004c 843083E2 		add	r3, r3, #132
+ 2207 0050 2420A0E3 		mov	r2, #36
+ 2208 0054 002083E5 		str	r2, [r3, #0]
+  39:../Modules/init.c ****              	   //Assim com o cristal de 12MHz temos um CCLK = 48MHz e um FCCO = 192MHz
+  40:../Modules/init.c ****     feed();
+ 2209              		.loc 1 40 0
+ 2210 0058 E8FFFFEB 		bl	feed
+  41:../Modules/init.c **** 
+  42:../Modules/init.c ****     PLLCON = 0x01; //Habilita o bloco PLL
+ 2211              		.loc 1 42 0
+ 2212 005c 0E32A0E3 		mov	r3, #-536870912
+ 2213 0060 7F3983E2 		add	r3, r3, #2080768
+ 2214 0064 803083E2 		add	r3, r3, #128
+ 2215 0068 0120A0E3 		mov	r2, #1
+ 2216 006c 002083E5 		str	r2, [r3, #0]
+  43:../Modules/init.c ****     feed();      //Para que as alterações anteriores tenham efeito
+ 2217              		.loc 1 43 0
+ 2218 0070 E2FFFFEB 		bl	feed
+  44:../Modules/init.c **** 
+  45:../Modules/init.c ****     while(!(PLLSTAT & PLOCK)) ; //Garante que a alteração anterior teve efeito uma vez que quando
+ 2219              		.loc 1 45 0
+ 2220 0074 0000A0E1 		mov	r0, r0	@ nop
+ 2221              	.L3:
+ 2222              		.loc 1 45 0 is_stmt 0 discriminator 1
+ 2223 0078 0E32A0E3 		mov	r3, #-536870912
+ 2224 007c 7F3983E2 		add	r3, r3, #2080768
+ 2225 0080 883083E2 		add	r3, r3, #136
+ 2226 0084 003093E5 		ldr	r3, [r3, #0]
+ 2227 0088 013B03E2 		and	r3, r3, #1024
+ 2228 008c 000053E3 		cmp	r3, #0
+ 2229 0090 F8FFFF0A 		beq	.L3
+  46:../Modules/init.c ****                     //o bit PLOCK do reg. PLLSTAT vale zero ouve um bloqueio no PLL que
+  47:../Modules/init.c ****                     //ocorre logo após a modificação dos registradores
+  48:../Modules/init.c **** 
+  49:../Modules/init.c ****     PLLCON = 0x03; //Depois de habilitado resta conectá-lo a fonte de clock para que comece o traba
+ 2230              		.loc 1 49 0 is_stmt 1
+ 2231 0094 0E32A0E3 		mov	r3, #-536870912
+ 2232 0098 7F3983E2 		add	r3, r3, #2080768
+ 2233 009c 803083E2 		add	r3, r3, #128
+ 2234 00a0 0320A0E3 		mov	r2, #3
+ 2235 00a4 002083E5 		str	r2, [r3, #0]
+  50:../Modules/init.c ****     feed();        //Necessário para que as alterações anteriores tenham efeito
+ 2236              		.loc 1 50 0
+ 2237 00a8 D4FFFFEB 		bl	feed
+  51:../Modules/init.c **** 
+  52:../Modules/init.c ****     MAMCR = 0x02;  //Habilita todas as funções do Módulo acelerador de memória
+ 2238              		.loc 1 52 0
+ 2239 00ac 0E32A0E3 		mov	r3, #-536870912
+ 2240 00b0 7F3983E2 		add	r3, r3, #2080768
+ 2241 00b4 0220A0E3 		mov	r2, #2
+ 2242 00b8 002083E5 		str	r2, [r3, #0]
+  53:../Modules/init.c ****     MAMTIM = 0x04;  //O ciclo de busca do MAM tem duração de 4 ciclos
+ 2243              		.loc 1 53 0
+ 2244 00bc 4E32A0E3 		mov	r3, #-536870908
+ 2245 00c0 7F3983E2 		add	r3, r3, #2080768
+ 2246 00c4 0420A0E3 		mov	r2, #4
+ 2247 00c8 002083E5 		str	r2, [r3, #0]
+  54:../Modules/init.c ****     VPBDIV = 0x01;  //Clock dos periféricos igual ao clock do Sistema
+ 2248              		.loc 1 54 0
+ 2249 00cc 0E32A0E3 		mov	r3, #-536870912
+ 2250 00d0 7F3983E2 		add	r3, r3, #2080768
+ 2251 00d4 013C83E2 		add	r3, r3, #256
+ 2252 00d8 0120A0E3 		mov	r2, #1
+ 2253 00dc 002083E5 		str	r2, [r3, #0]
+  55:../Modules/init.c **** 
+  56:../Modules/init.c ****     ADC_Init(ADC_CLK);
+ 2254              		.loc 1 56 0
+ 2255 00e0 3D09A0E3 		mov	r0, #999424
+ 2256 00e4 090D80E2 		add	r0, r0, #576
+ 2257 00e8 FEFFFFEB 		bl	ADC_Init
+  57:../Modules/init.c ****     UART_Init(0,9600);
+ 2258              		.loc 1 57 0
+ 2259 00ec 0000A0E3 		mov	r0, #0
+ 2260 00f0 961DA0E3 		mov	r1, #9600
+ 2261 00f4 FEFFFFEB 		bl	UART_Init
+  58:../Modules/init.c ****     PWM_Init();
+ 2262              		.loc 1 58 0
+ 2263 00f8 FEFFFFEB 		bl	PWM_Init
+  59:../Modules/init.c ****     GPIO_Init();
+ 2264              		.loc 1 59 0
+ 2265 00fc FEFFFFEB 		bl	GPIO_Init
+  60:../Modules/init.c ****     //	Timer_Init();
+  61:../Modules/init.c ****     //	Timer_RegisterCallback(PWM_InterruptControl);
+  62:../Modules/init.c ****     //	Timer_Enable();
+  63:../Modules/init.c **** }
+ 2266              		.loc 1 63 0
+ 2267 0100 04D04BE2 		sub	sp, fp, #4
+ 2268 0104 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2269 0108 1EFF2FE1 		bx	lr
+ 2270              		.cfi_endproc
+ 2271              	.LFE1:
+ 2273              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 init.c
+C:\Users\Daniel\AppData\Local\Temp\cczfFybV.s:2149   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\cczfFybV.s:2151   .text:00000000 feed
+C:\Users\Daniel\AppData\Local\Temp\cczfFybV.s:2188   .text:0000003c Initialize
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+ADC_Init
+UART_Init
+PWM_Init
+GPIO_Init

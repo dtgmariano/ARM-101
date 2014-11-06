@@ -1,0 +1,307 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"low_level_init.c"
+  21              	.Ltext0:
+  22              		.file 1 "../low_level_init.c"
+ 856              		.align	2
+ 857              		.global	low_level_init
+ 859              	low_level_init:
+ 860              	.LFB0:
+   1:../low_level_init.c **** /****************************************************************************
+   2:../low_level_init.c **** *  Copyright (c) 2009 by Michael Fischer. All rights reserved.
+   3:../low_level_init.c **** *
+   4:../low_level_init.c **** *  Redistribution and use in source and binary forms, with or without 
+   5:../low_level_init.c **** *  modification, are permitted provided that the following conditions 
+   6:../low_level_init.c **** *  are met:
+   7:../low_level_init.c **** *  
+   8:../low_level_init.c **** *  1. Redistributions of source code must retain the above copyright 
+   9:../low_level_init.c **** *     notice, this list of conditions and the following disclaimer.
+  10:../low_level_init.c **** *  2. Redistributions in binary form must reproduce the above copyright
+  11:../low_level_init.c **** *     notice, this list of conditions and the following disclaimer in the 
+  12:../low_level_init.c **** *     documentation and/or other materials provided with the distribution.
+  13:../low_level_init.c **** *  3. Neither the name of the author nor the names of its contributors may 
+  14:../low_level_init.c **** *     be used to endorse or promote products derived from this software 
+  15:../low_level_init.c **** *     without specific prior written permission.
+  16:../low_level_init.c **** *
+  17:../low_level_init.c **** *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+  18:../low_level_init.c **** *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+  19:../low_level_init.c **** *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+  20:../low_level_init.c **** *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL 
+  21:../low_level_init.c **** *  THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+  22:../low_level_init.c **** *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+  23:../low_level_init.c **** *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS 
+  24:../low_level_init.c **** *  OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+  25:../low_level_init.c **** *  AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
+  26:../low_level_init.c **** *  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
+  27:../low_level_init.c **** *  THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
+  28:../low_level_init.c **** *  SUCH DAMAGE.
+  29:../low_level_init.c **** *
+  30:../low_level_init.c **** ****************************************************************************
+  31:../low_level_init.c **** *
+  32:../low_level_init.c **** *  History:
+  33:../low_level_init.c **** *
+  34:../low_level_init.c **** *  25.09.09  mifi   First Version, based on the example from Quantum Leaps 
+  35:../low_level_init.c **** *                   with some small modifications. The original can be find 
+  36:../low_level_init.c **** *                   here: http://www.embedded.com/design/200900043
+  37:../low_level_init.c **** *
+  38:../low_level_init.c **** *                   For information e.g. how to setup the CPU take a look
+  39:../low_level_init.c **** *                   in the AT91 Software Packages which can be find here:
+  40:../low_level_init.c **** *                   http://www.atmel.com/dyn/products/tools_card.asp?tool_id=4343
+  41:../low_level_init.c **** ****************************************************************************/
+  42:../low_level_init.c **** #define __LOW_LEVEL_INIT_C__
+  43:../low_level_init.c **** 
+  44:../low_level_init.c **** #include <stdint.h>
+  45:../low_level_init.c **** 
+  46:../low_level_init.c **** extern void UndefHandler (void);
+  47:../low_level_init.c **** extern void SWIHandler (void);
+  48:../low_level_init.c **** extern void PAbortHandler (void);
+  49:../low_level_init.c **** extern void DAbortHandler (void);
+  50:../low_level_init.c **** extern void IRQHandler (void);
+  51:../low_level_init.c **** extern void FIQHandler (void);
+  52:../low_level_init.c **** 
+  53:../low_level_init.c **** /*=========================================================================*/
+  54:../low_level_init.c **** /*  DEFINE: All Structures and Common Constants                            */
+  55:../low_level_init.c **** /*=========================================================================*/
+  56:../low_level_init.c **** /* LDR pc, [pc, #0x18] */
+  57:../low_level_init.c **** #define LDR_PC_PC       0xE59FF018U 
+  58:../low_level_init.c **** #define MAGIC           0xDEADBEEFU
+  59:../low_level_init.c **** 
+  60:../low_level_init.c **** /*=========================================================================*/
+  61:../low_level_init.c **** /*  DEFINE: Prototypes                                                     */
+  62:../low_level_init.c **** /*=========================================================================*/
+  63:../low_level_init.c **** 
+  64:../low_level_init.c **** /*=========================================================================*/
+  65:../low_level_init.c **** /*  DEFINE: Definition of all local Data                                   */
+  66:../low_level_init.c **** /*=========================================================================*/
+  67:../low_level_init.c **** 
+  68:../low_level_init.c **** /*=========================================================================*/
+  69:../low_level_init.c **** /*  DEFINE: Definition of all local Procedures                             */
+  70:../low_level_init.c **** /*=========================================================================*/
+  71:../low_level_init.c **** 
+  72:../low_level_init.c **** /*=========================================================================*/
+  73:../low_level_init.c **** /*  DEFINE: All code exported                                              */
+  74:../low_level_init.c **** /*=========================================================================*/
+  75:../low_level_init.c **** /***************************************************************************/
+  76:../low_level_init.c **** /*  low_level_init                                                         */
+  77:../low_level_init.c **** /*                                                                         */
+  78:../low_level_init.c **** /*  This function is invoked by the startup sequence after initializing    */
+  79:../low_level_init.c **** /*  the C stack, but before initializing the segments in RAM.              */
+  80:../low_level_init.c **** /*                                                                         */
+  81:../low_level_init.c **** /*  low_level_init() is invoked in the ARM state. The function gives the   */
+  82:../low_level_init.c **** /*  application a chance to perform early initializations of the hardware. */
+  83:../low_level_init.c **** /*  This function cannot rely on initialization of any static variables,   */
+  84:../low_level_init.c **** /*  because these have not yet been initialized in RAM.                    */
+  85:../low_level_init.c **** /***************************************************************************/
+  86:../low_level_init.c **** void low_level_init (void *reset_addr, void *return_addr) 
+  87:../low_level_init.c **** {
+ 861              		.loc 1 87 0
+ 862              		.cfi_startproc
+ 863              		@ Function supports interworking.
+ 864              		@ args = 0, pretend = 0, frame = 8
+ 865              		@ frame_needed = 1, uses_anonymous_args = 0
+ 866              		@ link register save eliminated.
+ 867 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 868              	.LCFI0:
+ 869              		.cfi_def_cfa_offset 4
+ 870 0004 00B08DE2 		add	fp, sp, #0
+ 871              		.cfi_offset 11, -4
+ 872              	.LCFI1:
+ 873              		.cfi_def_cfa_register 11
+ 874 0008 0CD04DE2 		sub	sp, sp, #12
+ 875 000c 08000BE5 		str	r0, [fp, #-8]
+ 876 0010 0C100BE5 		str	r1, [fp, #-12]
+  88:../low_level_init.c ****    extern uint8_t __ram_start;
+  89:../low_level_init.c ****    
+  90:../low_level_init.c ****    /*******************************************************************/
+  91:../low_level_init.c ****    /*  Warning, warning, warning, warning, warning, warning           */
+  92:../low_level_init.c ****    /*                                                                 */
+  93:../low_level_init.c ****    /*  This trick is used to check if we are running from Flash.      */
+  94:../low_level_init.c ****    /*  In this case __ram_start is set to the RAM start address       */
+  95:../low_level_init.c ****    /*  of the LPC, which is 0x40000000.                           */
+  96:../low_level_init.c ****    /*                                                                 */
+  97:../low_level_init.c ****    /*  Only than, we can map the exception vectors from RAM to Flash. */
+  98:../low_level_init.c ****    /*******************************************************************/
+  99:../low_level_init.c ****    if ((uint32_t)&__ram_start == 0x40000000)
+ 877              		.loc 1 99 0
+ 878 0014 54319FE5 		ldr	r3, .L3
+ 879 0018 010153E3 		cmp	r3, #1073741824
+ 880 001c 5000001A 		bne	.L1
+ 100:../low_level_init.c ****    {
+ 101:../low_level_init.c ****       /* 
+ 102:../low_level_init.c ****        * Setup the exception vectors to RAM
+ 103:../low_level_init.c ****        *
+ 104:../low_level_init.c ****        * NOTE: the exception vectors must be in RAM *before* the remap
+ 105:../low_level_init.c ****        * in order to guarantee that the ARM core is provided with valid vectors
+ 106:../low_level_init.c ****        * during the remap operation.
+ 107:../low_level_init.c ****        */
+ 108:../low_level_init.c ****        
+ 109:../low_level_init.c ****       /* Setup the primary vector table in RAM */
+ 110:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x00) = LDR_PC_PC;
+ 881              		.loc 1 110 0
+ 882 0020 48219FE5 		ldr	r2, .L3
+ 883 0024 FE3EE0E3 		mvn	r3, #4064
+ 884 0028 713243E2 		sub	r3, r3, #268435463
+ 885 002c A63643E2 		sub	r3, r3, #174063616
+ 886 0030 003082E5 		str	r3, [r2, #0]
+ 111:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x04) = LDR_PC_PC;
+ 887              		.loc 1 111 0
+ 888 0034 34319FE5 		ldr	r3, .L3
+ 889 0038 042083E2 		add	r2, r3, #4
+ 890 003c FE3EE0E3 		mvn	r3, #4064
+ 891 0040 713243E2 		sub	r3, r3, #268435463
+ 892 0044 A63643E2 		sub	r3, r3, #174063616
+ 893 0048 003082E5 		str	r3, [r2, #0]
+ 112:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x08) = LDR_PC_PC;
+ 894              		.loc 1 112 0
+ 895 004c 1C319FE5 		ldr	r3, .L3
+ 896 0050 082083E2 		add	r2, r3, #8
+ 897 0054 FE3EE0E3 		mvn	r3, #4064
+ 898 0058 713243E2 		sub	r3, r3, #268435463
+ 899 005c A63643E2 		sub	r3, r3, #174063616
+ 900 0060 003082E5 		str	r3, [r2, #0]
+ 113:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x0C) = LDR_PC_PC;
+ 901              		.loc 1 113 0
+ 902 0064 04319FE5 		ldr	r3, .L3
+ 903 0068 0C2083E2 		add	r2, r3, #12
+ 904 006c FE3EE0E3 		mvn	r3, #4064
+ 905 0070 713243E2 		sub	r3, r3, #268435463
+ 906 0074 A63643E2 		sub	r3, r3, #174063616
+ 907 0078 003082E5 		str	r3, [r2, #0]
+ 114:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x10) = LDR_PC_PC;
+ 908              		.loc 1 114 0
+ 909 007c EC309FE5 		ldr	r3, .L3
+ 910 0080 102083E2 		add	r2, r3, #16
+ 911 0084 FE3EE0E3 		mvn	r3, #4064
+ 912 0088 713243E2 		sub	r3, r3, #268435463
+ 913 008c A63643E2 		sub	r3, r3, #174063616
+ 914 0090 003082E5 		str	r3, [r2, #0]
+ 115:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x14) = MAGIC;
+ 915              		.loc 1 115 0
+ 916 0094 D4309FE5 		ldr	r3, .L3
+ 917 0098 142083E2 		add	r2, r3, #20
+ 918 009c 8535E0E3 		mvn	r3, #557842432
+ 919 00a0 493943E2 		sub	r3, r3, #1196032
+ 920 00a4 113E43E2 		sub	r3, r3, #272
+ 921 00a8 003082E5 		str	r3, [r2, #0]
+ 116:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x18) = LDR_PC_PC;
+ 922              		.loc 1 116 0
+ 923 00ac BC309FE5 		ldr	r3, .L3
+ 924 00b0 182083E2 		add	r2, r3, #24
+ 925 00b4 FE3EE0E3 		mvn	r3, #4064
+ 926 00b8 713243E2 		sub	r3, r3, #268435463
+ 927 00bc A63643E2 		sub	r3, r3, #174063616
+ 928 00c0 003082E5 		str	r3, [r2, #0]
+ 117:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x1C) = LDR_PC_PC;
+ 929              		.loc 1 117 0
+ 930 00c4 A4309FE5 		ldr	r3, .L3
+ 931 00c8 1C2083E2 		add	r2, r3, #28
+ 932 00cc FE3EE0E3 		mvn	r3, #4064
+ 933 00d0 713243E2 		sub	r3, r3, #268435463
+ 934 00d4 A63643E2 		sub	r3, r3, #174063616
+ 935 00d8 003082E5 		str	r3, [r2, #0]
+ 118:../low_level_init.c **** 
+ 119:../low_level_init.c ****       /* setup the secondary vector table in RAM */
+ 120:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x20) = (uint32_t)reset_addr;
+ 936              		.loc 1 120 0
+ 937 00dc 8C309FE5 		ldr	r3, .L3
+ 938 00e0 203083E2 		add	r3, r3, #32
+ 939 00e4 08201BE5 		ldr	r2, [fp, #-8]
+ 940 00e8 002083E5 		str	r2, [r3, #0]
+ 121:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x24) = (uint32_t)UndefHandler;
+ 941              		.loc 1 121 0
+ 942 00ec 7C309FE5 		ldr	r3, .L3
+ 943 00f0 243083E2 		add	r3, r3, #36
+ 944 00f4 78209FE5 		ldr	r2, .L3+4
+ 945 00f8 002083E5 		str	r2, [r3, #0]
+ 122:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x28) = (uint32_t)SWIHandler;
+ 946              		.loc 1 122 0
+ 947 00fc 6C309FE5 		ldr	r3, .L3
+ 948 0100 283083E2 		add	r3, r3, #40
+ 949 0104 6C209FE5 		ldr	r2, .L3+8
+ 950 0108 002083E5 		str	r2, [r3, #0]
+ 123:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x2C) = (uint32_t)PAbortHandler;
+ 951              		.loc 1 123 0
+ 952 010c 5C309FE5 		ldr	r3, .L3
+ 953 0110 2C3083E2 		add	r3, r3, #44
+ 954 0114 60209FE5 		ldr	r2, .L3+12
+ 955 0118 002083E5 		str	r2, [r3, #0]
+ 124:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x30) = (uint32_t)DAbortHandler;
+ 956              		.loc 1 124 0
+ 957 011c 4C309FE5 		ldr	r3, .L3
+ 958 0120 303083E2 		add	r3, r3, #48
+ 959 0124 54209FE5 		ldr	r2, .L3+16
+ 960 0128 002083E5 		str	r2, [r3, #0]
+ 125:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x34) = 0;
+ 961              		.loc 1 125 0
+ 962 012c 3C309FE5 		ldr	r3, .L3
+ 963 0130 343083E2 		add	r3, r3, #52
+ 964 0134 0020A0E3 		mov	r2, #0
+ 965 0138 002083E5 		str	r2, [r3, #0]
+ 126:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x38) = (uint32_t)IRQHandler;
+ 966              		.loc 1 126 0
+ 967 013c 2C309FE5 		ldr	r3, .L3
+ 968 0140 383083E2 		add	r3, r3, #56
+ 969 0144 38209FE5 		ldr	r2, .L3+20
+ 970 0148 002083E5 		str	r2, [r3, #0]
+ 127:../low_level_init.c ****       *(uint32_t volatile *)(&__ram_start + 0x3C) = (uint32_t)FIQHandler;
+ 971              		.loc 1 127 0
+ 972 014c 1C309FE5 		ldr	r3, .L3
+ 973 0150 3C3083E2 		add	r3, r3, #60
+ 974 0154 2C209FE5 		ldr	r2, .L3+24
+ 975 0158 002083E5 		str	r2, [r3, #0]
+ 128:../low_level_init.c **** 
+ 129:../low_level_init.c ****       /* 
+ 130:../low_level_init.c ****        * Check if the Memory Controller has been remapped already 
+ 131:../low_level_init.c ****        */
+ 132:../low_level_init.c ****       if (MAGIC != (*(uint32_t volatile *)0x14)) 
+ 976              		.loc 1 132 0
+ 977 015c 1430A0E3 		mov	r3, #20
+ 978 0160 003093E5 		ldr	r3, [r3, #0]
+ 979              	.L1:
+ 133:../low_level_init.c ****       {
+ 134:../low_level_init.c ****          /* perform Memory Controller remapping */
+ 135:../low_level_init.c ****          // Add command here
+ 136:../low_level_init.c ****       }
+ 137:../low_level_init.c ****    }      
+ 138:../low_level_init.c ****    
+ 139:../low_level_init.c **** } /* low_level_init */
+ 980              		.loc 1 139 0
+ 981 0164 00D08BE2 		add	sp, fp, #0
+ 982 0168 0008BDE8 		ldmfd	sp!, {fp}
+ 983 016c 1EFF2FE1 		bx	lr
+ 984              	.L4:
+ 985              		.align	2
+ 986              	.L3:
+ 987 0170 00000000 		.word	__ram_start
+ 988 0174 00000000 		.word	UndefHandler
+ 989 0178 00000000 		.word	SWIHandler
+ 990 017c 00000000 		.word	PAbortHandler
+ 991 0180 00000000 		.word	DAbortHandler
+ 992 0184 00000000 		.word	IRQHandler
+ 993 0188 00000000 		.word	FIQHandler
+ 994              		.cfi_endproc
+ 995              	.LFE0:
+ 997              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 low_level_init.c
+C:\Users\Daniel\AppData\Local\Temp\ccBFQzC6.s:856    .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccBFQzC6.s:859    .text:00000000 low_level_init
+C:\Users\Daniel\AppData\Local\Temp\ccBFQzC6.s:987    .text:00000170 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__ram_start
+UndefHandler
+SWIHandler
+PAbortHandler
+DAbortHandler
+IRQHandler
+FIQHandler

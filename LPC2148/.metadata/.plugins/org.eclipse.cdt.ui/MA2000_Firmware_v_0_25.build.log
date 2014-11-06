@@ -1,0 +1,28 @@
+
+**** Build of configuration Debug for project MA2000_Firmware_v_0_25 ****
+
+make all 
+Building file: ../main.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\Dropbox\Workspace\ARM\PROGRAMAS\LPC2148\MA2000_Firmware_v_0_25" -O0 -Wall -std=gnu99 -Wa,-adhlns="main.o.lst" -c -fmessage-length=0 -MMD -MP -MF"main.d" -MT"main.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"main.o" "../main.c"
+Finished building: ../main.c
+ 
+Building target: MA2000_Firmware_v_0_25.elf
+Invoking: ARM Yagarto Windows GCC C Linker
+arm-none-eabi-gcc -T"../lpc2148_rom.ld" -nostartfiles -Wl,-Map,MA2000_Firmware_v_0_25.map -mcpu=arm7tdmi -g3 -gdwarf-2 -o"MA2000_Firmware_v_0_25.elf"  ./cpu_init.o ./low_level_init.o ./main.o ./startup.o  ./Modules/adc.o ./Modules/functions.o ./Modules/gpio.o ./Modules/iprintf.o ./Modules/iread.o ./Modules/pwm.o ./Modules/timer.o ./Modules/uart.o  ./MA2000/functions.o ./MA2000/robot.o   
+Finished building target: MA2000_Firmware_v_0_25.elf
+ 
+Invoking: ARM Yagarto Windows GNU Create Flash Image
+arm-none-eabi-objcopy -O ihex MA2000_Firmware_v_0_25.elf "MA2000_Firmware_v_0_25.hex"
+Finished building: MA2000_Firmware_v_0_25.hex
+ 
+Invoking: ARM Yagarto Windows GNU Create Listing
+arm-none-eabi-objdump -h -S -C MA2000_Firmware_v_0_25.elf >"MA2000_Firmware_v_0_25.lst"
+Finished building: MA2000_Firmware_v_0_25.lst
+ 
+Invoking: ARM Yagarto Windows GNU Print Size
+arm-none-eabi-size  --format=berkeley -x MA2000_Firmware_v_0_25.elf
+   text	   data	    bss	    dec	    hex	filename
+ 0x1fd4	    0x8	  0x4b8	   9364	   2494	MA2000_Firmware_v_0_25.elf
+Finished building: MA2000_Firmware_v_0_25.siz
+ 

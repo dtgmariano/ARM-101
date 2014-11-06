@@ -1,0 +1,62 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"modules_config.c"
+  21              	.Ltext0:
+  22              		.file 1 "../modules_config.c"
+ 1833              		.align	2
+ 1834              		.global	pwm_setup
+ 1836              	pwm_setup:
+ 1837              	.LFB0:
+   1:../modules_config.c **** /*
+   2:../modules_config.c ****  * modules_config.c
+   3:../modules_config.c ****  *
+   4:../modules_config.c ****  *  Created on: 04/12/2012
+   5:../modules_config.c ****  *      Author: Daniel
+   6:../modules_config.c ****  */
+   7:../modules_config.c **** 
+   8:../modules_config.c **** #include "modules_config.h"
+   9:../modules_config.c **** #include "LPC214x.h"
+  10:../modules_config.c **** #include "cpu_init.h"
+  11:../modules_config.c **** #include "pwm_module.h"
+  12:../modules_config.c **** 
+  13:../modules_config.c **** void pwm_setup(){
+ 1838              		.loc 1 13 0
+ 1839              		.cfi_startproc
+ 1840              		@ Function supports interworking.
+ 1841              		@ args = 0, pretend = 0, frame = 0
+ 1842              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1843 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 1844              	.LCFI0:
+ 1845              		.cfi_def_cfa_offset 8
+ 1846 0004 04B08DE2 		add	fp, sp, #4
+ 1847              		.cfi_offset 14, -4
+ 1848              		.cfi_offset 11, -8
+ 1849              	.LCFI1:
+ 1850              		.cfi_def_cfa 11, 4
+  14:../modules_config.c **** 	setPWM1Function();
+ 1851              		.loc 1 14 0
+ 1852 0008 FEFFFFEB 		bl	setPWM1Function
+  15:../modules_config.c **** }
+ 1853              		.loc 1 15 0
+ 1854 000c 04D04BE2 		sub	sp, fp, #4
+ 1855 0010 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1856 0014 1EFF2FE1 		bx	lr
+ 1857              		.cfi_endproc
+ 1858              	.LFE0:
+ 1860              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 modules_config.c
+C:\Users\Daniel\AppData\Local\Temp\ccFaf2ga.s:1833   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccFaf2ga.s:1836   .text:00000000 pwm_setup
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+setPWM1Function

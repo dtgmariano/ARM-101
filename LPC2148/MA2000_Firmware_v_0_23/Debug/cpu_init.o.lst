@@ -1,0 +1,245 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"cpu_init.c"
+  21              	.Ltext0:
+  22              		.file 1 "../cpu_init.c"
+ 1832              		.align	2
+ 1833              		.global	cpu_init
+ 1835              	cpu_init:
+ 1836              	.LFB0:
+   1:../cpu_init.c **** /* =============================== C/C++ SOURCE FILE ================================ */
+   2:../cpu_init.c **** /**
+   3:../cpu_init.c **** 	\file
+   4:../cpu_init.c **** 	\description
+   5:../cpu_init.c **** 	\copyright (c) STHS Tecnologia
+   6:../cpu_init.c **** */
+   7:../cpu_init.c **** /* ================================================================================== */
+   8:../cpu_init.c **** /*
+   9:../cpu_init.c **** CHANGES:
+  10:../cpu_init.c **** ---------------
+  11:../cpu_init.c **** Date            Author       Description
+  12:../cpu_init.c **** 01/02/2010      gilsonf      v1.0 Released
+  13:../cpu_init.c **** 23/03/2011      fabiovince   v1.1
+  14:../cpu_init.c **** 07/04/2011      fabiovince   v1.2
+  15:../cpu_init.c **** */
+  16:../cpu_init.c **** 
+  17:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  18:../cpu_init.c **** /*                                      INCLUDES                                      */
+  19:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  20:../cpu_init.c **** #include "LPC214x.h"
+  21:../cpu_init.c **** #include "cpu_init.h"
+  22:../cpu_init.c **** 
+  23:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  24:../cpu_init.c **** /*                               DEFINITIONS AND MACROS                               */
+  25:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  26:../cpu_init.c **** 
+  27:../cpu_init.c **** #define PLOCK 0x400  // Frequency Lock (configurando o PLL
+  28:../cpu_init.c **** #define MEMMAP_BOOT_LOADER_MODE   0       // Interrupt vectors are re-mapped to Boot Block.
+  29:../cpu_init.c **** #define MEMMAP_USER_FLASH_MODE    (1<<0)  // Interrupt vectors are not re-mapped and reside in Flas
+  30:../cpu_init.c **** #define MEMMAP_USER_RAM_MODE      (1<<1)  // Interrupt vectors are re-mapped to Static RAM.
+  31:../cpu_init.c **** 
+  32:../cpu_init.c **** 
+  33:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  34:../cpu_init.c **** /*                          TYPEDEFS, CLASSES AND STRUCTURES                          */
+  35:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  36:../cpu_init.c **** 
+  37:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  38:../cpu_init.c **** /*                                     PROTOTYPES                                     */
+  39:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  40:../cpu_init.c **** 
+  41:../cpu_init.c **** void feed(void); // Utilizado para alimentar o PLL
+  42:../cpu_init.c **** 
+  43:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  44:../cpu_init.c **** /*                                  GLOBAL VARIABLES                                  */
+  45:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  46:../cpu_init.c **** 
+  47:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  48:../cpu_init.c **** /*                                  LOCAL  VARIABLES                                  */
+  49:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  50:../cpu_init.c **** 
+  51:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  52:../cpu_init.c **** /*                              FUNCTION  IMPLEMENTATION                              */
+  53:../cpu_init.c **** /*------------------------------------------------------------------------------------*/
+  54:../cpu_init.c **** 
+  55:../cpu_init.c **** /***************************************************************************/
+  56:../cpu_init.c **** /*  Função que inicializa o microcontrolador                               */
+  57:../cpu_init.c **** /***************************************************************************/
+  58:../cpu_init.c **** void cpu_init(void)  {
+ 1837              		.loc 1 58 0
+ 1838              		.cfi_startproc
+ 1839              		@ Function supports interworking.
+ 1840              		@ args = 0, pretend = 0, frame = 0
+ 1841              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1842 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 1843              	.LCFI0:
+ 1844              		.cfi_def_cfa_offset 8
+ 1845 0004 04B08DE2 		add	fp, sp, #4
+ 1846              		.cfi_offset 14, -4
+ 1847              		.cfi_offset 11, -8
+ 1848              	.LCFI1:
+ 1849              		.cfi_def_cfa 11, 4
+  59:../cpu_init.c **** 
+  60:../cpu_init.c ****     PLLCFG= cpuMHz;  // Configura o clock da CPU do ARM
+ 1850              		.loc 1 60 0
+ 1851 0008 0E32A0E3 		mov	r3, #-536870912
+ 1852 000c 7F3983E2 		add	r3, r3, #2080768
+ 1853 0010 843083E2 		add	r3, r3, #132
+ 1854 0014 2420A0E3 		mov	r2, #36
+ 1855 0018 002083E5 		str	r2, [r3, #0]
+  61:../cpu_init.c **** 
+  62:../cpu_init.c ****     feed();
+ 1856              		.loc 1 62 0
+ 1857 001c FEFFFFEB 		bl	feed
+  63:../cpu_init.c **** 
+  64:../cpu_init.c ****     // Enabling the PLL */
+  65:../cpu_init.c ****     PLLCON=0x1;
+ 1858              		.loc 1 65 0
+ 1859 0020 0E32A0E3 		mov	r3, #-536870912
+ 1860 0024 7F3983E2 		add	r3, r3, #2080768
+ 1861 0028 803083E2 		add	r3, r3, #128
+ 1862 002c 0120A0E3 		mov	r2, #1
+ 1863 0030 002083E5 		str	r2, [r3, #0]
+  66:../cpu_init.c ****     feed();
+ 1864              		.loc 1 66 0
+ 1865 0034 FEFFFFEB 		bl	feed
+  67:../cpu_init.c **** 
+  68:../cpu_init.c ****     // Wait for the PLL to lock to set frequency
+  69:../cpu_init.c ****     while(!(PLLSTAT & PLOCK)) ;
+ 1866              		.loc 1 69 0
+ 1867 0038 0000A0E1 		mov	r0, r0	@ nop
+ 1868              	.L2:
+ 1869              		.loc 1 69 0 is_stmt 0 discriminator 1
+ 1870 003c 0E32A0E3 		mov	r3, #-536870912
+ 1871 0040 7F3983E2 		add	r3, r3, #2080768
+ 1872 0044 883083E2 		add	r3, r3, #136
+ 1873 0048 003093E5 		ldr	r3, [r3, #0]
+ 1874 004c 013B03E2 		and	r3, r3, #1024
+ 1875 0050 000053E3 		cmp	r3, #0
+ 1876 0054 F8FFFF0A 		beq	.L2
+  70:../cpu_init.c **** 
+  71:../cpu_init.c ****     // Connect the PLL as the clock source
+  72:../cpu_init.c ****     PLLCON=0x3;
+ 1877              		.loc 1 72 0 is_stmt 1
+ 1878 0058 0E32A0E3 		mov	r3, #-536870912
+ 1879 005c 7F3983E2 		add	r3, r3, #2080768
+ 1880 0060 803083E2 		add	r3, r3, #128
+ 1881 0064 0320A0E3 		mov	r2, #3
+ 1882 0068 002083E5 		str	r2, [r3, #0]
+  73:../cpu_init.c ****     feed();
+ 1883              		.loc 1 73 0
+ 1884 006c FEFFFFEB 		bl	feed
+  74:../cpu_init.c **** 
+  75:../cpu_init.c ****     // Enabling MAM and setting number of clocks used for Flash memory fetch (4 cclks in this case)
+  76:../cpu_init.c ****     MAMCR=0x2;
+ 1885              		.loc 1 76 0
+ 1886 0070 0E32A0E3 		mov	r3, #-536870912
+ 1887 0074 7F3983E2 		add	r3, r3, #2080768
+ 1888 0078 0220A0E3 		mov	r2, #2
+ 1889 007c 002083E5 		str	r2, [r3, #0]
+  77:../cpu_init.c ****     MAMTIM=0x4;
+ 1890              		.loc 1 77 0
+ 1891 0080 4E32A0E3 		mov	r3, #-536870908
+ 1892 0084 7F3983E2 		add	r3, r3, #2080768
+ 1893 0088 0420A0E3 		mov	r2, #4
+ 1894 008c 002083E5 		str	r2, [r3, #0]
+  78:../cpu_init.c **** 
+  79:../cpu_init.c ****     // Configura o clock dos periféricos (pclk) de acordo com o clock do processador (cclk)
+  80:../cpu_init.c ****     VPBDIV=bus_freq; // Configura a frequência do barramento dos periféricos
+ 1895              		.loc 1 80 0
+ 1896 0090 0E32A0E3 		mov	r3, #-536870912
+ 1897 0094 7F3983E2 		add	r3, r3, #2080768
+ 1898 0098 013C83E2 		add	r3, r3, #256
+ 1899 009c 0120A0E3 		mov	r2, #1
+ 1900 00a0 002083E5 		str	r2, [r3, #0]
+  81:../cpu_init.c **** 
+  82:../cpu_init.c ****     // maps interrupt vector to flash
+  83:../cpu_init.c ****     MEMMAP = MEMMAP_USER_FLASH_MODE;
+ 1901              		.loc 1 83 0
+ 1902 00a4 0E32A0E3 		mov	r3, #-536870912
+ 1903 00a8 7F3983E2 		add	r3, r3, #2080768
+ 1904 00ac 403083E2 		add	r3, r3, #64
+ 1905 00b0 0120A0E3 		mov	r2, #1
+ 1906 00b4 002083E5 		str	r2, [r3, #0]
+  84:../cpu_init.c **** 
+  85:../cpu_init.c ****     //  // provides extra safer initializations  (should not be necessary)
+  86:../cpu_init.c ****     //  VICIntSelect  =  0;             // Set all VIC interrupts to IRQ for now
+  87:../cpu_init.c ****     //  VICIntEnClr = 0xFFFFFFFF;     // Disable all interrupts
+  88:../cpu_init.c ****     //  VICSoftIntClr = 0xFFFFFFFF;   // Clear all software interrupts
+  89:../cpu_init.c ****     //  VICProtection = 0;              // VIC registers can be accessed in User or
+  90:../cpu_init.c ****     //									  // privileged mode
+  91:../cpu_init.c ****     //  VICVectAddr = 0;                // Clear interrupt
+  92:../cpu_init.c ****     //  VICDefVectAddr = 0;             // Clear address of the default ISR
+  93:../cpu_init.c **** 
+  94:../cpu_init.c **** }
+ 1907              		.loc 1 94 0
+ 1908 00b8 04D04BE2 		sub	sp, fp, #4
+ 1909 00bc 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1910 00c0 1EFF2FE1 		bx	lr
+ 1911              		.cfi_endproc
+ 1912              	.LFE0:
+ 1914              		.align	2
+ 1915              		.global	feed
+ 1917              	feed:
+ 1918              	.LFB1:
+  95:../cpu_init.c **** 
+  96:../cpu_init.c **** 
+  97:../cpu_init.c **** /***************************************************************************/
+  98:../cpu_init.c **** /*  Função para comando
+  99:../cpu_init.c ****  * o PLL a executar o último comando.
+ 100:../cpu_init.c ****  * O microcontrolador implementa isso como forma de segurança extra
+ 101:../cpu_init.c ****  * no caso de inadvertidamente o código alterar a configuração do PLL      */
+ 102:../cpu_init.c **** /***************************************************************************/
+ 103:../cpu_init.c **** 
+ 104:../cpu_init.c **** void feed(void)
+ 105:../cpu_init.c **** {
+ 1919              		.loc 1 105 0
+ 1920              		.cfi_startproc
+ 1921              		@ Function supports interworking.
+ 1922              		@ args = 0, pretend = 0, frame = 0
+ 1923              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1924              		@ link register save eliminated.
+ 1925 00c4 04B02DE5 		str	fp, [sp, #-4]!
+ 1926              	.LCFI2:
+ 1927              		.cfi_def_cfa_offset 4
+ 1928 00c8 00B08DE2 		add	fp, sp, #0
+ 1929              		.cfi_offset 11, -4
+ 1930              	.LCFI3:
+ 1931              		.cfi_def_cfa_register 11
+ 106:../cpu_init.c **** 	PLLFEED=0xAA; // olhar no datasheet
+ 1932              		.loc 1 106 0
+ 1933 00cc 0E32A0E3 		mov	r3, #-536870912
+ 1934 00d0 7F3983E2 		add	r3, r3, #2080768
+ 1935 00d4 8C3083E2 		add	r3, r3, #140
+ 1936 00d8 AA20A0E3 		mov	r2, #170
+ 1937 00dc 002083E5 		str	r2, [r3, #0]
+ 107:../cpu_init.c **** 	PLLFEED=0x55;
+ 1938              		.loc 1 107 0
+ 1939 00e0 0E32A0E3 		mov	r3, #-536870912
+ 1940 00e4 7F3983E2 		add	r3, r3, #2080768
+ 1941 00e8 8C3083E2 		add	r3, r3, #140
+ 1942 00ec 5520A0E3 		mov	r2, #85
+ 1943 00f0 002083E5 		str	r2, [r3, #0]
+ 108:../cpu_init.c **** }
+ 1944              		.loc 1 108 0
+ 1945 00f4 00D08BE2 		add	sp, fp, #0
+ 1946 00f8 0008BDE8 		ldmfd	sp!, {fp}
+ 1947 00fc 1EFF2FE1 		bx	lr
+ 1948              		.cfi_endproc
+ 1949              	.LFE1:
+ 1951              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 cpu_init.c
+C:\Users\Daniel\AppData\Local\Temp\ccZf5Xq5.s:1832   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccZf5Xq5.s:1835   .text:00000000 cpu_init
+C:\Users\Daniel\AppData\Local\Temp\ccZf5Xq5.s:1917   .text:000000c4 feed
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

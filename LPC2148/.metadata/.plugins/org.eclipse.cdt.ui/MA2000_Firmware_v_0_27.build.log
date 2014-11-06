@@ -1,0 +1,10 @@
+
+**** Build of configuration Debug for project MA2000_Firmware_v_0_27 ****
+
+make all 
+Invoking: ARM Yagarto Windows GNU Print Size
+arm-none-eabi-size  --format=berkeley -x MA2000_Firmware_v_0_27.elf
+   text	   data	    bss	    dec	    hex	filename
+ 0x24c8	    0x0	 0x1530	  14840	   39f8	MA2000_Firmware_v_0_27.elf
+Finished building: MA2000_Firmware_v_0_27.siz
+ 

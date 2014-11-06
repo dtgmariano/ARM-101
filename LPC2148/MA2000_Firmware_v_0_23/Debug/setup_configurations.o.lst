@@ -1,0 +1,59 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"setup_configurations.c"
+  21              	.Ltext0:
+  22              		.file 1 "../setup_configurations.c"
+ 611              		.align	2
+ 612              		.global	Config1
+ 614              	Config1:
+ 615              	.LFB0:
+   1:../setup_configurations.c **** /*
+   2:../setup_configurations.c ****  * setup_configurations.c
+   3:../setup_configurations.c ****  *
+   4:../setup_configurations.c ****  *  Created on: 04/12/2012
+   5:../setup_configurations.c ****  *      Author: Daniel
+   6:../setup_configurations.c ****  */
+   7:../setup_configurations.c **** #include "pwm_module.h"
+   8:../setup_configurations.c **** 
+   9:../setup_configurations.c **** void Config1()
+  10:../setup_configurations.c **** {
+ 616              		.loc 1 10 0
+ 617              		.cfi_startproc
+ 618              		@ Function supports interworking.
+ 619              		@ args = 0, pretend = 0, frame = 0
+ 620              		@ frame_needed = 1, uses_anonymous_args = 0
+ 621 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 622              	.LCFI0:
+ 623              		.cfi_def_cfa_offset 8
+ 624 0004 04B08DE2 		add	fp, sp, #4
+ 625              		.cfi_offset 14, -4
+ 626              		.cfi_offset 11, -8
+ 627              	.LCFI1:
+ 628              		.cfi_def_cfa 11, 4
+  11:../setup_configurations.c **** 	setPWM1Function();
+ 629              		.loc 1 11 0
+ 630 0008 FEFFFFEB 		bl	setPWM1Function
+  12:../setup_configurations.c **** }
+ 631              		.loc 1 12 0
+ 632 000c 04D04BE2 		sub	sp, fp, #4
+ 633 0010 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 634 0014 1EFF2FE1 		bx	lr
+ 635              		.cfi_endproc
+ 636              	.LFE0:
+ 638              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 setup_configurations.c
+C:\Users\Daniel\AppData\Local\Temp\ccOC5fsG.s:611    .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccOC5fsG.s:614    .text:00000000 Config1
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+setPWM1Function

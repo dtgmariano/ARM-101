@@ -1,0 +1,343 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"timer.c"
+  21              	.Ltext0:
+  22              		.file 1 "../Modules/timer.c"
+ 2807              		.align	2
+ 2808              		.global	T0isr
+ 2810              	T0isr:
+ 2811              	.LFB0:
+   1:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+   2:../Modules/timer.c **** /*                                       HEADER                                       */
+   3:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+   4:../Modules/timer.c **** 
+   5:../Modules/timer.c **** /***************************************************************************************
+   6:../Modules/timer.c ****  *Project Name: MA2000 Firmware
+   7:../Modules/timer.c ****  *	   Version: 0.24
+   8:../Modules/timer.c ****  *   File Name: timer.c
+   9:../Modules/timer.c ****  *  Created on: 19/03/2013
+  10:../Modules/timer.c ****  *      Author: Daniel Teodoro G. Mariano
+  11:../Modules/timer.c ****  *       Email: dtgm@uol.com.br
+  12:../Modules/timer.c ****  * Description: Timer module configuration for the LPC2148 based on the
+  13:../Modules/timer.c ****  * 				MA2000 project
+  14:../Modules/timer.c **** ***************************************************************************************/
+  15:../Modules/timer.c **** 
+  16:../Modules/timer.c **** 
+  17:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+  18:../Modules/timer.c **** /*                                      INCLUDES                                      */
+  19:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+  20:../Modules/timer.c **** #include "Modules/timer.h"
+  21:../Modules/timer.c **** #include "stdio.h"
+  22:../Modules/timer.c **** 
+  23:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+  24:../Modules/timer.c **** /*                               DEFINITIONS AND MACROS                               */
+  25:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+  26:../Modules/timer.c **** #define PRESCALEREGISTER 30
+  27:../Modules/timer.c **** // Tempo = (PCLK/T0PR) * T0MR0, Ex: Tempo = (60 MHz/30) * 1000000 / 2 (Dois ciclos) = 1s
+  28:../Modules/timer.c **** //#define MATCHREGISTER0 4
+  29:../Modules/timer.c **** #define MATCHREGISTER0 8
+  30:../Modules/timer.c **** #define MATCHREGISTER1 4
+  31:../Modules/timer.c **** 
+  32:../Modules/timer.c **** 
+  33:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+  34:../Modules/timer.c **** /*                                     PROTOTYPES                                     */
+  35:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+  36:../Modules/timer.c **** void T0isr(void) __attribute__ ((interrupt("IRQ")));//atribui a funcao a interrução IRQ
+  37:../Modules/timer.c **** void (*mptrfunc)(void);
+  38:../Modules/timer.c **** 
+  39:../Modules/timer.c **** 
+  40:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+  41:../Modules/timer.c **** /*                              FUNCTION  IMPLEMENTATION                              */
+  42:../Modules/timer.c **** /*------------------------------------------------------------------------------------*/
+  43:../Modules/timer.c **** 
+  44:../Modules/timer.c **** /***************************************************************************************
+  45:../Modules/timer.c ****  * Function Name: T0isr(void)
+  46:../Modules/timer.c ****  * 		 	Type: Void
+  47:../Modules/timer.c ****  *	  Parameters: None
+  48:../Modules/timer.c ****  * 		 Returns: None
+  49:../Modules/timer.c ****  * 	 Description:
+  50:../Modules/timer.c **** ***************************************************************************************/
+  51:../Modules/timer.c **** 
+  52:../Modules/timer.c **** void T0isr(void)
+  53:../Modules/timer.c **** {
+ 2812              		.loc 1 53 0
+ 2813              		.cfi_startproc
+ 2814              		@ Interrupt Service Routine.
+ 2815              		@ args = 0, pretend = 0, frame = 0
+ 2816              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2817 0000 04E04EE2 		sub	lr, lr, #4
+ 2818 0004 1F582DE9 		stmfd	sp!, {r0, r1, r2, r3, r4, fp, ip, lr}
+ 2819              	.LCFI0:
+ 2820              		.cfi_def_cfa_offset 32
+ 2821 0008 1CB08DE2 		add	fp, sp, #28
+ 2822              		.cfi_offset 14, -4
+ 2823              		.cfi_offset 12, -8
+ 2824              		.cfi_offset 11, -12
+ 2825              		.cfi_offset 4, -16
+ 2826              		.cfi_offset 3, -20
+ 2827              		.cfi_offset 2, -24
+ 2828              		.cfi_offset 1, -28
+ 2829              		.cfi_offset 0, -32
+ 2830              	.LCFI1:
+ 2831              		.cfi_def_cfa 11, 4
+  54:../Modules/timer.c **** 	if(mptrfunc != NULL)
+ 2832              		.loc 1 54 0
+ 2833 000c 4C309FE5 		ldr	r3, .L3
+ 2834 0010 003093E5 		ldr	r3, [r3, #0]
+ 2835 0014 000053E3 		cmp	r3, #0
+ 2836 0018 0300000A 		beq	.L2
+  55:../Modules/timer.c **** 	{
+  56:../Modules/timer.c **** 		mptrfunc();
+ 2837              		.loc 1 56 0
+ 2838 001c 3C309FE5 		ldr	r3, .L3
+ 2839 0020 003093E5 		ldr	r3, [r3, #0]
+ 2840 0024 0FE0A0E1 		mov	lr, pc
+ 2841 0028 13FF2FE1 		bx	r3
+ 2842              	.L2:
+  57:../Modules/timer.c **** 	}
+  58:../Modules/timer.c **** 
+  59:../Modules/timer.c **** 	T0IR 		|= 0x00000001;			//Clear match 0 interrupt
+ 2843              		.loc 1 59 0
+ 2844 002c 0E32A0E3 		mov	r3, #-536870912
+ 2845 0030 013983E2 		add	r3, r3, #16384
+ 2846 0034 0E22A0E3 		mov	r2, #-536870912
+ 2847 0038 012982E2 		add	r2, r2, #16384
+ 2848 003c 002092E5 		ldr	r2, [r2, #0]
+ 2849 0040 012082E3 		orr	r2, r2, #1
+ 2850 0044 002083E5 		str	r2, [r3, #0]
+  60:../Modules/timer.c **** 	VICVectAddr  = 0x00000000;			//Dummy write to signal end of interrupt
+ 2851              		.loc 1 60 0
+ 2852 0048 0030A0E3 		mov	r3, #0
+ 2853 004c FD3E43E2 		sub	r3, r3, #4048
+ 2854 0050 0020A0E3 		mov	r2, #0
+ 2855 0054 002083E5 		str	r2, [r3, #0]
+  61:../Modules/timer.c **** }
+ 2856              		.loc 1 61 0
+ 2857 0058 1CD04BE2 		sub	sp, fp, #28
+ 2858 005c 1F98FDE8 		ldmfd	sp!, {r0, r1, r2, r3, r4, fp, ip, pc}^
+ 2859              	.L4:
+ 2860              		.align	2
+ 2861              	.L3:
+ 2862 0060 00000000 		.word	mptrfunc
+ 2863              		.cfi_endproc
+ 2864              	.LFE0:
+ 2866              		.align	2
+ 2867              		.global	Timer_Init
+ 2869              	Timer_Init:
+ 2870              	.LFB1:
+  62:../Modules/timer.c **** 
+  63:../Modules/timer.c **** /***************************************************************************************
+  64:../Modules/timer.c ****  * Function Name: Timer_Init(void)
+  65:../Modules/timer.c ****  * 		 	Type: Void
+  66:../Modules/timer.c ****  *	  Parameters: None
+  67:../Modules/timer.c ****  * 		 Returns: None
+  68:../Modules/timer.c ****  * 	 Description: Initiate Timer Module
+  69:../Modules/timer.c **** ***************************************************************************************/
+  70:../Modules/timer.c **** void Timer_Init(void)
+  71:../Modules/timer.c **** {
+ 2871              		.loc 1 71 0
+ 2872              		.cfi_startproc
+ 2873              		@ Function supports interworking.
+ 2874              		@ args = 0, pretend = 0, frame = 0
+ 2875              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2876              		@ link register save eliminated.
+ 2877 0064 04B02DE5 		str	fp, [sp, #-4]!
+ 2878              	.LCFI2:
+ 2879              		.cfi_def_cfa_offset 4
+ 2880 0068 00B08DE2 		add	fp, sp, #0
+ 2881              		.cfi_offset 11, -4
+ 2882              	.LCFI3:
+ 2883              		.cfi_def_cfa_register 11
+  72:../Modules/timer.c **** 	T0PR = PRESCALEREGISTER; //incrementa o contador, quando o contador prescale atinge o valor de PR.
+ 2884              		.loc 1 72 0
+ 2885 006c 0139A0E3 		mov	r3, #16384
+ 2886 0070 CE3283E2 		add	r3, r3, #-536870900
+ 2887 0074 1E20A0E3 		mov	r2, #30
+ 2888 0078 002083E5 		str	r2, [r3, #0]
+  73:../Modules/timer.c **** 
+  74:../Modules/timer.c **** 	T0TCR = 0x00000002;	    //desabilita o contador e reseta o
+ 2889              		.loc 1 74 0
+ 2890 007c 0139A0E3 		mov	r3, #16384
+ 2891 0080 4E3283E2 		add	r3, r3, #-536870908
+ 2892 0084 0220A0E3 		mov	r2, #2
+ 2893 0088 002083E5 		str	r2, [r3, #0]
+  75:../Modules/timer.c **** 	T0MCR = 0x00000003;	    //On match reset the counter and generate an interrupt
+ 2894              		.loc 1 75 0
+ 2895 008c 0E32A0E3 		mov	r3, #-536870912
+ 2896 0090 013983E2 		add	r3, r3, #16384
+ 2897 0094 143083E2 		add	r3, r3, #20
+ 2898 0098 0320A0E3 		mov	r2, #3
+ 2899 009c 002083E5 		str	r2, [r3, #0]
+  76:../Modules/timer.c **** 	T0MR0 = MATCHREGISTER0;  // T0MR0 = Match Register 0,
+ 2900              		.loc 1 76 0
+ 2901 00a0 0E32A0E3 		mov	r3, #-536870912
+ 2902 00a4 013983E2 		add	r3, r3, #16384
+ 2903 00a8 183083E2 		add	r3, r3, #24
+ 2904 00ac 0820A0E3 		mov	r2, #8
+ 2905 00b0 002083E5 		str	r2, [r3, #0]
+  77:../Modules/timer.c **** 						    // Tempo = (CLOCK dos periféricos (PCLK) / Prescaler (T0PR)) *  Match Register (T0MR0)
+  78:../Modules/timer.c **** 
+  79:../Modules/timer.c **** 	//T0MR1 = 0x00000000;		// Set duty cycle to zero
+  80:../Modules/timer.c **** 	T0MR1 = MATCHREGISTER1;
+ 2906              		.loc 1 80 0
+ 2907 00b4 0E32A0E3 		mov	r3, #-536870912
+ 2908 00b8 013983E2 		add	r3, r3, #16384
+ 2909 00bc 1C3083E2 		add	r3, r3, #28
+ 2910 00c0 0420A0E3 		mov	r2, #4
+ 2911 00c4 002083E5 		str	r2, [r3, #0]
+  81:../Modules/timer.c **** //	T0TCR = 0x00000001;		//enable timer
+  82:../Modules/timer.c **** 
+  83:../Modules/timer.c **** 	VICVectAddr4 = (unsigned)T0isr;		//Set the timer ISR vector address
+ 2912              		.loc 1 83 0
+ 2913 00c8 0030A0E3 		mov	r3, #0
+ 2914 00cc EF3E43E2 		sub	r3, r3, #3824
+ 2915 00d0 38209FE5 		ldr	r2, .L6
+ 2916 00d4 002083E5 		str	r2, [r3, #0]
+  84:../Modules/timer.c **** 	VICVectCntl4 = 0x00000024;			//Set channel
+ 2917              		.loc 1 84 0
+ 2918 00d8 0030A0E3 		mov	r3, #0
+ 2919 00dc DF3E43E2 		sub	r3, r3, #3568
+ 2920 00e0 2420A0E3 		mov	r2, #36
+ 2921 00e4 002083E5 		str	r2, [r3, #0]
+  85:../Modules/timer.c **** 	VICIntSelect &= ~(1<<4);			//seleciona a se a interrupção sera FIQ ou IRQ para o timmer0
+ 2922              		.loc 1 85 0
+ 2923 00e8 FF3EE0E3 		mvn	r3, #4080
+ 2924 00ec 033043E2 		sub	r3, r3, #3
+ 2925 00f0 FF2EE0E3 		mvn	r2, #4080
+ 2926 00f4 032042E2 		sub	r2, r2, #3
+ 2927 00f8 002092E5 		ldr	r2, [r2, #0]
+ 2928 00fc 1020C2E3 		bic	r2, r2, #16
+ 2929 0100 002083E5 		str	r2, [r3, #0]
+  86:../Modules/timer.c **** 	//VICIntEnable |= 0x00000010;			//habilita a interrupção de timer 0
+  87:../Modules/timer.c **** }
+ 2930              		.loc 1 87 0
+ 2931 0104 00D08BE2 		add	sp, fp, #0
+ 2932 0108 0008BDE8 		ldmfd	sp!, {fp}
+ 2933 010c 1EFF2FE1 		bx	lr
+ 2934              	.L7:
+ 2935              		.align	2
+ 2936              	.L6:
+ 2937 0110 00000000 		.word	T0isr
+ 2938              		.cfi_endproc
+ 2939              	.LFE1:
+ 2941              		.align	2
+ 2942              		.global	Timer_RegisterCallback
+ 2944              	Timer_RegisterCallback:
+ 2945              	.LFB2:
+  88:../Modules/timer.c **** 
+  89:../Modules/timer.c **** /***************************************************************************************
+  90:../Modules/timer.c ****  * Function Name: Timer_RegisterCallback(void)
+  91:../Modules/timer.c ****  * 		 	Type: Void
+  92:../Modules/timer.c ****  *	  Parameters: A pointer of a function
+  93:../Modules/timer.c ****  * 		 Returns: Void
+  94:../Modules/timer.c ****  * 	 Description: Initiate Timer Module
+  95:../Modules/timer.c **** ***************************************************************************************/
+  96:../Modules/timer.c **** void Timer_RegisterCallback(void (*ptrfunc)(void))
+  97:../Modules/timer.c **** {
+ 2946              		.loc 1 97 0
+ 2947              		.cfi_startproc
+ 2948              		@ Function supports interworking.
+ 2949              		@ args = 0, pretend = 0, frame = 8
+ 2950              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2951              		@ link register save eliminated.
+ 2952 0114 04B02DE5 		str	fp, [sp, #-4]!
+ 2953              	.LCFI4:
+ 2954              		.cfi_def_cfa_offset 4
+ 2955 0118 00B08DE2 		add	fp, sp, #0
+ 2956              		.cfi_offset 11, -4
+ 2957              	.LCFI5:
+ 2958              		.cfi_def_cfa_register 11
+ 2959 011c 0CD04DE2 		sub	sp, sp, #12
+ 2960 0120 08000BE5 		str	r0, [fp, #-8]
+  98:../Modules/timer.c **** 	//VICVectaddr4 = ptrfunc;
+  99:../Modules/timer.c **** 	mptrfunc = ptrfunc;
+ 2961              		.loc 1 99 0
+ 2962 0124 10309FE5 		ldr	r3, .L9
+ 2963 0128 08201BE5 		ldr	r2, [fp, #-8]
+ 2964 012c 002083E5 		str	r2, [r3, #0]
+ 100:../Modules/timer.c **** }
+ 2965              		.loc 1 100 0
+ 2966 0130 00D08BE2 		add	sp, fp, #0
+ 2967 0134 0008BDE8 		ldmfd	sp!, {fp}
+ 2968 0138 1EFF2FE1 		bx	lr
+ 2969              	.L10:
+ 2970              		.align	2
+ 2971              	.L9:
+ 2972 013c 00000000 		.word	mptrfunc
+ 2973              		.cfi_endproc
+ 2974              	.LFE2:
+ 2976              		.align	2
+ 2977              		.global	Timer_Enable
+ 2979              	Timer_Enable:
+ 2980              	.LFB3:
+ 101:../Modules/timer.c **** 
+ 102:../Modules/timer.c **** /***************************************************************************************
+ 103:../Modules/timer.c ****  * Function Name: Timer_Enable(void)
+ 104:../Modules/timer.c ****  * 		 	Type: Void
+ 105:../Modules/timer.c ****  *	  Parameters: None
+ 106:../Modules/timer.c ****  * 		 Returns: None
+ 107:../Modules/timer.c ****  * 	 Description: Initiate Timer Module
+ 108:../Modules/timer.c **** ***************************************************************************************/
+ 109:../Modules/timer.c **** void Timer_Enable()
+ 110:../Modules/timer.c **** {
+ 2981              		.loc 1 110 0
+ 2982              		.cfi_startproc
+ 2983              		@ Function supports interworking.
+ 2984              		@ args = 0, pretend = 0, frame = 0
+ 2985              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2986              		@ link register save eliminated.
+ 2987 0140 04B02DE5 		str	fp, [sp, #-4]!
+ 2988              	.LCFI6:
+ 2989              		.cfi_def_cfa_offset 4
+ 2990 0144 00B08DE2 		add	fp, sp, #0
+ 2991              		.cfi_offset 11, -4
+ 2992              	.LCFI7:
+ 2993              		.cfi_def_cfa_register 11
+ 111:../Modules/timer.c **** 	VICIntEnable |= 0x00000010;
+ 2994              		.loc 1 111 0
+ 2995 0148 0030A0E3 		mov	r3, #0
+ 2996 014c FF3E43E2 		sub	r3, r3, #4080
+ 2997 0150 0020A0E3 		mov	r2, #0
+ 2998 0154 FF2E42E2 		sub	r2, r2, #4080
+ 2999 0158 002092E5 		ldr	r2, [r2, #0]
+ 3000 015c 102082E3 		orr	r2, r2, #16
+ 3001 0160 002083E5 		str	r2, [r3, #0]
+ 112:../Modules/timer.c **** 	T0TCR = 0x00000001;
+ 3002              		.loc 1 112 0
+ 3003 0164 0139A0E3 		mov	r3, #16384
+ 3004 0168 4E3283E2 		add	r3, r3, #-536870908
+ 3005 016c 0120A0E3 		mov	r2, #1
+ 3006 0170 002083E5 		str	r2, [r3, #0]
+ 113:../Modules/timer.c **** }
+ 3007              		.loc 1 113 0
+ 3008 0174 00D08BE2 		add	sp, fp, #0
+ 3009 0178 0008BDE8 		ldmfd	sp!, {fp}
+ 3010 017c 1EFF2FE1 		bx	lr
+ 3011              		.cfi_endproc
+ 3012              	.LFE3:
+ 3014              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 timer.c
+                            *COM*:00000004 mptrfunc
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2807   .text:00000000 $a
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2810   .text:00000000 T0isr
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2862   .text:00000060 $d
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2866   .text:00000064 $a
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2869   .text:00000064 Timer_Init
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2937   .text:00000110 $d
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2941   .text:00000114 $a
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2944   .text:00000114 Timer_RegisterCallback
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2972   .text:0000013c $d
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2976   .text:00000140 $a
+C:\Users\Daniel\AppData\Local\Temp\ccKL5kQj.s:2979   .text:00000140 Timer_Enable
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

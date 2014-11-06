@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;MA2000_Firmware_v_0_26/MA2000&apos;" deleteContents="false" description="Delete resource &apos;MA2000_Firmware_v_0_26/MA2000&apos;" element1="/MA2000_Firmware_v_0_26/MA2000" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1365302041552"/>&#x0A;<refactoring comment="Delete 2 resources" deleteContents="false" description="Delete 2 resources" element1="/MA2000_Firmware_v_0_26/Modules/functions.c" element2="/MA2000_Firmware_v_0_26/Modules/functions.h" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="2" stamp="1365302052560"/>
+</session>

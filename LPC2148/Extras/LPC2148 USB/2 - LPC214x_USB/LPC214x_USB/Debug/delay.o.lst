@@ -1,0 +1,164 @@
+   1              		.cpu arm7tdmi-s
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"delay.c"
+  21              	.Ltext0:
+  22              		.file 1 "../delay.c"
+ 965              		.align	2
+ 966              		.global	delay_ms
+ 968              	delay_ms:
+ 969              	.LFB0:
+   1:../delay.c    **** /*
+   2:../delay.c    ****  * delay.c
+   3:../delay.c    ****  *
+   4:../delay.c    ****  *  Created on: 12/03/2010
+   5:../delay.c    ****  *      Author: Fábio
+   6:../delay.c    ****  */
+   7:../delay.c    **** 
+   8:../delay.c    **** //---------------------------------------------------------------------
+   9:../delay.c    **** void delay_ms(int x)
+  10:../delay.c    **** {
+ 970              		.loc 1 10 0
+ 971              		.cfi_startproc
+ 972              		@ Function supports interworking.
+ 973              		@ args = 0, pretend = 0, frame = 16
+ 974              		@ frame_needed = 1, uses_anonymous_args = 0
+ 975              		@ link register save eliminated.
+ 976 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 977              	.LCFI0:
+ 978              		.cfi_def_cfa_offset 4
+ 979 0004 00B08DE2 		add	fp, sp, #0
+ 980              		.cfi_offset 11, -4
+ 981              	.LCFI1:
+ 982              		.cfi_def_cfa_register 11
+ 983 0008 14D04DE2 		sub	sp, sp, #20
+ 984 000c 10000BE5 		str	r0, [fp, #-16]
+  11:../delay.c    **** 	int a,b;
+  12:../delay.c    **** 	for(a=0;a<x;a++){
+ 985              		.loc 1 12 0
+ 986 0010 0030A0E3 		mov	r3, #0
+ 987 0014 08300BE5 		str	r3, [fp, #-8]
+ 988 0018 0C0000EA 		b	.L2
+ 989              	.L5:
+  13:../delay.c    **** 		for(b=0;b<3500;b++);
+ 990              		.loc 1 13 0
+ 991 001c 0030A0E3 		mov	r3, #0
+ 992 0020 0C300BE5 		str	r3, [fp, #-12]
+ 993 0024 020000EA 		b	.L3
+ 994              	.L4:
+ 995              		.loc 1 13 0 is_stmt 0 discriminator 2
+ 996 0028 0C301BE5 		ldr	r3, [fp, #-12]
+ 997 002c 013083E2 		add	r3, r3, #1
+ 998 0030 0C300BE5 		str	r3, [fp, #-12]
+ 999              	.L3:
+ 1000              		.loc 1 13 0 discriminator 1
+ 1001 0034 0C201BE5 		ldr	r2, [fp, #-12]
+ 1002 0038 2C309FE5 		ldr	r3, .L6
+ 1003 003c 030052E1 		cmp	r2, r3
+ 1004 0040 F8FFFFDA 		ble	.L4
+  12:../delay.c    **** 	for(a=0;a<x;a++){
+ 1005              		.loc 1 12 0 is_stmt 1
+ 1006 0044 08301BE5 		ldr	r3, [fp, #-8]
+ 1007 0048 013083E2 		add	r3, r3, #1
+ 1008 004c 08300BE5 		str	r3, [fp, #-8]
+ 1009              	.L2:
+  12:../delay.c    **** 	for(a=0;a<x;a++){
+ 1010              		.loc 1 12 0 is_stmt 0 discriminator 1
+ 1011 0050 08201BE5 		ldr	r2, [fp, #-8]
+ 1012 0054 10301BE5 		ldr	r3, [fp, #-16]
+ 1013 0058 030052E1 		cmp	r2, r3
+ 1014 005c EEFFFFBA 		blt	.L5
+  14:../delay.c    **** 	}
+  15:../delay.c    **** }
+ 1015              		.loc 1 15 0 is_stmt 1
+ 1016 0060 00D08BE2 		add	sp, fp, #0
+ 1017 0064 04B09DE4 		ldmfd	sp!, {fp}
+ 1018 0068 1EFF2FE1 		bx	lr
+ 1019              	.L7:
+ 1020              		.align	2
+ 1021              	.L6:
+ 1022 006c AB0D0000 		.word	3499
+ 1023              		.cfi_endproc
+ 1024              	.LFE0:
+ 1026              		.align	2
+ 1027              		.global	delay_us
+ 1029              	delay_us:
+ 1030              	.LFB1:
+  16:../delay.c    **** //---------------------------------------------------------------------
+  17:../delay.c    **** void delay_us(int x)
+  18:../delay.c    **** {
+ 1031              		.loc 1 18 0
+ 1032              		.cfi_startproc
+ 1033              		@ Function supports interworking.
+ 1034              		@ args = 0, pretend = 0, frame = 16
+ 1035              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1036              		@ link register save eliminated.
+ 1037 0070 04B02DE5 		str	fp, [sp, #-4]!
+ 1038              	.LCFI2:
+ 1039              		.cfi_def_cfa_offset 4
+ 1040 0074 00B08DE2 		add	fp, sp, #0
+ 1041              		.cfi_offset 11, -4
+ 1042              	.LCFI3:
+ 1043              		.cfi_def_cfa_register 11
+ 1044 0078 14D04DE2 		sub	sp, sp, #20
+ 1045 007c 10000BE5 		str	r0, [fp, #-16]
+  19:../delay.c    **** 	int a,b;
+  20:../delay.c    **** 	for(a=0;a<x;a++){
+ 1046              		.loc 1 20 0
+ 1047 0080 0030A0E3 		mov	r3, #0
+ 1048 0084 08300BE5 		str	r3, [fp, #-8]
+ 1049 0088 0B0000EA 		b	.L9
+ 1050              	.L12:
+  21:../delay.c    **** 		for(b=0;b<4;b++);
+ 1051              		.loc 1 21 0
+ 1052 008c 0030A0E3 		mov	r3, #0
+ 1053 0090 0C300BE5 		str	r3, [fp, #-12]
+ 1054 0094 020000EA 		b	.L10
+ 1055              	.L11:
+ 1056              		.loc 1 21 0 is_stmt 0 discriminator 2
+ 1057 0098 0C301BE5 		ldr	r3, [fp, #-12]
+ 1058 009c 013083E2 		add	r3, r3, #1
+ 1059 00a0 0C300BE5 		str	r3, [fp, #-12]
+ 1060              	.L10:
+ 1061              		.loc 1 21 0 discriminator 1
+ 1062 00a4 0C301BE5 		ldr	r3, [fp, #-12]
+ 1063 00a8 030053E3 		cmp	r3, #3
+ 1064 00ac F9FFFFDA 		ble	.L11
+  20:../delay.c    **** 	for(a=0;a<x;a++){
+ 1065              		.loc 1 20 0 is_stmt 1
+ 1066 00b0 08301BE5 		ldr	r3, [fp, #-8]
+ 1067 00b4 013083E2 		add	r3, r3, #1
+ 1068 00b8 08300BE5 		str	r3, [fp, #-8]
+ 1069              	.L9:
+  20:../delay.c    **** 	for(a=0;a<x;a++){
+ 1070              		.loc 1 20 0 is_stmt 0 discriminator 1
+ 1071 00bc 08201BE5 		ldr	r2, [fp, #-8]
+ 1072 00c0 10301BE5 		ldr	r3, [fp, #-16]
+ 1073 00c4 030052E1 		cmp	r2, r3
+ 1074 00c8 EFFFFFBA 		blt	.L12
+  22:../delay.c    **** }
+  23:../delay.c    **** }
+ 1075              		.loc 1 23 0 is_stmt 1
+ 1076 00cc 00D08BE2 		add	sp, fp, #0
+ 1077 00d0 04B09DE4 		ldmfd	sp!, {fp}
+ 1078 00d4 1EFF2FE1 		bx	lr
+ 1079              		.cfi_endproc
+ 1080              	.LFE1:
+ 1082              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 delay.c
+C:\Users\FELIPE\AppData\Local\Temp\ccPwtBbx.s:965    .text:00000000 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccPwtBbx.s:968    .text:00000000 delay_ms
+C:\Users\FELIPE\AppData\Local\Temp\ccPwtBbx.s:1022   .text:0000006c $d
+C:\Users\FELIPE\AppData\Local\Temp\ccPwtBbx.s:1026   .text:00000070 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccPwtBbx.s:1029   .text:00000070 delay_us
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

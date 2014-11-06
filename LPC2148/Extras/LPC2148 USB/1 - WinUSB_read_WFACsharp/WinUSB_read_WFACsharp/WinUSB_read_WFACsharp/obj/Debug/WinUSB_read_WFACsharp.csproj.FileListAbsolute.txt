@@ -1,0 +1,10 @@
+C:\Users\FELIPE\AppData\Local\Temporary Projects\WinUSB_read_WFACsharp\bin\Debug\WinUSB_read_WFACsharp.exe
+C:\Users\FELIPE\AppData\Local\Temporary Projects\WinUSB_read_WFACsharp\bin\Debug\WinUSB_read_WFACsharp.pdb
+C:\Users\FELIPE\AppData\Local\Temporary Projects\WinUSB_read_WFACsharp\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\FELIPE\AppData\Local\Temporary Projects\WinUSB_read_WFACsharp\obj\Debug\WinUSB_read_WFACsharp.Properties.Resources.resources
+C:\Users\FELIPE\AppData\Local\Temporary Projects\WinUSB_read_WFACsharp\obj\Debug\WinUSB_read_WFACsharp.csproj.GenerateResource.Cache
+C:\Users\FELIPE\AppData\Local\Temporary Projects\WinUSB_read_WFACsharp\obj\Debug\WinUSB_read_WFACsharp.exe
+C:\Users\FELIPE\AppData\Local\Temporary Projects\WinUSB_read_WFACsharp\obj\Debug\WinUSB_read_WFACsharp.pdb
+C:\Users\FELIPE\AppData\Local\Temporary Projects\WinUSB_read_WFACsharp\obj\Debug\WinUSB_read_WFACsharp.Form1.resources
+C:\Dropbox\Faculdade\LPC2148 USB\1 - WinUSB_read_WFACsharp\WinUSB_read_WFACsharp\WinUSB_read_WFACsharp\obj\Debug\WinUSB_read_WFACsharp.exe
+C:\Dropbox\Faculdade\LPC2148 USB\1 - WinUSB_read_WFACsharp\WinUSB_read_WFACsharp\WinUSB_read_WFACsharp\obj\Debug\WinUSB_read_WFACsharp.pdb

@@ -1,0 +1,590 @@
+   1              		.cpu arm7tdmi-s
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"lcd.c"
+  21              	.Ltext0:
+  22              		.file 1 "../lcd.c"
+ 2190              		.align	2
+ 2191              		.global	lcd_line1
+ 2193              	lcd_line1:
+ 2194              	.LFB0:
+   1:../lcd.c      **** /*
+   2:../lcd.c      ****  * lcd.c
+   3:../lcd.c      ****  *
+   4:../lcd.c      ****  *  Created on: 12/03/2010
+   5:../lcd.c      ****  *      Author: Fábio
+   6:../lcd.c      ****  */
+   7:../lcd.c      **** 
+   8:../lcd.c      **** /*------------------------------------------------------------------------------------*/
+   9:../lcd.c      **** /*                                      INCLUDES                                      */
+  10:../lcd.c      **** /*------------------------------------------------------------------------------------*/
+  11:../lcd.c      **** #include "LPC214x.h"
+  12:../lcd.c      **** #include "delay.h"
+  13:../lcd.c      **** #include "lcd.h"
+  14:../lcd.c      **** /*------------------------------------------------------------------------------------*/
+  15:../lcd.c      **** /*                               DEFINITIONS AND MACROS                               */
+  16:../lcd.c      **** /*------------------------------------------------------------------------------------*/
+  17:../lcd.c      **** 
+  18:../lcd.c      **** #define E			(1<<28)	 //!< LCD enable pin connected to LPC2148 pin P0.28
+  19:../lcd.c      **** #define RS			(1<<22)	 //!< LCD register select (Command/Data) pin  connected to LPC2148 pin P0.22
+  20:../lcd.c      **** #define RW			(1<<29)	 //!< LCD Read/Write pin connected to LPC2148 pin P0.29 (0 = write to LCD modu
+  21:../lcd.c      **** #define busyflag	(1<<13)	 //!< Does busy checking. This way is better and usually faster. Pin conne
+  22:../lcd.c      **** 
+  23:../lcd.c      **** #define DB4		(1<<10)		//!< LCD LSB data pin connected to LPC2148 pin P0.10	35
+  24:../lcd.c      **** #define DB5		(1<<11)		//!< LCD data pin connected to LPC2148 pin P0.11	37
+  25:../lcd.c      **** #define DB6		(1<<12)		//!< LCD data pin connected to LPC2148 pin P0.12	38
+  26:../lcd.c      **** #define DB7		(1<<13)		//!< LCD MSB data pin connected to LPC2148 pin P0.13	39
+  27:../lcd.c      **** #define LUZ	    (1<<21)		//!< LCD backlight enable pin connected to LPC2148 pin P0.21	1
+  28:../lcd.c      **** 
+  29:../lcd.c      **** #define LCD_DATA_MASK		(DB4 | DB5 | DB6 | DB7)
+  30:../lcd.c      **** #define LCD_CONTROL_MASK 	(E | RW | RS)
+  31:../lcd.c      **** 
+  32:../lcd.c      **** /*------------------------------------------------------------------------------------*/
+  33:../lcd.c      **** /*                          TYPEDEFS, CLASSES AND STRUCTURES                          */
+  34:../lcd.c      **** /*------------------------------------------------------------------------------------*/
+  35:../lcd.c      **** 
+  36:../lcd.c      **** /*------------------------------------------------------------------------------------*/
+  37:../lcd.c      **** /*                                     PROTOTYPES                                     */
+  38:../lcd.c      **** /*------------------------------------------------------------------------------------*/
+  39:../lcd.c      **** static void strobe_e(void);
+  40:../lcd.c      **** 
+  41:../lcd.c      **** //---------------------------------------------------------------------
+  42:../lcd.c      **** void lcd_line1(void)
+  43:../lcd.c      **** {
+ 2195              		.loc 1 43 0
+ 2196              		.cfi_startproc
+ 2197              		@ Function supports interworking.
+ 2198              		@ args = 0, pretend = 0, frame = 0
+ 2199              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2200 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 2201              	.LCFI0:
+ 2202              		.cfi_def_cfa_offset 8
+ 2203 0004 04B08DE2 		add	fp, sp, #4
+ 2204              		.cfi_offset 14, -4
+ 2205              		.cfi_offset 11, -8
+ 2206              	.LCFI1:
+ 2207              		.cfi_def_cfa 11, 4
+  44:../lcd.c      **** 	lcd_cmd(0x80);
+ 2208              		.loc 1 44 0
+ 2209 0008 8000A0E3 		mov	r0, #128
+ 2210 000c FEFFFFEB 		bl	lcd_cmd
+  45:../lcd.c      **** }
+ 2211              		.loc 1 45 0
+ 2212 0010 04D04BE2 		sub	sp, fp, #4
+ 2213 0014 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2214 0018 1EFF2FE1 		bx	lr
+ 2215              		.cfi_endproc
+ 2216              	.LFE0:
+ 2218              		.align	2
+ 2219              		.global	lcd_string
+ 2221              	lcd_string:
+ 2222              	.LFB1:
+  46:../lcd.c      **** 
+  47:../lcd.c      **** /**
+  48:../lcd.c      ****  * Writes a string to LCD
+  49:../lcd.c      ****  * @param[in] senpoint a pointer to a null-terminated string
+  50:../lcd.c      ****  */
+  51:../lcd.c      **** void lcd_string(char *senpoint)
+  52:../lcd.c      **** {
+ 2223              		.loc 1 52 0
+ 2224              		.cfi_startproc
+ 2225              		@ Function supports interworking.
+ 2226              		@ args = 0, pretend = 0, frame = 8
+ 2227              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2228 001c 00482DE9 		stmfd	sp!, {fp, lr}
+ 2229              	.LCFI2:
+ 2230              		.cfi_def_cfa_offset 8
+ 2231 0020 04B08DE2 		add	fp, sp, #4
+ 2232              		.cfi_offset 14, -4
+ 2233              		.cfi_offset 11, -8
+ 2234              	.LCFI3:
+ 2235              		.cfi_def_cfa 11, 4
+ 2236 0024 08D04DE2 		sub	sp, sp, #8
+ 2237 0028 08000BE5 		str	r0, [fp, #-8]
+  53:../lcd.c      **** 	while(*senpoint != '\0')
+ 2238              		.loc 1 53 0
+ 2239 002c 060000EA 		b	.L3
+ 2240              	.L4:
+  54:../lcd.c      **** 	{
+  55:../lcd.c      **** 		lcd_char(*senpoint);
+ 2241              		.loc 1 55 0
+ 2242 0030 08301BE5 		ldr	r3, [fp, #-8]
+ 2243 0034 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2244 0038 0300A0E1 		mov	r0, r3
+ 2245 003c FEFFFFEB 		bl	lcd_char
+  56:../lcd.c      **** 		senpoint++;
+ 2246              		.loc 1 56 0
+ 2247 0040 08301BE5 		ldr	r3, [fp, #-8]
+ 2248 0044 013083E2 		add	r3, r3, #1
+ 2249 0048 08300BE5 		str	r3, [fp, #-8]
+ 2250              	.L3:
+  53:../lcd.c      **** 	while(*senpoint != '\0')
+ 2251              		.loc 1 53 0 discriminator 1
+ 2252 004c 08301BE5 		ldr	r3, [fp, #-8]
+ 2253 0050 0030D3E5 		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 2254 0054 000053E3 		cmp	r3, #0
+ 2255 0058 F4FFFF1A 		bne	.L4
+  57:../lcd.c      **** 	}
+  58:../lcd.c      **** }
+ 2256              		.loc 1 58 0
+ 2257 005c 04D04BE2 		sub	sp, fp, #4
+ 2258 0060 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2259 0064 1EFF2FE1 		bx	lr
+ 2260              		.cfi_endproc
+ 2261              	.LFE1:
+ 2263              		.align	2
+ 2264              		.global	lcd_line2
+ 2266              	lcd_line2:
+ 2267              	.LFB2:
+  59:../lcd.c      **** 
+  60:../lcd.c      **** //---------------------------------------------------------------------
+  61:../lcd.c      **** void lcd_line2(void)
+  62:../lcd.c      **** {
+ 2268              		.loc 1 62 0
+ 2269              		.cfi_startproc
+ 2270              		@ Function supports interworking.
+ 2271              		@ args = 0, pretend = 0, frame = 0
+ 2272              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2273 0068 00482DE9 		stmfd	sp!, {fp, lr}
+ 2274              	.LCFI4:
+ 2275              		.cfi_def_cfa_offset 8
+ 2276 006c 04B08DE2 		add	fp, sp, #4
+ 2277              		.cfi_offset 14, -4
+ 2278              		.cfi_offset 11, -8
+ 2279              	.LCFI5:
+ 2280              		.cfi_def_cfa 11, 4
+  63:../lcd.c      **** 	lcd_cmd(0xc0);
+ 2281              		.loc 1 63 0
+ 2282 0070 C000A0E3 		mov	r0, #192
+ 2283 0074 FEFFFFEB 		bl	lcd_cmd
+  64:../lcd.c      **** }
+ 2284              		.loc 1 64 0
+ 2285 0078 04D04BE2 		sub	sp, fp, #4
+ 2286 007c 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2287 0080 1EFF2FE1 		bx	lr
+ 2288              		.cfi_endproc
+ 2289              	.LFE2:
+ 2291              		.align	2
+ 2292              		.global	lcd_cmd
+ 2294              	lcd_cmd:
+ 2295              	.LFB3:
+  65:../lcd.c      **** 
+  66:../lcd.c      **** //---------------------------------------------------------------------
+  67:../lcd.c      **** void lcd_cmd(unsigned char letter)
+  68:../lcd.c      **** {
+ 2296              		.loc 1 68 0
+ 2297              		.cfi_startproc
+ 2298              		@ Function supports interworking.
+ 2299              		@ args = 0, pretend = 0, frame = 16
+ 2300              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2301 0084 00482DE9 		stmfd	sp!, {fp, lr}
+ 2302              	.LCFI6:
+ 2303              		.cfi_def_cfa_offset 8
+ 2304 0088 04B08DE2 		add	fp, sp, #4
+ 2305              		.cfi_offset 14, -4
+ 2306              		.cfi_offset 11, -8
+ 2307              	.LCFI7:
+ 2308              		.cfi_def_cfa 11, 4
+ 2309 008c 10D04DE2 		sub	sp, sp, #16
+ 2310 0090 0030A0E1 		mov	r3, r0
+ 2311 0094 0D304BE5 		strb	r3, [fp, #-13]
+  69:../lcd.c      **** 	unsigned char temp;
+  70:../lcd.c      **** 	temp=letter;
+ 2312              		.loc 1 70 0
+ 2313 0098 0D305BE5 		ldrb	r3, [fp, #-13]
+ 2314 009c 05304BE5 		strb	r3, [fp, #-5]
+  71:../lcd.c      **** 	temp=temp>>4;
+ 2315              		.loc 1 71 0
+ 2316 00a0 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 2317 00a4 2332A0E1 		mov	r3, r3, lsr #4
+ 2318 00a8 05304BE5 		strb	r3, [fp, #-5]
+  72:../lcd.c      **** 	lcd_nybble(temp,0);
+ 2319              		.loc 1 72 0
+ 2320 00ac 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 2321 00b0 0300A0E1 		mov	r0, r3
+ 2322 00b4 0010A0E3 		mov	r1, #0
+ 2323 00b8 FEFFFFEB 		bl	lcd_nybble
+  73:../lcd.c      **** 	temp=letter;
+ 2324              		.loc 1 73 0
+ 2325 00bc 0D305BE5 		ldrb	r3, [fp, #-13]
+ 2326 00c0 05304BE5 		strb	r3, [fp, #-5]
+  74:../lcd.c      **** 	temp=temp&0x0f;
+ 2327              		.loc 1 74 0
+ 2328 00c4 05305BE5 		ldrb	r3, [fp, #-5]
+ 2329 00c8 0F3003E2 		and	r3, r3, #15
+ 2330 00cc 05304BE5 		strb	r3, [fp, #-5]
+  75:../lcd.c      **** 	lcd_nybble(temp,0);
+ 2331              		.loc 1 75 0
+ 2332 00d0 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 2333 00d4 0300A0E1 		mov	r0, r3
+ 2334 00d8 0010A0E3 		mov	r1, #0
+ 2335 00dc FEFFFFEB 		bl	lcd_nybble
+  76:../lcd.c      **** }
+ 2336              		.loc 1 76 0
+ 2337 00e0 04D04BE2 		sub	sp, fp, #4
+ 2338 00e4 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2339 00e8 1EFF2FE1 		bx	lr
+ 2340              		.cfi_endproc
+ 2341              	.LFE3:
+ 2343              		.align	2
+ 2344              		.global	lcd_char
+ 2346              	lcd_char:
+ 2347              	.LFB4:
+  77:../lcd.c      **** 
+  78:../lcd.c      **** //---------------------------------------------------------------------
+  79:../lcd.c      **** void lcd_char(unsigned char letter)
+  80:../lcd.c      **** {
+ 2348              		.loc 1 80 0
+ 2349              		.cfi_startproc
+ 2350              		@ Function supports interworking.
+ 2351              		@ args = 0, pretend = 0, frame = 16
+ 2352              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2353 00ec 00482DE9 		stmfd	sp!, {fp, lr}
+ 2354              	.LCFI8:
+ 2355              		.cfi_def_cfa_offset 8
+ 2356 00f0 04B08DE2 		add	fp, sp, #4
+ 2357              		.cfi_offset 14, -4
+ 2358              		.cfi_offset 11, -8
+ 2359              	.LCFI9:
+ 2360              		.cfi_def_cfa 11, 4
+ 2361 00f4 10D04DE2 		sub	sp, sp, #16
+ 2362 00f8 0030A0E1 		mov	r3, r0
+ 2363 00fc 0D304BE5 		strb	r3, [fp, #-13]
+  81:../lcd.c      **** 	unsigned char temp;
+  82:../lcd.c      **** 	temp=letter;
+ 2364              		.loc 1 82 0
+ 2365 0100 0D305BE5 		ldrb	r3, [fp, #-13]
+ 2366 0104 05304BE5 		strb	r3, [fp, #-5]
+  83:../lcd.c      **** 	temp=temp>>4;
+ 2367              		.loc 1 83 0
+ 2368 0108 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 2369 010c 2332A0E1 		mov	r3, r3, lsr #4
+ 2370 0110 05304BE5 		strb	r3, [fp, #-5]
+  84:../lcd.c      **** 	lcd_nybble(temp,1);
+ 2371              		.loc 1 84 0
+ 2372 0114 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 2373 0118 0300A0E1 		mov	r0, r3
+ 2374 011c 0110A0E3 		mov	r1, #1
+ 2375 0120 FEFFFFEB 		bl	lcd_nybble
+  85:../lcd.c      **** 	temp=letter;
+ 2376              		.loc 1 85 0
+ 2377 0124 0D305BE5 		ldrb	r3, [fp, #-13]
+ 2378 0128 05304BE5 		strb	r3, [fp, #-5]
+  86:../lcd.c      **** 	temp=temp&0x0f;
+ 2379              		.loc 1 86 0
+ 2380 012c 05305BE5 		ldrb	r3, [fp, #-5]
+ 2381 0130 0F3003E2 		and	r3, r3, #15
+ 2382 0134 05304BE5 		strb	r3, [fp, #-5]
+  87:../lcd.c      **** 	lcd_nybble(temp,1);
+ 2383              		.loc 1 87 0
+ 2384 0138 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 2385 013c 0300A0E1 		mov	r0, r3
+ 2386 0140 0110A0E3 		mov	r1, #1
+ 2387 0144 FEFFFFEB 		bl	lcd_nybble
+  88:../lcd.c      **** }
+ 2388              		.loc 1 88 0
+ 2389 0148 04D04BE2 		sub	sp, fp, #4
+ 2390 014c 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2391 0150 1EFF2FE1 		bx	lr
+ 2392              		.cfi_endproc
+ 2393              	.LFE4:
+ 2395              		.align	2
+ 2396              		.global	lcd_nybble
+ 2398              	lcd_nybble:
+ 2399              	.LFB5:
+  89:../lcd.c      **** 
+  90:../lcd.c      **** //---------------------------------------------------------------------
+  91:../lcd.c      **** void lcd_nybble(unsigned char nyb,unsigned char rs)
+  92:../lcd.c      **** {
+ 2400              		.loc 1 92 0
+ 2401              		.cfi_startproc
+ 2402              		@ Function supports interworking.
+ 2403              		@ args = 0, pretend = 0, frame = 16
+ 2404              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2405 0154 00482DE9 		stmfd	sp!, {fp, lr}
+ 2406              	.LCFI10:
+ 2407              		.cfi_def_cfa_offset 8
+ 2408 0158 04B08DE2 		add	fp, sp, #4
+ 2409              		.cfi_offset 14, -4
+ 2410              		.cfi_offset 11, -8
+ 2411              	.LCFI11:
+ 2412              		.cfi_def_cfa 11, 4
+ 2413 015c 10D04DE2 		sub	sp, sp, #16
+ 2414 0160 0020A0E1 		mov	r2, r0
+ 2415 0164 0130A0E1 		mov	r3, r1
+ 2416 0168 0D204BE5 		strb	r2, [fp, #-13]
+ 2417 016c 0E304BE5 		strb	r3, [fp, #-14]
+  93:../lcd.c      **** 	int dat;
+  94:../lcd.c      **** 	if(rs)
+ 2418              		.loc 1 94 0
+ 2419 0170 0E305BE5 		ldrb	r3, [fp, #-14]	@ zero_extendqisi2
+ 2420 0174 000053E3 		cmp	r3, #0
+ 2421 0178 0500000A 		beq	.L9
+  95:../lcd.c      **** 		IOSET0 |= RS;	//set RS pin
+ 2422              		.loc 1 95 0
+ 2423 017c 64309FE5 		ldr	r3, .L11
+ 2424 0180 60209FE5 		ldr	r2, .L11
+ 2425 0184 002092E5 		ldr	r2, [r2, #0]
+ 2426 0188 012582E3 		orr	r2, r2, #4194304
+ 2427 018c 002083E5 		str	r2, [r3, #0]
+ 2428 0190 040000EA 		b	.L10
+ 2429              	.L9:
+  96:../lcd.c      **** 	else
+  97:../lcd.c      **** 		IOCLR0 |= RS;	//clear RS pin
+ 2430              		.loc 1 97 0
+ 2431 0194 50309FE5 		ldr	r3, .L11+4
+ 2432 0198 4C209FE5 		ldr	r2, .L11+4
+ 2433 019c 002092E5 		ldr	r2, [r2, #0]
+ 2434 01a0 012582E3 		orr	r2, r2, #4194304
+ 2435 01a4 002083E5 		str	r2, [r3, #0]
+ 2436              	.L10:
+  98:../lcd.c      **** 	dat = nyb;			//get the nybble in an int
+ 2437              		.loc 1 98 0
+ 2438 01a8 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2439 01ac 08300BE5 		str	r3, [fp, #-8]
+  99:../lcd.c      **** 	IOCLR0 = LCD_DATA_MASK;   //clear D4-D7
+ 2440              		.loc 1 99 0
+ 2441 01b0 34309FE5 		ldr	r3, .L11+4
+ 2442 01b4 0F2BA0E3 		mov	r2, #15360
+ 2443 01b8 002083E5 		str	r2, [r3, #0]
+ 100:../lcd.c      **** 	IOPIN0 |= dat<<10;	//OR the bits in there
+ 2444              		.loc 1 100 0
+ 2445 01bc 2C309FE5 		ldr	r3, .L11+8
+ 2446 01c0 28209FE5 		ldr	r2, .L11+8
+ 2447 01c4 001092E5 		ldr	r1, [r2, #0]
+ 2448 01c8 08201BE5 		ldr	r2, [fp, #-8]
+ 2449 01cc 0225A0E1 		mov	r2, r2, asl #10
+ 2450 01d0 022081E1 		orr	r2, r1, r2
+ 2451 01d4 002083E5 		str	r2, [r3, #0]
+ 101:../lcd.c      **** 	strobe_e();			//latch data to LCD
+ 2452              		.loc 1 101 0
+ 2453 01d8 430000EB 		bl	strobe_e
+ 102:../lcd.c      **** }
+ 2454              		.loc 1 102 0
+ 2455 01dc 04D04BE2 		sub	sp, fp, #4
+ 2456 01e0 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2457 01e4 1EFF2FE1 		bx	lr
+ 2458              	.L12:
+ 2459              		.align	2
+ 2460              	.L11:
+ 2461 01e8 048002E0 		.word	-536707068
+ 2462 01ec 0C8002E0 		.word	-536707060
+ 2463 01f0 008002E0 		.word	-536707072
+ 2464              		.cfi_endproc
+ 2465              	.LFE5:
+ 2467              		.align	2
+ 2468              		.global	Inicializar_LCD
+ 2470              	Inicializar_LCD:
+ 2471              	.LFB6:
+ 103:../lcd.c      **** 
+ 104:../lcd.c      **** //---------------------------------------------------------------------
+ 105:../lcd.c      **** void Inicializar_LCD(void)
+ 106:../lcd.c      **** {
+ 2472              		.loc 1 106 0
+ 2473              		.cfi_startproc
+ 2474              		@ Function supports interworking.
+ 2475              		@ args = 0, pretend = 0, frame = 0
+ 2476              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2477 01f4 00482DE9 		stmfd	sp!, {fp, lr}
+ 2478              	.LCFI12:
+ 2479              		.cfi_def_cfa_offset 8
+ 2480 01f8 04B08DE2 		add	fp, sp, #4
+ 2481              		.cfi_offset 14, -4
+ 2482              		.cfi_offset 11, -8
+ 2483              	.LCFI13:
+ 2484              		.cfi_def_cfa 11, 4
+ 107:../lcd.c      **** 	IODIR0 |= LCD_DATA_MASK|LCD_CONTROL_MASK|LUZ;  //Configura E, RS, RW, D7, D6, D5 e D4 como saída
+ 2485              		.loc 1 107 0
+ 2486 01fc D4209FE5 		ldr	r2, .L14
+ 2487 0200 D0309FE5 		ldr	r3, .L14
+ 2488 0204 001093E5 		ldr	r1, [r3, #0]
+ 2489 0208 CC309FE5 		ldr	r3, .L14+4
+ 2490 020c 033081E1 		orr	r3, r1, r3
+ 2491 0210 003082E5 		str	r3, [r2, #0]
+ 108:../lcd.c      **** 	IOCLR0 = LCD_DATA_MASK|LCD_CONTROL_MASK;  //Configura E, RS, RW, D7, D6, D5 e D4 como saída
+ 2492              		.loc 1 108 0
+ 2493 0214 C4309FE5 		ldr	r3, .L14+8
+ 2494 0218 C4209FE5 		ldr	r2, .L14+12
+ 2495 021c 002083E5 		str	r2, [r3, #0]
+ 109:../lcd.c      **** 
+ 110:../lcd.c      **** 	delay_ms(500);		 //settle time delay
+ 2496              		.loc 1 110 0
+ 2497 0220 7D0FA0E3 		mov	r0, #500
+ 2498 0224 FEFFFFEB 		bl	delay_ms
+ 111:../lcd.c      **** 	lcd_nybble(0x03,0);	 //reset LCD
+ 2499              		.loc 1 111 0
+ 2500 0228 0300A0E3 		mov	r0, #3
+ 2501 022c 0010A0E3 		mov	r1, #0
+ 2502 0230 FEFFFFEB 		bl	lcd_nybble
+ 112:../lcd.c      **** 	delay_ms(5);
+ 2503              		.loc 1 112 0
+ 2504 0234 0500A0E3 		mov	r0, #5
+ 2505 0238 FEFFFFEB 		bl	delay_ms
+ 113:../lcd.c      **** 	strobe_e();
+ 2506              		.loc 1 113 0
+ 2507 023c 2A0000EB 		bl	strobe_e
+ 114:../lcd.c      **** 	delay_us(160);
+ 2508              		.loc 1 114 0
+ 2509 0240 A000A0E3 		mov	r0, #160
+ 2510 0244 FEFFFFEB 		bl	delay_us
+ 115:../lcd.c      **** 	strobe_e();
+ 2511              		.loc 1 115 0
+ 2512 0248 270000EB 		bl	strobe_e
+ 116:../lcd.c      **** 	delay_us(160);
+ 2513              		.loc 1 116 0
+ 2514 024c A000A0E3 		mov	r0, #160
+ 2515 0250 FEFFFFEB 		bl	delay_us
+ 117:../lcd.c      **** 	lcd_nybble(0x02,0);
+ 2516              		.loc 1 117 0
+ 2517 0254 0200A0E3 		mov	r0, #2
+ 2518 0258 0010A0E3 		mov	r1, #0
+ 2519 025c FEFFFFEB 		bl	lcd_nybble
+ 118:../lcd.c      **** 	delay_us(160);
+ 2520              		.loc 1 118 0
+ 2521 0260 A000A0E3 		mov	r0, #160
+ 2522 0264 FEFFFFEB 		bl	delay_us
+ 119:../lcd.c      **** 	lcd_cmd(0x28);	//set 4-bit mode and 2 lines
+ 2523              		.loc 1 119 0
+ 2524 0268 2800A0E3 		mov	r0, #40
+ 2525 026c FEFFFFEB 		bl	lcd_cmd
+ 120:../lcd.c      **** 	delay_us(160);
+ 2526              		.loc 1 120 0
+ 2527 0270 A000A0E3 		mov	r0, #160
+ 2528 0274 FEFFFFEB 		bl	delay_us
+ 121:../lcd.c      **** 	lcd_cmd(0x10);	//cursor move & shift left
+ 2529              		.loc 1 121 0
+ 2530 0278 1000A0E3 		mov	r0, #16
+ 2531 027c FEFFFFEB 		bl	lcd_cmd
+ 122:../lcd.c      **** 	delay_us(160);
+ 2532              		.loc 1 122 0
+ 2533 0280 A000A0E3 		mov	r0, #160
+ 2534 0284 FEFFFFEB 		bl	delay_us
+ 123:../lcd.c      **** 	lcd_cmd(0x06);	//entry mode = increment
+ 2535              		.loc 1 123 0
+ 2536 0288 0600A0E3 		mov	r0, #6
+ 2537 028c FEFFFFEB 		bl	lcd_cmd
+ 124:../lcd.c      **** 	delay_us(160);
+ 2538              		.loc 1 124 0
+ 2539 0290 A000A0E3 		mov	r0, #160
+ 2540 0294 FEFFFFEB 		bl	delay_us
+ 125:../lcd.c      **** 	lcd_cmd(0x0e);	//display on - cursor blink on
+ 2541              		.loc 1 125 0
+ 2542 0298 0E00A0E3 		mov	r0, #14
+ 2543 029c FEFFFFEB 		bl	lcd_cmd
+ 126:../lcd.c      **** 	delay_us(160);
+ 2544              		.loc 1 126 0
+ 2545 02a0 A000A0E3 		mov	r0, #160
+ 2546 02a4 FEFFFFEB 		bl	delay_us
+ 127:../lcd.c      **** 	lcd_cmd(0x01);	//clear display
+ 2547              		.loc 1 127 0
+ 2548 02a8 0100A0E3 		mov	r0, #1
+ 2549 02ac FEFFFFEB 		bl	lcd_cmd
+ 128:../lcd.c      **** 	delay_ms(40);
+ 2550              		.loc 1 128 0
+ 2551 02b0 2800A0E3 		mov	r0, #40
+ 2552 02b4 FEFFFFEB 		bl	delay_ms
+ 129:../lcd.c      **** 	IOSET0 |= LUZ; 	// Liga a luz do display
+ 2553              		.loc 1 129 0
+ 2554 02b8 28309FE5 		ldr	r3, .L14+16
+ 2555 02bc 24209FE5 		ldr	r2, .L14+16
+ 2556 02c0 002092E5 		ldr	r2, [r2, #0]
+ 2557 02c4 022682E3 		orr	r2, r2, #2097152
+ 2558 02c8 002083E5 		str	r2, [r3, #0]
+ 130:../lcd.c      **** }
+ 2559              		.loc 1 130 0
+ 2560 02cc 04D04BE2 		sub	sp, fp, #4
+ 2561 02d0 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2562 02d4 1EFF2FE1 		bx	lr
+ 2563              	.L15:
+ 2564              		.align	2
+ 2565              	.L14:
+ 2566 02d8 088002E0 		.word	-536707064
+ 2567 02dc 003C6030 		.word	811613184
+ 2568 02e0 0C8002E0 		.word	-536707060
+ 2569 02e4 003C4030 		.word	809516032
+ 2570 02e8 048002E0 		.word	-536707068
+ 2571              		.cfi_endproc
+ 2572              	.LFE6:
+ 2574              		.align	2
+ 2576              	strobe_e:
+ 2577              	.LFB7:
+ 131:../lcd.c      **** //---------------------------------------------------------------------
+ 132:../lcd.c      **** 
+ 133:../lcd.c      **** static void strobe_e(void)
+ 134:../lcd.c      **** {
+ 2578              		.loc 1 134 0
+ 2579              		.cfi_startproc
+ 2580              		@ Function supports interworking.
+ 2581              		@ args = 0, pretend = 0, frame = 0
+ 2582              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2583 02ec 00482DE9 		stmfd	sp!, {fp, lr}
+ 2584              	.LCFI14:
+ 2585              		.cfi_def_cfa_offset 8
+ 2586 02f0 04B08DE2 		add	fp, sp, #4
+ 2587              		.cfi_offset 14, -4
+ 2588              		.cfi_offset 11, -8
+ 2589              	.LCFI15:
+ 2590              		.cfi_def_cfa 11, 4
+ 135:../lcd.c      **** 	IOSET0 |= E;
+ 2591              		.loc 1 135 0
+ 2592 02f4 3C309FE5 		ldr	r3, .L17
+ 2593 02f8 38209FE5 		ldr	r2, .L17
+ 2594 02fc 002092E5 		ldr	r2, [r2, #0]
+ 2595 0300 012282E3 		orr	r2, r2, #268435456
+ 2596 0304 002083E5 		str	r2, [r3, #0]
+ 136:../lcd.c      **** 	delay_us(1);
+ 2597              		.loc 1 136 0
+ 2598 0308 0100A0E3 		mov	r0, #1
+ 2599 030c FEFFFFEB 		bl	delay_us
+ 137:../lcd.c      **** 	IOCLR0 |= E;
+ 2600              		.loc 1 137 0
+ 2601 0310 24309FE5 		ldr	r3, .L17+4
+ 2602 0314 20209FE5 		ldr	r2, .L17+4
+ 2603 0318 002092E5 		ldr	r2, [r2, #0]
+ 2604 031c 012282E3 		orr	r2, r2, #268435456
+ 2605 0320 002083E5 		str	r2, [r3, #0]
+ 138:../lcd.c      **** 	delay_us(160);
+ 2606              		.loc 1 138 0
+ 2607 0324 A000A0E3 		mov	r0, #160
+ 2608 0328 FEFFFFEB 		bl	delay_us
+ 139:../lcd.c      **** }
+ 2609              		.loc 1 139 0
+ 2610 032c 04D04BE2 		sub	sp, fp, #4
+ 2611 0330 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 2612 0334 1EFF2FE1 		bx	lr
+ 2613              	.L18:
+ 2614              		.align	2
+ 2615              	.L17:
+ 2616 0338 048002E0 		.word	-536707068
+ 2617 033c 0C8002E0 		.word	-536707060
+ 2618              		.cfi_endproc
+ 2619              	.LFE7:
+ 2621              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 lcd.c
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2190   .text:00000000 $a
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2193   .text:00000000 lcd_line1
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2294   .text:00000084 lcd_cmd
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2221   .text:0000001c lcd_string
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2346   .text:000000ec lcd_char
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2266   .text:00000068 lcd_line2
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2398   .text:00000154 lcd_nybble
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2576   .text:000002ec strobe_e
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2461   .text:000001e8 $d
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2467   .text:000001f4 $a
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2470   .text:000001f4 Inicializar_LCD
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2566   .text:000002d8 $d
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2574   .text:000002ec $a
+C:\Users\FELIPE\AppData\Local\Temp\cc2Ub7v0.s:2616   .text:00000338 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+delay_ms
+delay_us

@@ -1,0 +1,370 @@
+   1              		.cpu arm7tdmi-s
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"startup.c"
+  21              	.Ltext0:
+  22              		.file 1 "../startup.c"
+ 994              		.align	2
+ 995              		.global	IRQ_Routine
+ 997              	IRQ_Routine:
+ 998              	.LFB0:
+   1:../startup.c  **** /*
+   2:../startup.c  **** 	LPCUSB, an USB device driver for LPC microcontrollers	
+   3:../startup.c  **** 	Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
+   4:../startup.c  **** 
+   5:../startup.c  **** 	Redistribution and use in source and binary forms, with or without
+   6:../startup.c  **** 	modification, are permitted provided that the following conditions are met:
+   7:../startup.c  **** 
+   8:../startup.c  **** 	1. Redistributions of source code must retain the above copyright
+   9:../startup.c  **** 	   notice, this list of conditions and the following disclaimer.
+  10:../startup.c  **** 	2. Redistributions in binary form must reproduce the above copyright
+  11:../startup.c  **** 	   notice, this list of conditions and the following disclaimer in the
+  12:../startup.c  **** 	   documentation and/or other materials provided with the distribution.
+  13:../startup.c  **** 	3. The name of the author may not be used to endorse or promote products
+  14:../startup.c  **** 	   derived from this software without specific prior written permission.
+  15:../startup.c  **** 
+  16:../startup.c  **** 	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+  17:../startup.c  **** 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  18:../startup.c  **** 	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+  19:../startup.c  **** 	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+  20:../startup.c  **** 	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+  21:../startup.c  **** 	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  22:../startup.c  **** 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  23:../startup.c  **** 	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  24:../startup.c  **** 	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+  25:../startup.c  **** 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  26:../startup.c  **** */
+  27:../startup.c  **** 
+  28:../startup.c  **** /*
+  29:../startup.c  **** 	Initialisation functions for exception handlers, PLL and MAM
+  30:../startup.c  **** 	
+  31:../startup.c  **** 	Partially copied from Jim Lynch's tutorial
+  32:../startup.c  **** */
+  33:../startup.c  **** 
+  34:../startup.c  **** /**********************************************************
+  35:../startup.c  ****                   Header files
+  36:../startup.c  ****  **********************************************************/
+  37:../startup.c  **** 
+  38:../startup.c  **** #include "startup.h"
+  39:../startup.c  **** 
+  40:../startup.c  **** 
+  41:../startup.c  **** #define MAMCR		*(volatile unsigned int *)0xE01FC000
+  42:../startup.c  **** #define MAMTIM		*(volatile unsigned int *)0xE01FC004
+  43:../startup.c  **** 
+  44:../startup.c  **** #define PLLCON		*(volatile unsigned int *)0xE01FC080
+  45:../startup.c  **** #define PLLCFG		*(volatile unsigned int *)0xE01FC084
+  46:../startup.c  **** #define PLLSTAT		*(volatile unsigned int *)0xE01FC088
+  47:../startup.c  **** #define PLLFEED		*(volatile unsigned int *)0xE01FC08C
+  48:../startup.c  **** 
+  49:../startup.c  **** #define VPBDIV		*(volatile unsigned int *)0xE01FC100
+  50:../startup.c  **** 
+  51:../startup.c  **** void IRQ_Routine (void)   __attribute__ ((interrupt("IRQ")));
+  52:../startup.c  **** void FIQ_Routine (void)   __attribute__ ((interrupt("FIQ")));
+  53:../startup.c  **** void SWI_Routine (void)   __attribute__ ((interrupt("SWI")));
+  54:../startup.c  **** void UNDEF_Routine (void) __attribute__ ((interrupt("UNDEF")));
+  55:../startup.c  **** 
+  56:../startup.c  **** 
+  57:../startup.c  **** /*  Stubs for various interrupts (may be replaced later)  */
+  58:../startup.c  **** /*  ----------------------------------------------------  */
+  59:../startup.c  **** 
+  60:../startup.c  **** void IRQ_Routine (void) {
+ 999              		.loc 1 60 0
+ 1000              		.cfi_startproc
+ 1001              		@ Interrupt Service Routine.
+ 1002              		@ args = 0, pretend = 0, frame = 0
+ 1003              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1004              		@ link register save eliminated.
+ 1005 0000 04B02DE5 		str	fp, [sp, #-4]!
+ 1006              	.LCFI0:
+ 1007              		.cfi_def_cfa_offset 4
+ 1008 0004 00B08DE2 		add	fp, sp, #0
+ 1009              		.cfi_offset 11, -4
+ 1010              	.LCFI1:
+ 1011              		.cfi_def_cfa_register 11
+ 1012              	.L2:
+  61:../startup.c  **** 	while (1) ;	
+ 1013              		.loc 1 61 0 discriminator 1
+ 1014 0008 FEFFFFEA 		b	.L2
+ 1015              		.cfi_endproc
+ 1016              	.LFE0:
+ 1018              		.align	2
+ 1019              		.global	FIQ_Routine
+ 1021              	FIQ_Routine:
+ 1022              	.LFB1:
+  62:../startup.c  **** }
+  63:../startup.c  **** 
+  64:../startup.c  **** void FIQ_Routine (void)  {
+ 1023              		.loc 1 64 0
+ 1024              		.cfi_startproc
+ 1025              		@ Fast Interrupt Service Routine.
+ 1026              		@ args = 0, pretend = 0, frame = 0
+ 1027              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1028              		@ link register save eliminated.
+ 1029 000c 04B04DE2 		sub	fp, sp, #4
+ 1030              	.LCFI2:
+ 1031              		.cfi_def_cfa 11, 4
+ 1032              	.L4:
+  65:../startup.c  **** 	while (1) ;	
+ 1033              		.loc 1 65 0 discriminator 1
+ 1034 0010 FEFFFFEA 		b	.L4
+ 1035              		.cfi_endproc
+ 1036              	.LFE1:
+ 1038              		.align	2
+ 1039              		.global	SWI_Routine
+ 1041              	SWI_Routine:
+ 1042              	.LFB2:
+  66:../startup.c  **** }
+  67:../startup.c  **** 
+  68:../startup.c  **** 
+  69:../startup.c  **** void SWI_Routine (void)  {
+ 1043              		.loc 1 69 0
+ 1044              		.cfi_startproc
+ 1045              		@ ARM Exception Handler.
+ 1046              		@ args = 0, pretend = 0, frame = 0
+ 1047              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1048              		@ link register save eliminated.
+ 1049 0014 04B02DE5 		str	fp, [sp, #-4]!
+ 1050              	.LCFI3:
+ 1051              		.cfi_def_cfa_offset 4
+ 1052 0018 00B08DE2 		add	fp, sp, #0
+ 1053              		.cfi_offset 11, -4
+ 1054              	.LCFI4:
+ 1055              		.cfi_def_cfa_register 11
+ 1056              	.L6:
+  70:../startup.c  **** 	while (1) ;	
+ 1057              		.loc 1 70 0 discriminator 1
+ 1058 001c FEFFFFEA 		b	.L6
+ 1059              		.cfi_endproc
+ 1060              	.LFE2:
+ 1062              		.align	2
+ 1063              		.global	UNDEF_Routine
+ 1065              	UNDEF_Routine:
+ 1066              	.LFB3:
+  71:../startup.c  **** }
+  72:../startup.c  **** 
+  73:../startup.c  **** 
+  74:../startup.c  **** void UNDEF_Routine (void) {
+ 1067              		.loc 1 74 0
+ 1068              		.cfi_startproc
+ 1069              		@ ARM Exception Handler.
+ 1070              		@ args = 0, pretend = 0, frame = 0
+ 1071              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1072              		@ link register save eliminated.
+ 1073 0020 04B02DE5 		str	fp, [sp, #-4]!
+ 1074              	.LCFI5:
+ 1075              		.cfi_def_cfa_offset 4
+ 1076 0024 00B08DE2 		add	fp, sp, #0
+ 1077              		.cfi_offset 11, -4
+ 1078              	.LCFI6:
+ 1079              		.cfi_def_cfa_register 11
+ 1080              	.L8:
+  75:../startup.c  **** 	while (1) ;	
+ 1081              		.loc 1 75 0 discriminator 1
+ 1082 0028 FEFFFFEA 		b	.L8
+ 1083              		.cfi_endproc
+ 1084              	.LFE3:
+ 1086              		.align	2
+ 1088              	feed:
+ 1089              	.LFB4:
+  76:../startup.c  **** }
+  77:../startup.c  **** 
+  78:../startup.c  **** 
+  79:../startup.c  **** /**********************************************************
+  80:../startup.c  ****                       Initialize
+  81:../startup.c  **** **********************************************************/
+  82:../startup.c  **** 
+  83:../startup.c  **** #define PLOCK 0x400
+  84:../startup.c  **** 
+  85:../startup.c  **** static void feed(void)
+  86:../startup.c  **** {
+ 1090              		.loc 1 86 0
+ 1091              		.cfi_startproc
+ 1092              		@ Function supports interworking.
+ 1093              		@ args = 0, pretend = 0, frame = 0
+ 1094              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1095              		@ link register save eliminated.
+ 1096 002c 04B02DE5 		str	fp, [sp, #-4]!
+ 1097              	.LCFI7:
+ 1098              		.cfi_def_cfa_offset 4
+ 1099 0030 00B08DE2 		add	fp, sp, #0
+ 1100              		.cfi_offset 11, -4
+ 1101              	.LCFI8:
+ 1102              		.cfi_def_cfa_register 11
+  87:../startup.c  **** 	PLLFEED = 0xAA;
+ 1103              		.loc 1 87 0
+ 1104 0034 1C309FE5 		ldr	r3, .L10
+ 1105 0038 AA20A0E3 		mov	r2, #170
+ 1106 003c 002083E5 		str	r2, [r3, #0]
+  88:../startup.c  **** 	PLLFEED = 0x55;
+ 1107              		.loc 1 88 0
+ 1108 0040 10309FE5 		ldr	r3, .L10
+ 1109 0044 5520A0E3 		mov	r2, #85
+ 1110 0048 002083E5 		str	r2, [r3, #0]
+  89:../startup.c  **** }
+ 1111              		.loc 1 89 0
+ 1112 004c 00D08BE2 		add	sp, fp, #0
+ 1113 0050 04B09DE4 		ldmfd	sp!, {fp}
+ 1114 0054 1EFF2FE1 		bx	lr
+ 1115              	.L11:
+ 1116              		.align	2
+ 1117              	.L10:
+ 1118 0058 8CC01FE0 		.word	-534790004
+ 1119              		.cfi_endproc
+ 1120              	.LFE4:
+ 1122              		.align	2
+ 1123              		.global	Initialize
+ 1125              	Initialize:
+ 1126              	.LFB5:
+  90:../startup.c  **** 
+  91:../startup.c  **** 
+  92:../startup.c  **** void Initialize(void)  
+  93:../startup.c  **** {
+ 1127              		.loc 1 93 0
+ 1128              		.cfi_startproc
+ 1129              		@ Function supports interworking.
+ 1130              		@ args = 0, pretend = 0, frame = 0
+ 1131              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1132 005c 00482DE9 		stmfd	sp!, {fp, lr}
+ 1133              	.LCFI9:
+ 1134              		.cfi_def_cfa_offset 8
+ 1135 0060 04B08DE2 		add	fp, sp, #4
+ 1136              		.cfi_offset 14, -4
+ 1137              		.cfi_offset 11, -8
+ 1138              	.LCFI10:
+ 1139              		.cfi_def_cfa 11, 4
+  94:../startup.c  **** 	
+  95:../startup.c  ****  
+  96:../startup.c  **** 	// 				Setting the Phased Lock Loop (PLL)
+  97:../startup.c  **** 	//               ----------------------------------
+  98:../startup.c  **** 	//
+  99:../startup.c  **** 	// Olimex LPC-P2148 has a 12.0000 mhz crystal
+ 100:../startup.c  **** 	//
+ 101:../startup.c  **** 	// We'd like the LPC2148 to run at 60 mhz (has to be an even multiple of crystal)
+ 102:../startup.c  **** 	// 
+ 103:../startup.c  **** 	// According to the Philips LPC2148 manual:   M = cclk / Fosc	where:	M    = PLL multiplier (bits 0
+ 104:../startup.c  **** 	//																		cclk = 60000000 hz
+ 105:../startup.c  **** 	//																		Fosc = 12000000 hz
+ 106:../startup.c  **** 	//
+ 107:../startup.c  **** 	// Solving:	M = 60000000 / 12000000 = 5           
+ 108:../startup.c  **** 	//
+ 109:../startup.c  **** 	//			Note: M - 1 must be entered into bits 0-4 of PLLCFG (assign 4 to these bits)
+ 110:../startup.c  **** 	//
+ 111:../startup.c  **** 	//
+ 112:../startup.c  **** 	// The Current Controlled Oscilator (CCO) must operate in the range 156 mhz to 320 mhz
+ 113:../startup.c  **** 	//
+ 114:../startup.c  **** 	// According to the Philips LPC2148 manual:	Fcco = cclk * 2 * P    where:	Fcco = CCO frequency 
+ 115:../startup.c  **** 	//																			cclk = 60000000 hz
+ 116:../startup.c  **** 	//																			P = PLL divisor (bits 5-6 of PLLCFG)
+ 117:../startup.c  **** 	//
+ 118:../startup.c  **** 	// Solving:	Fcco = 60000000 * 2 * P
+ 119:../startup.c  **** 	//			P = 2  (trial value)
+ 120:../startup.c  **** 	//			Fcco = 60000000 * 2 * 2
+ 121:../startup.c  **** 	//			Fcc0 = 240000000 hz    (good choice for P since it's within the 156 mhz to 320 mhz range)
+ 122:../startup.c  **** 	//
+ 123:../startup.c  **** 	// From Table 22 (page 34) of Philips LPC2148 manual    P = 2, PLLCFG bits 5-6 = 1  (assign 1 to t
+ 124:../startup.c  **** 	//
+ 125:../startup.c  **** 	// Finally:      PLLCFG = 0  01  00100  =  0x24
+ 126:../startup.c  **** 	//
+ 127:../startup.c  **** 	// Final note: to load PLLCFG register, we must use the 0xAA followed 0x55 write sequence to the P
+ 128:../startup.c  **** 	//             this is done in the short function feed() below
+ 129:../startup.c  **** 	//
+ 130:../startup.c  ****    
+ 131:../startup.c  **** 	// Setting Multiplier and Divider values
+ 132:../startup.c  ****   	PLLCFG = 0x24;
+ 1140              		.loc 1 132 0
+ 1141 0064 70309FE5 		ldr	r3, .L14
+ 1142 0068 2420A0E3 		mov	r2, #36
+ 1143 006c 002083E5 		str	r2, [r3, #0]
+ 133:../startup.c  ****   	feed();
+ 1144              		.loc 1 133 0
+ 1145 0070 EDFFFFEB 		bl	feed
+ 134:../startup.c  ****   
+ 135:../startup.c  **** 	// Enabling the PLL */	
+ 136:../startup.c  **** 	PLLCON = 0x1;
+ 1146              		.loc 1 136 0
+ 1147 0074 64309FE5 		ldr	r3, .L14+4
+ 1148 0078 0120A0E3 		mov	r2, #1
+ 1149 007c 002083E5 		str	r2, [r3, #0]
+ 137:../startup.c  **** 	feed();
+ 1150              		.loc 1 137 0
+ 1151 0080 E9FFFFEB 		bl	feed
+ 138:../startup.c  ****   
+ 139:../startup.c  **** 	// Wait for the PLL to lock to set frequency
+ 140:../startup.c  **** 	while(!(PLLSTAT & PLOCK)) ;
+ 1152              		.loc 1 140 0
+ 1153 0084 0000A0E1 		mov	r0, r0	@ nop
+ 1154              	.L13:
+ 1155              		.loc 1 140 0 is_stmt 0 discriminator 1
+ 1156 0088 54309FE5 		ldr	r3, .L14+8
+ 1157 008c 003093E5 		ldr	r3, [r3, #0]
+ 1158 0090 013B03E2 		and	r3, r3, #1024
+ 1159 0094 000053E3 		cmp	r3, #0
+ 1160 0098 FAFFFF0A 		beq	.L13
+ 141:../startup.c  ****   
+ 142:../startup.c  **** 	// Connect the PLL as the clock source
+ 143:../startup.c  **** 	PLLCON = 0x3;
+ 1161              		.loc 1 143 0 is_stmt 1
+ 1162 009c 3C309FE5 		ldr	r3, .L14+4
+ 1163 00a0 0320A0E3 		mov	r2, #3
+ 1164 00a4 002083E5 		str	r2, [r3, #0]
+ 144:../startup.c  **** 	feed();
+ 1165              		.loc 1 144 0
+ 1166 00a8 DFFFFFEB 		bl	feed
+ 145:../startup.c  ****   
+ 146:../startup.c  **** 	// Enabling MAM and setting number of clocks used for Flash memory fetch
+ 147:../startup.c  **** 	MAMTIM = 0x3;
+ 1167              		.loc 1 147 0
+ 1168 00ac 34309FE5 		ldr	r3, .L14+12
+ 1169 00b0 0320A0E3 		mov	r2, #3
+ 1170 00b4 002083E5 		str	r2, [r3, #0]
+ 148:../startup.c  **** 	MAMCR = 0x2;
+ 1171              		.loc 1 148 0
+ 1172 00b8 2C309FE5 		ldr	r3, .L14+16
+ 1173 00bc 0220A0E3 		mov	r2, #2
+ 1174 00c0 002083E5 		str	r2, [r3, #0]
+ 149:../startup.c  ****   
+ 150:../startup.c  **** 	// Setting peripheral Clock (pclk) to System Clock (cclk)
+ 151:../startup.c  **** 	VPBDIV = 0x1;
+ 1175              		.loc 1 151 0
+ 1176 00c4 24309FE5 		ldr	r3, .L14+20
+ 1177 00c8 0120A0E3 		mov	r2, #1
+ 1178 00cc 002083E5 		str	r2, [r3, #0]
+ 152:../startup.c  **** }
+ 1179              		.loc 1 152 0
+ 1180 00d0 04D04BE2 		sub	sp, fp, #4
+ 1181 00d4 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1182 00d8 1EFF2FE1 		bx	lr
+ 1183              	.L15:
+ 1184              		.align	2
+ 1185              	.L14:
+ 1186 00dc 84C01FE0 		.word	-534790012
+ 1187 00e0 80C01FE0 		.word	-534790016
+ 1188 00e4 88C01FE0 		.word	-534790008
+ 1189 00e8 04C01FE0 		.word	-534790140
+ 1190 00ec 00C01FE0 		.word	-534790144
+ 1191 00f0 00C11FE0 		.word	-534789888
+ 1192              		.cfi_endproc
+ 1193              	.LFE5:
+ 1195              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 startup.c
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:994    .text:00000000 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:997    .text:00000000 IRQ_Routine
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:1021   .text:0000000c FIQ_Routine
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:1041   .text:00000014 SWI_Routine
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:1065   .text:00000020 UNDEF_Routine
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:1088   .text:0000002c feed
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:1118   .text:00000058 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:1122   .text:0000005c $a
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:1125   .text:0000005c Initialize
+C:\Users\FELIPE\AppData\Local\Temp\ccYvbavv.s:1186   .text:000000dc $d
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

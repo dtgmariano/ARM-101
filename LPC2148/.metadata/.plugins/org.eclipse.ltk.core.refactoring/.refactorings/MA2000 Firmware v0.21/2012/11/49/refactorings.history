@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;MA2000 Firmware v0.21/Modules/pwm_module&apos; to &apos;pwm_module.c&apos;" description="Rename resource &apos;pwm_module&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Modules/pwm_module" name="pwm_module.c" stamp="1354308885880" updateReferences="true"/>
+</session>

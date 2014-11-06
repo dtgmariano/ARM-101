@@ -1,0 +1,594 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"pwm.c"
+  21              	.Ltext0:
+  22              		.file 1 "../Modules/pwm.c"
+ 1796              		.align	2
+ 1797              		.global	PWMInit
+ 1799              	PWMInit:
+ 1800              	.LFB0:
+   1:../Modules/pwm.c **** /*
+   2:../Modules/pwm.c ****  * pwm.c
+   3:../Modules/pwm.c ****  *
+   4:../Modules/pwm.c ****  *  Created on: 04/12/2012
+   5:../Modules/pwm.c ****  *      Author: Daniel
+   6:../Modules/pwm.c ****  */
+   7:../Modules/pwm.c **** 
+   8:../Modules/pwm.c **** #include "LPC214x.h"
+   9:../Modules/pwm.c **** #include "pwm.h"
+  10:../Modules/pwm.c **** 
+  11:../Modules/pwm.c **** #define PWMFREQUENCY 2500
+  12:../Modules/pwm.c **** #define CALCPWM (60000000/PWMFREQUENCY)
+  13:../Modules/pwm.c **** 
+  14:../Modules/pwm.c **** void PWMInit()
+  15:../Modules/pwm.c **** {
+ 1801              		.loc 1 15 0
+ 1802              		.cfi_startproc
+ 1803              		@ Function supports interworking.
+ 1804              		@ args = 0, pretend = 0, frame = 0
+ 1805              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1806 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 1807              	.LCFI0:
+ 1808              		.cfi_def_cfa_offset 8
+ 1809 0004 04B08DE2 		add	fp, sp, #4
+ 1810              		.cfi_offset 14, -4
+ 1811              		.cfi_offset 11, -8
+ 1812              	.LCFI1:
+ 1813              		.cfi_def_cfa 11, 4
+  16:../Modules/pwm.c **** 	//Setting PWM2 function: Sets P0.7 with value 10 for Bits 15 and 14 (PINSEL0)
+  17:../Modules/pwm.c **** 	//P0.7 -> EXT1-8 -> Pin 20
+  18:../Modules/pwm.c **** 	PINSEL0 &= ~(3 << 14);
+ 1814              		.loc 1 18 0
+ 1815 0008 0E32A0E3 		mov	r3, #-536870912
+ 1816 000c 0B3983E2 		add	r3, r3, #180224
+ 1817 0010 0E22A0E3 		mov	r2, #-536870912
+ 1818 0014 0B2982E2 		add	r2, r2, #180224
+ 1819 0018 002092E5 		ldr	r2, [r2, #0]
+ 1820 001c 0329C2E3 		bic	r2, r2, #49152
+ 1821 0020 002083E5 		str	r2, [r3, #0]
+  19:../Modules/pwm.c **** 	PINSEL0 |= (1 << 15);
+ 1822              		.loc 1 19 0
+ 1823 0024 0E32A0E3 		mov	r3, #-536870912
+ 1824 0028 0B3983E2 		add	r3, r3, #180224
+ 1825 002c 0E22A0E3 		mov	r2, #-536870912
+ 1826 0030 0B2982E2 		add	r2, r2, #180224
+ 1827 0034 002092E5 		ldr	r2, [r2, #0]
+ 1828 0038 022982E3 		orr	r2, r2, #32768
+ 1829 003c 002083E5 		str	r2, [r3, #0]
+  20:../Modules/pwm.c **** 
+  21:../Modules/pwm.c **** 	//Setting PWM4 function: Sets P0.8 with value 10 for Bits 17 and 16 (PINSEL0)
+  22:../Modules/pwm.c **** 	//P0.8 -> EXT1-9 -> Pin 17
+  23:../Modules/pwm.c **** 	PINSEL0 &= ~(3 << 16);
+ 1830              		.loc 1 23 0
+ 1831 0040 0E32A0E3 		mov	r3, #-536870912
+ 1832 0044 0B3983E2 		add	r3, r3, #180224
+ 1833 0048 0E22A0E3 		mov	r2, #-536870912
+ 1834 004c 0B2982E2 		add	r2, r2, #180224
+ 1835 0050 002092E5 		ldr	r2, [r2, #0]
+ 1836 0054 0328C2E3 		bic	r2, r2, #196608
+ 1837 0058 002083E5 		str	r2, [r3, #0]
+  24:../Modules/pwm.c **** 	PINSEL0 |= (1 << 17);
+ 1838              		.loc 1 24 0
+ 1839 005c 0E32A0E3 		mov	r3, #-536870912
+ 1840 0060 0B3983E2 		add	r3, r3, #180224
+ 1841 0064 0E22A0E3 		mov	r2, #-536870912
+ 1842 0068 0B2982E2 		add	r2, r2, #180224
+ 1843 006c 002092E5 		ldr	r2, [r2, #0]
+ 1844 0070 022882E3 		orr	r2, r2, #131072
+ 1845 0074 002083E5 		str	r2, [r3, #0]
+  25:../Modules/pwm.c **** 
+  26:../Modules/pwm.c **** 	//Setting PWM5 function: Sets P0.21 with value 01 for Bits 11 and 10 (PINSEL1)
+  27:../Modules/pwm.c **** 	//P0.21 -> EXT1-22 -> Pin 6
+  28:../Modules/pwm.c **** 	PINSEL1 &= ~(3 << 11);
+ 1846              		.loc 1 28 0
+ 1847 0078 4E32A0E3 		mov	r3, #-536870908
+ 1848 007c 0B3983E2 		add	r3, r3, #180224
+ 1849 0080 4E22A0E3 		mov	r2, #-536870908
+ 1850 0084 0B2982E2 		add	r2, r2, #180224
+ 1851 0088 002092E5 		ldr	r2, [r2, #0]
+ 1852 008c 062BC2E3 		bic	r2, r2, #6144
+ 1853 0090 002083E5 		str	r2, [r3, #0]
+  29:../Modules/pwm.c **** 	PINSEL1 |= (1 << 10);
+ 1854              		.loc 1 29 0
+ 1855 0094 4E32A0E3 		mov	r3, #-536870908
+ 1856 0098 0B3983E2 		add	r3, r3, #180224
+ 1857 009c 4E22A0E3 		mov	r2, #-536870908
+ 1858 00a0 0B2982E2 		add	r2, r2, #180224
+ 1859 00a4 002092E5 		ldr	r2, [r2, #0]
+ 1860 00a8 012B82E3 		orr	r2, r2, #1024
+ 1861 00ac 002083E5 		str	r2, [r3, #0]
+  30:../Modules/pwm.c **** 
+  31:../Modules/pwm.c **** 	//PWM Timer Control Register. The PWMTCR is used to control the Timer
+  32:../Modules/pwm.c **** 	//Counter functions. The Timer Counter can be disabled or reset through
+  33:../Modules/pwm.c **** 	//the PWMTCR.
+  34:../Modules/pwm.c **** 	PWMTCR = 0x02; // reset PWM
+ 1862              		.loc 1 34 0
+ 1863 00b0 4E32A0E3 		mov	r3, #-536870908
+ 1864 00b4 053983E2 		add	r3, r3, #81920
+ 1865 00b8 0220A0E3 		mov	r2, #2
+ 1866 00bc 002083E5 		str	r2, [r3, #0]
+  35:../Modules/pwm.c **** 
+  36:../Modules/pwm.c **** 	//PWMMR0 = 60000000/PWMFREQUENCY;
+  37:../Modules/pwm.c **** 	PWMMR0 = CALCPWM;
+ 1867              		.loc 1 37 0
+ 1868 00c0 0E32A0E3 		mov	r3, #-536870912
+ 1869 00c4 053983E2 		add	r3, r3, #81920
+ 1870 00c8 183083E2 		add	r3, r3, #24
+ 1871 00cc 5D2CA0E3 		mov	r2, #23808
+ 1872 00d0 C02082E2 		add	r2, r2, #192
+ 1873 00d4 002083E5 		str	r2, [r3, #0]
+  38:../Modules/pwm.c **** 
+  39:../Modules/pwm.c **** 	//PWM Prescale Register. The PWMTC is incremented every PWMPR+1
+  40:../Modules/pwm.c **** 	//cycles of PCLK.
+  41:../Modules/pwm.c **** 	PWMPR = 0; // Prescale unable
+ 1874              		.loc 1 41 0
+ 1875 00d8 CE32A0E3 		mov	r3, #-536870900
+ 1876 00dc 053983E2 		add	r3, r3, #81920
+ 1877 00e0 0020A0E3 		mov	r2, #0
+ 1878 00e4 002083E5 		str	r2, [r3, #0]
+  42:../Modules/pwm.c **** 
+  43:../Modules/pwm.c **** 	//PWM Control Register. Enables PWM outputs and selects PWM channel
+  44:../Modules/pwm.c **** 	//types as either single edge or double edge controlled.
+  45:../Modules/pwm.c **** 	PWMPCR &= ~((1 << 2) | (1 << 4) | (1 << 5));
+ 1879              		.loc 1 45 0
+ 1880 00e8 0E32A0E3 		mov	r3, #-536870912
+ 1881 00ec 053983E2 		add	r3, r3, #81920
+ 1882 00f0 4C3083E2 		add	r3, r3, #76
+ 1883 00f4 0E22A0E3 		mov	r2, #-536870912
+ 1884 00f8 052982E2 		add	r2, r2, #81920
+ 1885 00fc 4C2082E2 		add	r2, r2, #76
+ 1886 0100 002092E5 		ldr	r2, [r2, #0]
+ 1887 0104 3420C2E3 		bic	r2, r2, #52
+ 1888 0108 002083E5 		str	r2, [r3, #0]
+  46:../Modules/pwm.c **** 	PWMPCR |= ((1 << 13) | (1 << 12) | (1 << 10)); // Sets PWM 2,4,5 as single edge output
+ 1889              		.loc 1 46 0
+ 1890 010c 0E32A0E3 		mov	r3, #-536870912
+ 1891 0110 053983E2 		add	r3, r3, #81920
+ 1892 0114 4C3083E2 		add	r3, r3, #76
+ 1893 0118 0E22A0E3 		mov	r2, #-536870912
+ 1894 011c 052982E2 		add	r2, r2, #81920
+ 1895 0120 4C2082E2 		add	r2, r2, #76
+ 1896 0124 002092E5 		ldr	r2, [r2, #0]
+ 1897 0128 0D2B82E3 		orr	r2, r2, #13312
+ 1898 012c 002083E5 		str	r2, [r3, #0]
+  47:../Modules/pwm.c **** 	//PWMPCR = 0x0000200; 	// ativa PWM1 como saída para PWM de borda simples
+  48:../Modules/pwm.c **** 
+  49:../Modules/pwm.c **** 	//PWM Timer Control Register. The PWMTCR is used to control the Timer
+  50:../Modules/pwm.c **** 	//Counter functions. The Timer Counter can be disabled or reset through
+  51:../Modules/pwm.c **** 	//the PWMTCR.
+  52:../Modules/pwm.c **** 	PWMTCR = 00001001; // Counter and PWM enabled
+ 1899              		.loc 1 52 0
+ 1900 0130 4E32A0E3 		mov	r3, #-536870908
+ 1901 0134 053983E2 		add	r3, r3, #81920
+ 1902 0138 022CA0E3 		mov	r2, #512
+ 1903 013c 012082E2 		add	r2, r2, #1
+ 1904 0140 002083E5 		str	r2, [r3, #0]
+  53:../Modules/pwm.c **** 
+  54:../Modules/pwm.c **** 	//The PWM Match Control Register is used to control what operations are performed when
+  55:../Modules/pwm.c **** 	//one of the PWM Match Registers matches the PWM Timer Counter.
+  56:../Modules/pwm.c **** 	PWMMCR = 0x0000003;
+ 1905              		.loc 1 56 0
+ 1906 0144 0E32A0E3 		mov	r3, #-536870912
+ 1907 0148 053983E2 		add	r3, r3, #81920
+ 1908 014c 143083E2 		add	r3, r3, #20
+ 1909 0150 0320A0E3 		mov	r2, #3
+ 1910 0154 002083E5 		str	r2, [r3, #0]
+  57:../Modules/pwm.c **** 
+  58:../Modules/pwm.c **** 	setDutyCycle(2, 75);
+ 1911              		.loc 1 58 0
+ 1912 0158 0200A0E3 		mov	r0, #2
+ 1913 015c 4B10A0E3 		mov	r1, #75
+ 1914 0160 FEFFFFEB 		bl	setDutyCycle
+  59:../Modules/pwm.c **** 	setDutyCycle(4, 75);
+ 1915              		.loc 1 59 0
+ 1916 0164 0400A0E3 		mov	r0, #4
+ 1917 0168 4B10A0E3 		mov	r1, #75
+ 1918 016c FEFFFFEB 		bl	setDutyCycle
+  60:../Modules/pwm.c **** 	setDutyCycle(5, 75);
+ 1919              		.loc 1 60 0
+ 1920 0170 0500A0E3 		mov	r0, #5
+ 1921 0174 4B10A0E3 		mov	r1, #75
+ 1922 0178 FEFFFFEB 		bl	setDutyCycle
+  61:../Modules/pwm.c **** 
+  62:../Modules/pwm.c **** 	PWMMCR = 0x0000003;  // reset on Match 0
+ 1923              		.loc 1 62 0
+ 1924 017c 0E32A0E3 		mov	r3, #-536870912
+ 1925 0180 053983E2 		add	r3, r3, #81920
+ 1926 0184 143083E2 		add	r3, r3, #20
+ 1927 0188 0320A0E3 		mov	r2, #3
+ 1928 018c 002083E5 		str	r2, [r3, #0]
+  63:../Modules/pwm.c **** }
+ 1929              		.loc 1 63 0
+ 1930 0190 04D04BE2 		sub	sp, fp, #4
+ 1931 0194 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1932 0198 1EFF2FE1 		bx	lr
+ 1933              		.cfi_endproc
+ 1934              	.LFE0:
+ 1936              		.align	2
+ 1937              		.global	setDutyCycle
+ 1939              	setDutyCycle:
+ 1940              	.LFB1:
+  64:../Modules/pwm.c **** 
+  65:../Modules/pwm.c **** void setDutyCycle(unsigned int pwmchannel, unsigned int dutyccycle){
+ 1941              		.loc 1 65 0
+ 1942              		.cfi_startproc
+ 1943              		@ Function supports interworking.
+ 1944              		@ args = 0, pretend = 0, frame = 8
+ 1945              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1946              		@ link register save eliminated.
+ 1947 019c 04B02DE5 		str	fp, [sp, #-4]!
+ 1948              	.LCFI2:
+ 1949              		.cfi_def_cfa_offset 4
+ 1950 01a0 00B08DE2 		add	fp, sp, #0
+ 1951              		.cfi_offset 11, -4
+ 1952              	.LCFI3:
+ 1953              		.cfi_def_cfa_register 11
+ 1954 01a4 0CD04DE2 		sub	sp, sp, #12
+ 1955 01a8 08000BE5 		str	r0, [fp, #-8]
+ 1956 01ac 0C100BE5 		str	r1, [fp, #-12]
+  66:../Modules/pwm.c **** 	if(pwmchannel == 1){PWMMR1 = (dutyccycle  * CALCPWM)/1023;}
+ 1957              		.loc 1 66 0
+ 1958 01b0 08301BE5 		ldr	r3, [fp, #-8]
+ 1959 01b4 010053E3 		cmp	r3, #1
+ 1960 01b8 1600001A 		bne	.L3
+ 1961              		.loc 1 66 0 is_stmt 0 discriminator 1
+ 1962 01bc 0E22A0E3 		mov	r2, #-536870912
+ 1963 01c0 052982E2 		add	r2, r2, #81920
+ 1964 01c4 1C2082E2 		add	r2, r2, #28
+ 1965 01c8 0C101BE5 		ldr	r1, [fp, #-12]
+ 1966 01cc 0130A0E1 		mov	r3, r1
+ 1967 01d0 0331A0E1 		mov	r3, r3, asl #2
+ 1968 01d4 013083E0 		add	r3, r3, r1
+ 1969 01d8 0311A0E1 		mov	r1, r3, asl #2
+ 1970 01dc 013083E0 		add	r3, r3, r1
+ 1971 01e0 0312A0E1 		mov	r1, r3, asl #4
+ 1972 01e4 011063E0 		rsb	r1, r3, r1
+ 1973 01e8 0133A0E1 		mov	r3, r1, asl #6
+ 1974 01ec 0310A0E1 		mov	r1, r3
+ 1975 01f0 0135A0E3 		mov	r3, #4194304
+ 1976 01f4 013A83E2 		add	r3, r3, #4096
+ 1977 01f8 053083E2 		add	r3, r3, #5
+ 1978 01fc 910383E0 		umull	r0, r3, r1, r3
+ 1979 0200 011063E0 		rsb	r1, r3, r1
+ 1980 0204 A110A0E1 		mov	r1, r1, lsr #1
+ 1981 0208 013083E0 		add	r3, r3, r1
+ 1982 020c A334A0E1 		mov	r3, r3, lsr #9
+ 1983 0210 003082E5 		str	r3, [r2, #0]
+ 1984 0214 800000EA 		b	.L2
+ 1985              	.L3:
+  67:../Modules/pwm.c **** 	else if(pwmchannel == 2){PWMMR2 = dutyccycle * CALCPWM/1023 ;}
+ 1986              		.loc 1 67 0 is_stmt 1
+ 1987 0218 08301BE5 		ldr	r3, [fp, #-8]
+ 1988 021c 020053E3 		cmp	r3, #2
+ 1989 0220 1600001A 		bne	.L5
+ 1990              		.loc 1 67 0 is_stmt 0 discriminator 1
+ 1991 0224 0E22A0E3 		mov	r2, #-536870912
+ 1992 0228 052982E2 		add	r2, r2, #81920
+ 1993 022c 202082E2 		add	r2, r2, #32
+ 1994 0230 0C101BE5 		ldr	r1, [fp, #-12]
+ 1995 0234 0130A0E1 		mov	r3, r1
+ 1996 0238 0331A0E1 		mov	r3, r3, asl #2
+ 1997 023c 013083E0 		add	r3, r3, r1
+ 1998 0240 0311A0E1 		mov	r1, r3, asl #2
+ 1999 0244 013083E0 		add	r3, r3, r1
+ 2000 0248 0312A0E1 		mov	r1, r3, asl #4
+ 2001 024c 011063E0 		rsb	r1, r3, r1
+ 2002 0250 0133A0E1 		mov	r3, r1, asl #6
+ 2003 0254 0310A0E1 		mov	r1, r3
+ 2004 0258 0135A0E3 		mov	r3, #4194304
+ 2005 025c 013A83E2 		add	r3, r3, #4096
+ 2006 0260 053083E2 		add	r3, r3, #5
+ 2007 0264 910383E0 		umull	r0, r3, r1, r3
+ 2008 0268 011063E0 		rsb	r1, r3, r1
+ 2009 026c A110A0E1 		mov	r1, r1, lsr #1
+ 2010 0270 013083E0 		add	r3, r3, r1
+ 2011 0274 A334A0E1 		mov	r3, r3, lsr #9
+ 2012 0278 003082E5 		str	r3, [r2, #0]
+ 2013 027c 660000EA 		b	.L2
+ 2014              	.L5:
+  68:../Modules/pwm.c **** 	else if(pwmchannel == 3){PWMMR3 = (dutyccycle  * CALCPWM)/1023;}
+ 2015              		.loc 1 68 0 is_stmt 1
+ 2016 0280 08301BE5 		ldr	r3, [fp, #-8]
+ 2017 0284 030053E3 		cmp	r3, #3
+ 2018 0288 1600001A 		bne	.L6
+ 2019              		.loc 1 68 0 is_stmt 0 discriminator 1
+ 2020 028c 0E22A0E3 		mov	r2, #-536870912
+ 2021 0290 052982E2 		add	r2, r2, #81920
+ 2022 0294 242082E2 		add	r2, r2, #36
+ 2023 0298 0C101BE5 		ldr	r1, [fp, #-12]
+ 2024 029c 0130A0E1 		mov	r3, r1
+ 2025 02a0 0331A0E1 		mov	r3, r3, asl #2
+ 2026 02a4 013083E0 		add	r3, r3, r1
+ 2027 02a8 0311A0E1 		mov	r1, r3, asl #2
+ 2028 02ac 013083E0 		add	r3, r3, r1
+ 2029 02b0 0312A0E1 		mov	r1, r3, asl #4
+ 2030 02b4 011063E0 		rsb	r1, r3, r1
+ 2031 02b8 0133A0E1 		mov	r3, r1, asl #6
+ 2032 02bc 0310A0E1 		mov	r1, r3
+ 2033 02c0 0135A0E3 		mov	r3, #4194304
+ 2034 02c4 013A83E2 		add	r3, r3, #4096
+ 2035 02c8 053083E2 		add	r3, r3, #5
+ 2036 02cc 910383E0 		umull	r0, r3, r1, r3
+ 2037 02d0 011063E0 		rsb	r1, r3, r1
+ 2038 02d4 A110A0E1 		mov	r1, r1, lsr #1
+ 2039 02d8 013083E0 		add	r3, r3, r1
+ 2040 02dc A334A0E1 		mov	r3, r3, lsr #9
+ 2041 02e0 003082E5 		str	r3, [r2, #0]
+ 2042 02e4 4C0000EA 		b	.L2
+ 2043              	.L6:
+  69:../Modules/pwm.c **** 	else if(pwmchannel == 4){PWMMR4 = (dutyccycle  * CALCPWM)/1023;}
+ 2044              		.loc 1 69 0 is_stmt 1
+ 2045 02e8 08301BE5 		ldr	r3, [fp, #-8]
+ 2046 02ec 040053E3 		cmp	r3, #4
+ 2047 02f0 1600001A 		bne	.L7
+ 2048              		.loc 1 69 0 is_stmt 0 discriminator 1
+ 2049 02f4 0E22A0E3 		mov	r2, #-536870912
+ 2050 02f8 052982E2 		add	r2, r2, #81920
+ 2051 02fc 402082E2 		add	r2, r2, #64
+ 2052 0300 0C101BE5 		ldr	r1, [fp, #-12]
+ 2053 0304 0130A0E1 		mov	r3, r1
+ 2054 0308 0331A0E1 		mov	r3, r3, asl #2
+ 2055 030c 013083E0 		add	r3, r3, r1
+ 2056 0310 0311A0E1 		mov	r1, r3, asl #2
+ 2057 0314 013083E0 		add	r3, r3, r1
+ 2058 0318 0312A0E1 		mov	r1, r3, asl #4
+ 2059 031c 011063E0 		rsb	r1, r3, r1
+ 2060 0320 0133A0E1 		mov	r3, r1, asl #6
+ 2061 0324 0310A0E1 		mov	r1, r3
+ 2062 0328 0135A0E3 		mov	r3, #4194304
+ 2063 032c 013A83E2 		add	r3, r3, #4096
+ 2064 0330 053083E2 		add	r3, r3, #5
+ 2065 0334 910383E0 		umull	r0, r3, r1, r3
+ 2066 0338 011063E0 		rsb	r1, r3, r1
+ 2067 033c A110A0E1 		mov	r1, r1, lsr #1
+ 2068 0340 013083E0 		add	r3, r3, r1
+ 2069 0344 A334A0E1 		mov	r3, r3, lsr #9
+ 2070 0348 003082E5 		str	r3, [r2, #0]
+ 2071 034c 320000EA 		b	.L2
+ 2072              	.L7:
+  70:../Modules/pwm.c **** 	else if(pwmchannel == 5){PWMMR5 = (dutyccycle  * CALCPWM)/1023;}
+ 2073              		.loc 1 70 0 is_stmt 1
+ 2074 0350 08301BE5 		ldr	r3, [fp, #-8]
+ 2075 0354 050053E3 		cmp	r3, #5
+ 2076 0358 1600001A 		bne	.L8
+ 2077              		.loc 1 70 0 is_stmt 0 discriminator 1
+ 2078 035c 0E22A0E3 		mov	r2, #-536870912
+ 2079 0360 052982E2 		add	r2, r2, #81920
+ 2080 0364 442082E2 		add	r2, r2, #68
+ 2081 0368 0C101BE5 		ldr	r1, [fp, #-12]
+ 2082 036c 0130A0E1 		mov	r3, r1
+ 2083 0370 0331A0E1 		mov	r3, r3, asl #2
+ 2084 0374 013083E0 		add	r3, r3, r1
+ 2085 0378 0311A0E1 		mov	r1, r3, asl #2
+ 2086 037c 013083E0 		add	r3, r3, r1
+ 2087 0380 0312A0E1 		mov	r1, r3, asl #4
+ 2088 0384 011063E0 		rsb	r1, r3, r1
+ 2089 0388 0133A0E1 		mov	r3, r1, asl #6
+ 2090 038c 0310A0E1 		mov	r1, r3
+ 2091 0390 0135A0E3 		mov	r3, #4194304
+ 2092 0394 013A83E2 		add	r3, r3, #4096
+ 2093 0398 053083E2 		add	r3, r3, #5
+ 2094 039c 910383E0 		umull	r0, r3, r1, r3
+ 2095 03a0 011063E0 		rsb	r1, r3, r1
+ 2096 03a4 A110A0E1 		mov	r1, r1, lsr #1
+ 2097 03a8 013083E0 		add	r3, r3, r1
+ 2098 03ac A334A0E1 		mov	r3, r3, lsr #9
+ 2099 03b0 003082E5 		str	r3, [r2, #0]
+ 2100 03b4 180000EA 		b	.L2
+ 2101              	.L8:
+  71:../Modules/pwm.c **** 	else if(pwmchannel == 6){PWMMR6 = (dutyccycle  * CALCPWM)/1023;}
+ 2102              		.loc 1 71 0 is_stmt 1
+ 2103 03b8 08301BE5 		ldr	r3, [fp, #-8]
+ 2104 03bc 060053E3 		cmp	r3, #6
+ 2105 03c0 1500001A 		bne	.L2
+ 2106              		.loc 1 71 0 is_stmt 0 discriminator 1
+ 2107 03c4 0E22A0E3 		mov	r2, #-536870912
+ 2108 03c8 052982E2 		add	r2, r2, #81920
+ 2109 03cc 482082E2 		add	r2, r2, #72
+ 2110 03d0 0C101BE5 		ldr	r1, [fp, #-12]
+ 2111 03d4 0130A0E1 		mov	r3, r1
+ 2112 03d8 0331A0E1 		mov	r3, r3, asl #2
+ 2113 03dc 013083E0 		add	r3, r3, r1
+ 2114 03e0 0311A0E1 		mov	r1, r3, asl #2
+ 2115 03e4 013083E0 		add	r3, r3, r1
+ 2116 03e8 0312A0E1 		mov	r1, r3, asl #4
+ 2117 03ec 011063E0 		rsb	r1, r3, r1
+ 2118 03f0 0133A0E1 		mov	r3, r1, asl #6
+ 2119 03f4 0310A0E1 		mov	r1, r3
+ 2120 03f8 0135A0E3 		mov	r3, #4194304
+ 2121 03fc 013A83E2 		add	r3, r3, #4096
+ 2122 0400 053083E2 		add	r3, r3, #5
+ 2123 0404 910383E0 		umull	r0, r3, r1, r3
+ 2124 0408 011063E0 		rsb	r1, r3, r1
+ 2125 040c A110A0E1 		mov	r1, r1, lsr #1
+ 2126 0410 013083E0 		add	r3, r3, r1
+ 2127 0414 A334A0E1 		mov	r3, r3, lsr #9
+ 2128 0418 003082E5 		str	r3, [r2, #0]
+ 2129              	.L2:
+  72:../Modules/pwm.c **** }
+ 2130              		.loc 1 72 0 is_stmt 1
+ 2131 041c 00D08BE2 		add	sp, fp, #0
+ 2132 0420 0008BDE8 		ldmfd	sp!, {fp}
+ 2133 0424 1EFF2FE1 		bx	lr
+ 2134              		.cfi_endproc
+ 2135              	.LFE1:
+ 2137              		.global	__aeabi_uidiv
+ 2138              		.align	2
+ 2139              		.global	setDOF1_PWM
+ 2141              	setDOF1_PWM:
+ 2142              	.LFB2:
+  73:../Modules/pwm.c **** 
+  74:../Modules/pwm.c **** /*void setDutyCycle(unsigned int pwmchannel, unsigned int dutyccycle){
+  75:../Modules/pwm.c **** 	if(pwmchannel == 1){PWMMR1 = (600000/PWMFREQUENCY) * dutyccycle;}
+  76:../Modules/pwm.c **** 	else if(pwmchannel == 2){PWMMR2 = (600000/PWMFREQUENCY) * dutyccycle;}
+  77:../Modules/pwm.c **** 	else if(pwmchannel == 3){PWMMR3 = (600000/PWMFREQUENCY) * dutyccycle;}
+  78:../Modules/pwm.c **** 	else if(pwmchannel == 4){PWMMR4 = (600000/PWMFREQUENCY) * dutyccycle;}
+  79:../Modules/pwm.c **** 	else if(pwmchannel == 5){PWMMR5 = (600000/PWMFREQUENCY) * dutyccycle;}
+  80:../Modules/pwm.c **** 	else if(pwmchannel == 6){PWMMR6 = (600000/PWMFREQUENCY) * dutyccycle;}
+  81:../Modules/pwm.c **** }*/
+  82:../Modules/pwm.c **** 
+  83:../Modules/pwm.c **** void setDOF1_PWM(unsigned int frequency)
+  84:../Modules/pwm.c **** {
+ 2143              		.loc 1 84 0
+ 2144              		.cfi_startproc
+ 2145              		@ Function supports interworking.
+ 2146              		@ args = 0, pretend = 0, frame = 8
+ 2147              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2148 0428 10482DE9 		stmfd	sp!, {r4, fp, lr}
+ 2149              	.LCFI4:
+ 2150              		.cfi_def_cfa_offset 12
+ 2151 042c 08B08DE2 		add	fp, sp, #8
+ 2152              		.cfi_offset 14, -4
+ 2153              		.cfi_offset 11, -8
+ 2154              		.cfi_offset 4, -12
+ 2155              	.LCFI5:
+ 2156              		.cfi_def_cfa 11, 4
+ 2157 0430 0CD04DE2 		sub	sp, sp, #12
+ 2158 0434 10000BE5 		str	r0, [fp, #-16]
+  85:../Modules/pwm.c **** 	//Configuration for PWM 2 operation
+  86:../Modules/pwm.c **** 	PINSEL0 &= ~(3 << 14);
+ 2159              		.loc 1 86 0
+ 2160 0438 0E32A0E3 		mov	r3, #-536870912
+ 2161 043c 0B3983E2 		add	r3, r3, #180224
+ 2162 0440 0E22A0E3 		mov	r2, #-536870912
+ 2163 0444 0B2982E2 		add	r2, r2, #180224
+ 2164 0448 002092E5 		ldr	r2, [r2, #0]
+ 2165 044c 0329C2E3 		bic	r2, r2, #49152
+ 2166 0450 002083E5 		str	r2, [r3, #0]
+  87:../Modules/pwm.c **** 	PINSEL0 |= (1 << 15);;
+ 2167              		.loc 1 87 0
+ 2168 0454 0E32A0E3 		mov	r3, #-536870912
+ 2169 0458 0B3983E2 		add	r3, r3, #180224
+ 2170 045c 0E22A0E3 		mov	r2, #-536870912
+ 2171 0460 0B2982E2 		add	r2, r2, #180224
+ 2172 0464 002092E5 		ldr	r2, [r2, #0]
+ 2173 0468 022982E3 		orr	r2, r2, #32768
+ 2174 046c 002083E5 		str	r2, [r3, #0]
+  88:../Modules/pwm.c **** 	PWMTCR = 0x02;
+ 2175              		.loc 1 88 0
+ 2176 0470 4E32A0E3 		mov	r3, #-536870908
+ 2177 0474 053983E2 		add	r3, r3, #81920
+ 2178 0478 0220A0E3 		mov	r2, #2
+ 2179 047c 002083E5 		str	r2, [r3, #0]
+  89:../Modules/pwm.c **** 	PWMMR0 = 60000000/frequency;
+ 2180              		.loc 1 89 0
+ 2181 0480 0E42A0E3 		mov	r4, #-536870912
+ 2182 0484 054984E2 		add	r4, r4, #81920
+ 2183 0488 184084E2 		add	r4, r4, #24
+ 2184 048c E507A0E3 		mov	r0, #60030976
+ 2185 0490 790C40E2 		sub	r0, r0, #30976
+ 2186 0494 10101BE5 		ldr	r1, [fp, #-16]
+ 2187 0498 FEFFFFEB 		bl	__aeabi_uidiv
+ 2188 049c 0030A0E1 		mov	r3, r0
+ 2189 04a0 003084E5 		str	r3, [r4, #0]
+  90:../Modules/pwm.c **** 	PWMPR = 0;
+ 2190              		.loc 1 90 0
+ 2191 04a4 CE32A0E3 		mov	r3, #-536870900
+ 2192 04a8 053983E2 		add	r3, r3, #81920
+ 2193 04ac 0020A0E3 		mov	r2, #0
+ 2194 04b0 002083E5 		str	r2, [r3, #0]
+  91:../Modules/pwm.c **** 	PWMPCR &= ~((1 << 2) | (1 << 4) | (1 << 5));
+ 2195              		.loc 1 91 0
+ 2196 04b4 0E32A0E3 		mov	r3, #-536870912
+ 2197 04b8 053983E2 		add	r3, r3, #81920
+ 2198 04bc 4C3083E2 		add	r3, r3, #76
+ 2199 04c0 0E22A0E3 		mov	r2, #-536870912
+ 2200 04c4 052982E2 		add	r2, r2, #81920
+ 2201 04c8 4C2082E2 		add	r2, r2, #76
+ 2202 04cc 002092E5 		ldr	r2, [r2, #0]
+ 2203 04d0 3420C2E3 		bic	r2, r2, #52
+ 2204 04d4 002083E5 		str	r2, [r3, #0]
+  92:../Modules/pwm.c **** 	PWMPCR |= ((1 << 13) | (1 << 12) | (1 << 10)); // Sets PWM 2,4,5 as single edge output
+ 2205              		.loc 1 92 0
+ 2206 04d8 0E32A0E3 		mov	r3, #-536870912
+ 2207 04dc 053983E2 		add	r3, r3, #81920
+ 2208 04e0 4C3083E2 		add	r3, r3, #76
+ 2209 04e4 0E22A0E3 		mov	r2, #-536870912
+ 2210 04e8 052982E2 		add	r2, r2, #81920
+ 2211 04ec 4C2082E2 		add	r2, r2, #76
+ 2212 04f0 002092E5 		ldr	r2, [r2, #0]
+ 2213 04f4 0D2B82E3 		orr	r2, r2, #13312
+ 2214 04f8 002083E5 		str	r2, [r3, #0]
+  93:../Modules/pwm.c **** 	PWMTCR = 00001001;
+ 2215              		.loc 1 93 0
+ 2216 04fc 4E32A0E3 		mov	r3, #-536870908
+ 2217 0500 053983E2 		add	r3, r3, #81920
+ 2218 0504 022CA0E3 		mov	r2, #512
+ 2219 0508 012082E2 		add	r2, r2, #1
+ 2220 050c 002083E5 		str	r2, [r3, #0]
+  94:../Modules/pwm.c **** 	PWMMCR = 0x0000003;
+ 2221              		.loc 1 94 0
+ 2222 0510 0E32A0E3 		mov	r3, #-536870912
+ 2223 0514 053983E2 		add	r3, r3, #81920
+ 2224 0518 143083E2 		add	r3, r3, #20
+ 2225 051c 0320A0E3 		mov	r2, #3
+ 2226 0520 002083E5 		str	r2, [r3, #0]
+  95:../Modules/pwm.c **** }
+ 2227              		.loc 1 95 0
+ 2228 0524 08D04BE2 		sub	sp, fp, #8
+ 2229 0528 1048BDE8 		ldmfd	sp!, {r4, fp, lr}
+ 2230 052c 1EFF2FE1 		bx	lr
+ 2231              		.cfi_endproc
+ 2232              	.LFE2:
+ 2234              		.align	2
+ 2235              		.global	setDOF1_DutyCycle
+ 2237              	setDOF1_DutyCycle:
+ 2238              	.LFB3:
+  96:../Modules/pwm.c **** 
+  97:../Modules/pwm.c **** void setDOF1_DutyCycle(unsigned int dutycycle){
+ 2239              		.loc 1 97 0
+ 2240              		.cfi_startproc
+ 2241              		@ Function supports interworking.
+ 2242              		@ args = 0, pretend = 0, frame = 8
+ 2243              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2244              		@ link register save eliminated.
+ 2245 0530 04B02DE5 		str	fp, [sp, #-4]!
+ 2246              	.LCFI6:
+ 2247              		.cfi_def_cfa_offset 4
+ 2248 0534 00B08DE2 		add	fp, sp, #0
+ 2249              		.cfi_offset 11, -4
+ 2250              	.LCFI7:
+ 2251              		.cfi_def_cfa_register 11
+ 2252 0538 0CD04DE2 		sub	sp, sp, #12
+ 2253 053c 08000BE5 		str	r0, [fp, #-8]
+  98:../Modules/pwm.c **** 	//Set PWM Duty Cycle for PWM 2
+  99:../Modules/pwm.c **** 	PWMMR2 = 600 * dutycycle;
+ 2254              		.loc 1 99 0
+ 2255 0540 0E22A0E3 		mov	r2, #-536870912
+ 2256 0544 052982E2 		add	r2, r2, #81920
+ 2257 0548 202082E2 		add	r2, r2, #32
+ 2258 054c 08101BE5 		ldr	r1, [fp, #-8]
+ 2259 0550 0130A0E1 		mov	r3, r1
+ 2260 0554 0331A0E1 		mov	r3, r3, asl #2
+ 2261 0558 013083E0 		add	r3, r3, r1
+ 2262 055c 0312A0E1 		mov	r1, r3, asl #4
+ 2263 0560 011063E0 		rsb	r1, r3, r1
+ 2264 0564 8131A0E1 		mov	r3, r1, asl #3
+ 2265 0568 003082E5 		str	r3, [r2, #0]
+ 100:../Modules/pwm.c **** }
+ 2266              		.loc 1 100 0
+ 2267 056c 00D08BE2 		add	sp, fp, #0
+ 2268 0570 0008BDE8 		ldmfd	sp!, {fp}
+ 2269 0574 1EFF2FE1 		bx	lr
+ 2270              		.cfi_endproc
+ 2271              	.LFE3:
+ 2273              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 pwm.c
+C:\Users\ufu\AppData\Local\Temp\ccd0TmBk.s:1796   .text:00000000 $a
+C:\Users\ufu\AppData\Local\Temp\ccd0TmBk.s:1799   .text:00000000 PWMInit
+C:\Users\ufu\AppData\Local\Temp\ccd0TmBk.s:1939   .text:0000019c setDutyCycle
+C:\Users\ufu\AppData\Local\Temp\ccd0TmBk.s:2141   .text:00000428 setDOF1_PWM
+C:\Users\ufu\AppData\Local\Temp\ccd0TmBk.s:2237   .text:00000530 setDOF1_DutyCycle
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_uidiv

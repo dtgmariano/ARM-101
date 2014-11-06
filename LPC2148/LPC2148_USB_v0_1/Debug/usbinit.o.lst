@@ -1,0 +1,225 @@
+   1              		.cpu arm7tdmi-s
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"usbinit.c"
+  21              	.Ltext0:
+  22              		.file 1 "../usbinit.c"
+ 1212              		.align	2
+ 1213              	abStdReqData:
+ 1214 0000 00000000 		.space	8
+ 1214      00000000 
+ 1215              		.section	.rodata
+ 1216              		.align	2
+ 1217              	.LC0:
+ 1218 0000 0D0A2D44 		.ascii	"\015\012-D- \012\000"
+ 1218      2D200A00 
+ 1219              		.text
+ 1220              		.align	2
+ 1222              	HandleUsbReset:
+ 1223              	.LFB0:
+   1:../usbinit.c  **** /*
+   2:../usbinit.c  **** 	LPCUSB, an USB device driver for LPC microcontrollers
+   3:../usbinit.c  **** 	Copyright (C) 2006 Bertrik Sikken (bertrik@sikken.nl)
+   4:../usbinit.c  **** 
+   5:../usbinit.c  **** 	Redistribution and use in source and binary forms, with or without
+   6:../usbinit.c  **** 	modification, are permitted provided that the following conditions are met:
+   7:../usbinit.c  **** 
+   8:../usbinit.c  **** 	1. Redistributions of source code must retain the above copyright
+   9:../usbinit.c  **** 	   notice, this list of conditions and the following disclaimer.
+  10:../usbinit.c  **** 	2. Redistributions in binary form must reproduce the above copyright
+  11:../usbinit.c  **** 	   notice, this list of conditions and the following disclaimer in the
+  12:../usbinit.c  **** 	   documentation and/or other materials provided with the distribution.
+  13:../usbinit.c  **** 	3. The name of the author may not be used to endorse or promote products
+  14:../usbinit.c  **** 	   derived from this software without specific prior written permission.
+  15:../usbinit.c  **** 
+  16:../usbinit.c  **** 	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+  17:../usbinit.c  **** 	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  18:../usbinit.c  **** 	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+  19:../usbinit.c  **** 	IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+  20:../usbinit.c  **** 	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+  21:../usbinit.c  **** 	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  22:../usbinit.c  **** 	DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  23:../usbinit.c  **** 	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  24:../usbinit.c  **** 	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+  25:../usbinit.c  **** 	THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  26:../usbinit.c  **** */
+  27:../usbinit.c  **** 
+  28:../usbinit.c  **** 
+  29:../usbinit.c  **** /** @file
+  30:../usbinit.c  **** 	USB stack initialisation
+  31:../usbinit.c  ****  */
+  32:../usbinit.c  **** 
+  33:../usbinit.c  **** #include "type.h"
+  34:../usbinit.c  **** #include "usbdebug.h"
+  35:../usbinit.c  **** #include "usbapi.h"
+  36:../usbinit.c  **** 
+  37:../usbinit.c  **** 
+  38:../usbinit.c  **** /** data storage area for standard requests */
+  39:../usbinit.c  **** static U8	abStdReqData[8];
+  40:../usbinit.c  **** 
+  41:../usbinit.c  **** 
+  42:../usbinit.c  **** /**
+  43:../usbinit.c  **** 	USB reset handler
+  44:../usbinit.c  **** 
+  45:../usbinit.c  **** 	@param [in] bDevStatus	Device status
+  46:../usbinit.c  ****  */
+  47:../usbinit.c  **** static void HandleUsbReset(U8 bDevStatus)
+  48:../usbinit.c  **** {
+ 1224              		.loc 1 48 0
+ 1225              		.cfi_startproc
+ 1226              		@ Function supports interworking.
+ 1227              		@ args = 0, pretend = 0, frame = 8
+ 1228              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1229 0000 00482DE9 		stmfd	sp!, {fp, lr}
+ 1230              	.LCFI0:
+ 1231              		.cfi_def_cfa_offset 8
+ 1232 0004 04B08DE2 		add	fp, sp, #4
+ 1233              		.cfi_offset 14, -4
+ 1234              		.cfi_offset 11, -8
+ 1235              	.LCFI1:
+ 1236              		.cfi_def_cfa 11, 4
+ 1237 0008 08D04DE2 		sub	sp, sp, #8
+ 1238 000c 0030A0E1 		mov	r3, r0
+ 1239 0010 05304BE5 		strb	r3, [fp, #-5]
+  49:../usbinit.c  **** 	if (bDevStatus & DEV_STATUS_RESET) {
+ 1240              		.loc 1 49 0
+ 1241 0014 05305BE5 		ldrb	r3, [fp, #-5]	@ zero_extendqisi2
+ 1242 0018 103003E2 		and	r3, r3, #16
+ 1243 001c 000053E3 		cmp	r3, #0
+ 1244 0020 0100000A 		beq	.L1
+  50:../usbinit.c  **** //		DBG("\n!");
+  51:../usbinit.c  **** 	  TRACE_DEBUG("\n");
+ 1245              		.loc 1 51 0
+ 1246 0024 0C009FE5 		ldr	r0, .L3
+ 1247 0028 FEFFFFEB 		bl	iprintf
+ 1248              	.L1:
+  52:../usbinit.c  **** 	}
+  53:../usbinit.c  **** }
+ 1249              		.loc 1 53 0
+ 1250 002c 04D04BE2 		sub	sp, fp, #4
+ 1251 0030 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1252 0034 1EFF2FE1 		bx	lr
+ 1253              	.L4:
+ 1254              		.align	2
+ 1255              	.L3:
+ 1256 0038 00000000 		.word	.LC0
+ 1257              		.cfi_endproc
+ 1258              	.LFE0:
+ 1260              		.align	2
+ 1261              		.global	USBInit
+ 1263              	USBInit:
+ 1264              	.LFB1:
+  54:../usbinit.c  **** 
+  55:../usbinit.c  **** 
+  56:../usbinit.c  **** /**
+  57:../usbinit.c  **** 	Initialises the USB hardware and sets up the USB stack by
+  58:../usbinit.c  **** 	installing default callbacks.
+  59:../usbinit.c  **** 
+  60:../usbinit.c  **** 	@return TRUE if initialisation was successful
+  61:../usbinit.c  ****  */
+  62:../usbinit.c  **** BOOL USBInit(void)
+  63:../usbinit.c  **** {
+ 1265              		.loc 1 63 0
+ 1266              		.cfi_startproc
+ 1267              		@ Function supports interworking.
+ 1268              		@ args = 0, pretend = 0, frame = 0
+ 1269              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1270 003c 00482DE9 		stmfd	sp!, {fp, lr}
+ 1271              	.LCFI2:
+ 1272              		.cfi_def_cfa_offset 8
+ 1273 0040 04B08DE2 		add	fp, sp, #4
+ 1274              		.cfi_offset 14, -4
+ 1275              		.cfi_offset 11, -8
+ 1276              	.LCFI3:
+ 1277              		.cfi_def_cfa 11, 4
+  64:../usbinit.c  **** 	// init hardware
+  65:../usbinit.c  **** 	USBHwInit();
+ 1278              		.loc 1 65 0
+ 1279 0044 FEFFFFEB 		bl	USBHwInit
+  66:../usbinit.c  **** 
+  67:../usbinit.c  **** 	// register bus reset handler
+  68:../usbinit.c  **** 	USBHwRegisterDevIntHandler(HandleUsbReset);
+ 1280              		.loc 1 68 0
+ 1281 0048 54009FE5 		ldr	r0, .L6
+ 1282 004c FEFFFFEB 		bl	USBHwRegisterDevIntHandler
+  69:../usbinit.c  **** 
+  70:../usbinit.c  **** 	// register control transfer handler on EP0
+  71:../usbinit.c  **** 	USBHwRegisterEPIntHandler(0x00, USBHandleControlTransfer);
+ 1283              		.loc 1 71 0
+ 1284 0050 0000A0E3 		mov	r0, #0
+ 1285 0054 4C109FE5 		ldr	r1, .L6+4
+ 1286 0058 FEFFFFEB 		bl	USBHwRegisterEPIntHandler
+  72:../usbinit.c  **** 	USBHwRegisterEPIntHandler(0x80, USBHandleControlTransfer);
+ 1287              		.loc 1 72 0
+ 1288 005c 8000A0E3 		mov	r0, #128
+ 1289 0060 40109FE5 		ldr	r1, .L6+4
+ 1290 0064 FEFFFFEB 		bl	USBHwRegisterEPIntHandler
+  73:../usbinit.c  **** 
+  74:../usbinit.c  **** 	// setup control endpoints
+  75:../usbinit.c  **** 	USBHwEPConfig(0x00, MAX_PACKET_SIZE0);
+ 1291              		.loc 1 75 0
+ 1292 0068 0000A0E3 		mov	r0, #0
+ 1293 006c 4010A0E3 		mov	r1, #64
+ 1294 0070 FEFFFFEB 		bl	USBHwEPConfig
+  76:../usbinit.c  **** 	USBHwEPConfig(0x80, MAX_PACKET_SIZE0);
+ 1295              		.loc 1 76 0
+ 1296 0074 8000A0E3 		mov	r0, #128
+ 1297 0078 4010A0E3 		mov	r1, #64
+ 1298 007c FEFFFFEB 		bl	USBHwEPConfig
+  77:../usbinit.c  **** 
+  78:../usbinit.c  **** 	// register standard request handler
+  79:../usbinit.c  **** 	USBRegisterRequestHandler(REQTYPE_TYPE_STANDARD, USBHandleStandardRequest, abStdReqData);
+ 1299              		.loc 1 79 0
+ 1300 0080 0000A0E3 		mov	r0, #0
+ 1301 0084 20109FE5 		ldr	r1, .L6+8
+ 1302 0088 20209FE5 		ldr	r2, .L6+12
+ 1303 008c FEFFFFEB 		bl	USBRegisterRequestHandler
+  80:../usbinit.c  **** 
+  81:../usbinit.c  **** 	return TRUE;
+ 1304              		.loc 1 81 0
+ 1305 0090 0130A0E3 		mov	r3, #1
+  82:../usbinit.c  **** }
+ 1306              		.loc 1 82 0
+ 1307 0094 0300A0E1 		mov	r0, r3
+ 1308 0098 04D04BE2 		sub	sp, fp, #4
+ 1309 009c 0048BDE8 		ldmfd	sp!, {fp, lr}
+ 1310 00a0 1EFF2FE1 		bx	lr
+ 1311              	.L7:
+ 1312              		.align	2
+ 1313              	.L6:
+ 1314 00a4 00000000 		.word	HandleUsbReset
+ 1315 00a8 00000000 		.word	USBHandleControlTransfer
+ 1316 00ac 00000000 		.word	USBHandleStandardRequest
+ 1317 00b0 00000000 		.word	abStdReqData
+ 1318              		.cfi_endproc
+ 1319              	.LFE1:
+ 1321              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 usbinit.c
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1212   .bss:00000000 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1213   .bss:00000000 abStdReqData
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1216   .rodata:00000000 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1220   .text:00000000 $a
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1222   .text:00000000 HandleUsbReset
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1256   .text:00000038 $d
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1260   .text:0000003c $a
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1263   .text:0000003c USBInit
+C:\Users\FELIPE\AppData\Local\Temp\ccxqKu4S.s:1314   .text:000000a4 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+iprintf
+USBHwInit
+USBHwRegisterDevIntHandler
+USBHwRegisterEPIntHandler
+USBHwEPConfig
+USBRegisterRequestHandler
+USBHandleControlTransfer
+USBHandleStandardRequest

@@ -1,0 +1,40 @@
+
+**** Build of configuration Debug for project MA2000 Firmware v0.21 ****
+
+make all 
+Building file: ../adc_module.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\ARM\PROGRAMAS\LPC2148\MA2000 Firmware v0.21" -O0 -Wall -Wa,-adhlns="adc_module.o.lst" -c -fmessage-length=0 -MMD -MP -MF"adc_module.d" -MT"adc_module.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"adc_module.o" "../adc_module.c"
+Finished building: ../adc_module.c
+ 
+Building file: ../cpu_init.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\ARM\PROGRAMAS\LPC2148\MA2000 Firmware v0.21" -O0 -Wall -Wa,-adhlns="cpu_init.o.lst" -c -fmessage-length=0 -MMD -MP -MF"cpu_init.d" -MT"cpu_init.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"cpu_init.o" "../cpu_init.c"
+Finished building: ../cpu_init.c
+ 
+Building file: ../low_level_init.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\ARM\PROGRAMAS\LPC2148\MA2000 Firmware v0.21" -O0 -Wall -Wa,-adhlns="low_level_init.o.lst" -c -fmessage-length=0 -MMD -MP -MF"low_level_init.d" -MT"low_level_init.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"low_level_init.o" "../low_level_init.c"
+Finished building: ../low_level_init.c
+ 
+Building file: ../main.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\ARM\PROGRAMAS\LPC2148\MA2000 Firmware v0.21" -O0 -Wall -Wa,-adhlns="main.o.lst" -c -fmessage-length=0 -MMD -MP -MF"main.d" -MT"main.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"main.o" "../main.c"
+Finished building: ../main.c
+ 
+Building file: ../pwm_module.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\ARM\PROGRAMAS\LPC2148\MA2000 Firmware v0.21" -O0 -Wall -Wa,-adhlns="pwm_module.o.lst" -c -fmessage-length=0 -MMD -MP -MF"pwm_module.d" -MT"pwm_module.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"pwm_module.o" "../pwm_module.c"
+Finished building: ../pwm_module.c
+ 
+Building file: ../startup.S
+Invoking: ARM Yagarto Windows GCC Assembler
+arm-none-eabi-gcc -x assembler-with-cpp -I"C:\ARM\PROGRAMAS\LPC2148\MA2000 Firmware v0.21" -Wall -Wa,-adhlns="startup.o.lst" -c -fmessage-length=0 -MMD -MP -MF"startup.d" -MT"startup.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"startup.o" "../startup.S"
+Finished building: ../startup.S
+ 
+Building target: MA2000 Firmware v0.21.elf
+Invoking: ARM Yagarto Windows GCC C Linker
+arm-none-eabi-gcc -T"../lpc2148_rom.ld" -nostartfiles -Wl,-Map,MA2000 Firmware v0.21.map -mcpu=arm7tdmi -g3 -gdwarf-2 -o"MA2000 Firmware v0.21.elf"  ./adc_module.o ./cpu_init.o ./low_level_init.o ./main.o ./pwm_module.o ./startup.o   
+arm-none-eabi-gcc.exe: Firmware: No such file or directory
+arm-none-eabi-gcc.exe: v0.21.map: No such file or directory
+make: *** [MA2000 Firmware v0.21.elf] Error 1

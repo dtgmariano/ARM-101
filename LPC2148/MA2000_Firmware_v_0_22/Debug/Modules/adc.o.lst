@@ -1,0 +1,560 @@
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 18, 4
+  11              		.file	"adc.c"
+  21              	.Ltext0:
+  22              		.file 1 "../Modules/adc.c"
+ 2079              		.align	2
+ 2082              	ADC0IntDone:
+ 2083 0000 00000000 		.space	4
+ 2084              		.global	ADC1IntDone
+ 2085              		.align	2
+ 2088              	ADC1IntDone:
+ 2089 0004 00000000 		.space	4
+ 2090              		.global	__aeabi_uidiv
+ 2091              		.text
+ 2092              		.align	2
+ 2093              		.global	ADCInit
+ 2095              	ADCInit:
+ 2096              	.LFB0:
+   1:../Modules/adc.c **** #include "LPC214x.h"
+   2:../Modules/adc.c **** #include "adc.h"
+   3:../Modules/adc.c **** #include <stdint.h>
+   4:../Modules/adc.c **** 
+   5:../Modules/adc.c **** #ifndef FALSE
+   6:../Modules/adc.c **** #define FALSE   (0)
+   7:../Modules/adc.c **** #endif
+   8:../Modules/adc.c **** 
+   9:../Modules/adc.c **** #ifndef TRUE
+  10:../Modules/adc.c **** #define TRUE    (1)
+  11:../Modules/adc.c **** #endif
+  12:../Modules/adc.c **** 
+  13:../Modules/adc.c **** #define Fosc	12000000UL
+  14:../Modules/adc.c **** 
+  15:../Modules/adc.c **** /* System frequence,should be (1~32)multiples of Fosc,and should be equal or
+  16:../Modules/adc.c **** less than 60MHz. */
+  17:../Modules/adc.c **** #define Fcclk	(Fosc * 5)
+  18:../Modules/adc.c **** 
+  19:../Modules/adc.c **** /* CCO frequence,should be 2/4/8/16 multiples of Fcclk, ranged from 156MHz to
+  20:../Modules/adc.c **** 320MHz. */
+  21:../Modules/adc.c **** #define Fcco	(Fcclk * 4)
+  22:../Modules/adc.c **** 
+  23:../Modules/adc.c **** /* VPB clock frequence , must be 1/2/4 multiples of (Fcclk / 4). */
+  24:../Modules/adc.c **** #define Fpclk	(Fcclk / 1) * 1
+  25:../Modules/adc.c **** 
+  26:../Modules/adc.c **** volatile uint32_t ADC0Value[ADC_NUM], ADC1Value[ADC_NUM];
+  27:../Modules/adc.c **** volatile uint32_t ADC0IntDone = 0, ADC1IntDone = 0;
+  28:../Modules/adc.c **** 
+  29:../Modules/adc.c **** /*****************************************************************************
+  30:../Modules/adc.c **** ** Function name:		ADCInit
+  31:../Modules/adc.c **** **
+  32:../Modules/adc.c **** ** Descriptions:		initialize ADC channel
+  33:../Modules/adc.c **** **
+  34:../Modules/adc.c **** ** parameters:			ADC clock rate
+  35:../Modules/adc.c **** ** Returned value:		true or false
+  36:../Modules/adc.c **** **
+  37:../Modules/adc.c **** *****************************************************************************/
+  38:../Modules/adc.c **** uint32_t ADCInit( uint32_t ADC_Clk )
+  39:../Modules/adc.c **** {
+ 2097              		.loc 1 39 0
+ 2098              		.cfi_startproc
+ 2099              		@ Function supports interworking.
+ 2100              		@ args = 0, pretend = 0, frame = 8
+ 2101              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2102 0000 10482DE9 		stmfd	sp!, {r4, fp, lr}
+ 2103              	.LCFI0:
+ 2104              		.cfi_def_cfa_offset 12
+ 2105 0004 08B08DE2 		add	fp, sp, #8
+ 2106              		.cfi_offset 14, -4
+ 2107              		.cfi_offset 11, -8
+ 2108              		.cfi_offset 4, -12
+ 2109              	.LCFI1:
+ 2110              		.cfi_def_cfa 11, 4
+ 2111 0008 0CD04DE2 		sub	sp, sp, #12
+ 2112 000c 10000BE5 		str	r0, [fp, #-16]
+  40:../Modules/adc.c **** 	//Setting AD0.1 function: Sets P0.28 with value 01 for Bits 25 and 24 (PINSEL1)
+  41:../Modules/adc.c **** 	//P0.28 -> EXT2.1 -> Pin 25
+  42:../Modules/adc.c **** 	PINSEL1 &= ~(1<<25);
+ 2113              		.loc 1 42 0
+ 2114 0010 4E32A0E3 		mov	r3, #-536870908
+ 2115 0014 0B3983E2 		add	r3, r3, #180224
+ 2116 0018 4E22A0E3 		mov	r2, #-536870908
+ 2117 001c 0B2982E2 		add	r2, r2, #180224
+ 2118 0020 002092E5 		ldr	r2, [r2, #0]
+ 2119 0024 0224C2E3 		bic	r2, r2, #33554432
+ 2120 0028 002083E5 		str	r2, [r3, #0]
+  43:../Modules/adc.c **** 	PINSEL1 |=  (1<<24);
+ 2121              		.loc 1 43 0
+ 2122 002c 4E32A0E3 		mov	r3, #-536870908
+ 2123 0030 0B3983E2 		add	r3, r3, #180224
+ 2124 0034 4E22A0E3 		mov	r2, #-536870908
+ 2125 0038 0B2982E2 		add	r2, r2, #180224
+ 2126 003c 002092E5 		ldr	r2, [r2, #0]
+ 2127 0040 012482E3 		orr	r2, r2, #16777216
+ 2128 0044 002083E5 		str	r2, [r3, #0]
+  44:../Modules/adc.c **** 	//Setting AD0.2 function: Sets P0.29 with value 01 for Bits 27 and 26 (PINSEL1)
+  45:../Modules/adc.c **** 	//P0.29 -> EXT2.2 -> Pin 26
+  46:../Modules/adc.c **** 	PINSEL1 &= ~(1<<27);
+ 2129              		.loc 1 46 0
+ 2130 0048 4E32A0E3 		mov	r3, #-536870908
+ 2131 004c 0B3983E2 		add	r3, r3, #180224
+ 2132 0050 4E22A0E3 		mov	r2, #-536870908
+ 2133 0054 0B2982E2 		add	r2, r2, #180224
+ 2134 0058 002092E5 		ldr	r2, [r2, #0]
+ 2135 005c 0223C2E3 		bic	r2, r2, #134217728
+ 2136 0060 002083E5 		str	r2, [r3, #0]
+  47:../Modules/adc.c **** 	PINSEL1 |=  (1<<26);
+ 2137              		.loc 1 47 0
+ 2138 0064 4E32A0E3 		mov	r3, #-536870908
+ 2139 0068 0B3983E2 		add	r3, r3, #180224
+ 2140 006c 4E22A0E3 		mov	r2, #-536870908
+ 2141 0070 0B2982E2 		add	r2, r2, #180224
+ 2142 0074 002092E5 		ldr	r2, [r2, #0]
+ 2143 0078 012382E3 		orr	r2, r2, #67108864
+ 2144 007c 002083E5 		str	r2, [r3, #0]
+  48:../Modules/adc.c **** 	//Setting AD0.3 function: Sets P0.30 with value 01 for Bits 29 and 28 (PINSEL1)
+  49:../Modules/adc.c **** 	//P0.30 -> EXT2.3 -> Pin 24
+  50:../Modules/adc.c **** 	PINSEL1 &= ~(1<<29);
+ 2145              		.loc 1 50 0
+ 2146 0080 4E32A0E3 		mov	r3, #-536870908
+ 2147 0084 0B3983E2 		add	r3, r3, #180224
+ 2148 0088 4E22A0E3 		mov	r2, #-536870908
+ 2149 008c 0B2982E2 		add	r2, r2, #180224
+ 2150 0090 002092E5 		ldr	r2, [r2, #0]
+ 2151 0094 0222C2E3 		bic	r2, r2, #536870912
+ 2152 0098 002083E5 		str	r2, [r3, #0]
+  51:../Modules/adc.c **** 	PINSEL1 |=  (1<<28);
+ 2153              		.loc 1 51 0
+ 2154 009c 4E32A0E3 		mov	r3, #-536870908
+ 2155 00a0 0B3983E2 		add	r3, r3, #180224
+ 2156 00a4 4E22A0E3 		mov	r2, #-536870908
+ 2157 00a8 0B2982E2 		add	r2, r2, #180224
+ 2158 00ac 002092E5 		ldr	r2, [r2, #0]
+ 2159 00b0 012282E3 		orr	r2, r2, #268435456
+ 2160 00b4 002083E5 		str	r2, [r3, #0]
+  52:../Modules/adc.c **** 	//Setting AD0.4 function: Sets P0.25 with value 01 for Bits 19 and 18 (PINSEL1)
+  53:../Modules/adc.c **** 	//P0.25 -> EXT1.25 -> Pin 1
+  54:../Modules/adc.c **** 	PINSEL1 &= ~(1<<19);
+ 2161              		.loc 1 54 0
+ 2162 00b8 4E32A0E3 		mov	r3, #-536870908
+ 2163 00bc 0B3983E2 		add	r3, r3, #180224
+ 2164 00c0 4E22A0E3 		mov	r2, #-536870908
+ 2165 00c4 0B2982E2 		add	r2, r2, #180224
+ 2166 00c8 002092E5 		ldr	r2, [r2, #0]
+ 2167 00cc 0227C2E3 		bic	r2, r2, #524288
+ 2168 00d0 002083E5 		str	r2, [r3, #0]
+  55:../Modules/adc.c **** 	PINSEL1 |=  (1<<18);
+ 2169              		.loc 1 55 0
+ 2170 00d4 4E32A0E3 		mov	r3, #-536870908
+ 2171 00d8 0B3983E2 		add	r3, r3, #180224
+ 2172 00dc 4E22A0E3 		mov	r2, #-536870908
+ 2173 00e0 0B2982E2 		add	r2, r2, #180224
+ 2174 00e4 002092E5 		ldr	r2, [r2, #0]
+ 2175 00e8 012782E3 		orr	r2, r2, #262144
+ 2176 00ec 002083E5 		str	r2, [r3, #0]
+  56:../Modules/adc.c **** 
+  57:../Modules/adc.c **** 	//Setting AD1.0 function: Sets P0.6 with value 11 for Bits 12 and 13 (PINSEL0)
+  58:../Modules/adc.c **** 	//P0.6
+  59:../Modules/adc.c **** 	PINSEL0 |= ((1<<12)||(1<<13));
+ 2177              		.loc 1 59 0
+ 2178 00f0 0E32A0E3 		mov	r3, #-536870912
+ 2179 00f4 0B3983E2 		add	r3, r3, #180224
+ 2180 00f8 0E22A0E3 		mov	r2, #-536870912
+ 2181 00fc 0B2982E2 		add	r2, r2, #180224
+ 2182 0100 002092E5 		ldr	r2, [r2, #0]
+ 2183 0104 012082E3 		orr	r2, r2, #1
+ 2184 0108 002083E5 		str	r2, [r3, #0]
+  60:../Modules/adc.c **** 
+  61:../Modules/adc.c ****     AD0CR = ( 0x01 << 0 ) | 	// SEL=1,select channel 0, 1 to 4 on ADC0
+ 2185              		.loc 1 61 0
+ 2186 010c 0E42A0E3 		mov	r4, #-536870912
+ 2187 0110 0D4984E2 		add	r4, r4, #212992
+  62:../Modules/adc.c **** 	( ( Fpclk / ADC_Clk - 1 ) << 8 ) |  // CLKDIV = Fpclk / 1000000 - 1
+ 2188              		.loc 1 62 0
+ 2189 0114 E507A0E3 		mov	r0, #60030976
+ 2190 0118 790C40E2 		sub	r0, r0, #30976
+ 2191 011c 10101BE5 		ldr	r1, [fp, #-16]
+ 2192 0120 FEFFFFEB 		bl	__aeabi_uidiv
+ 2193 0124 0030A0E1 		mov	r3, r0
+ 2194 0128 013043E2 		sub	r3, r3, #1
+ 2195 012c 0334A0E1 		mov	r3, r3, asl #8
+  63:../Modules/adc.c **** 	( 0 << 16 ) | 		// BURST = 0, no BURST, software controlled
+  64:../Modules/adc.c **** 	( 0 << 17 ) |  		// CLKS = 0, 11 clocks/10 bits
+  65:../Modules/adc.c **** 	( 1 << 21 ) |  		// PDN = 1, normal operation
+  66:../Modules/adc.c **** 	( 0 << 22 ) |  		// TEST1:0 = 00
+  67:../Modules/adc.c **** 	( 0 << 24 ) |  		// START = 0 A/D conversion stops
+ 2196              		.loc 1 67 0
+ 2197 0130 023683E3 		orr	r3, r3, #2097152
+ 2198 0134 013083E3 		orr	r3, r3, #1
+  61:../Modules/adc.c ****     AD0CR = ( 0x01 << 0 ) | 	// SEL=1,select channel 0, 1 to 4 on ADC0
+ 2199              		.loc 1 61 0
+ 2200 0138 003084E5 		str	r3, [r4, #0]
+  68:../Modules/adc.c **** 	( 0 << 27 );		/* EDGE = 0 (CAP/MAT singal falling,trigger A/D
+  69:../Modules/adc.c **** 				conversion) */
+  70:../Modules/adc.c ****     AD1CR = ( 0x01 << 0 ) | 	// SEL=1,select channel 0, 0 to 7 on ADC1
+ 2201              		.loc 1 70 0
+ 2202 013c 0E42A0E3 		mov	r4, #-536870912
+ 2203 0140 064884E2 		add	r4, r4, #393216
+  71:../Modules/adc.c **** 	( ( Fpclk / ADC_Clk - 1 ) << 8 ) |  // CLKDIV = Fpclk / 1000000 - 1
+ 2204              		.loc 1 71 0
+ 2205 0144 E507A0E3 		mov	r0, #60030976
+ 2206 0148 790C40E2 		sub	r0, r0, #30976
+ 2207 014c 10101BE5 		ldr	r1, [fp, #-16]
+ 2208 0150 FEFFFFEB 		bl	__aeabi_uidiv
+ 2209 0154 0030A0E1 		mov	r3, r0
+ 2210 0158 013043E2 		sub	r3, r3, #1
+ 2211 015c 0334A0E1 		mov	r3, r3, asl #8
+  72:../Modules/adc.c **** 	( 0 << 16 ) | 		// BURST = 0, no BURST, software controlled
+  73:../Modules/adc.c **** 	( 0 << 17 ) |  		// CLKS = 0, 11 clocks/10 bits
+  74:../Modules/adc.c **** 	( 1 << 21 ) |  		// PDN = 1, normal operation
+  75:../Modules/adc.c **** 	( 0 << 22 ) |  		// TEST1:0 = 00
+  76:../Modules/adc.c **** 	( 0 << 24 ) |  		// START = 0 A/D conversion stops
+ 2212              		.loc 1 76 0
+ 2213 0160 023683E3 		orr	r3, r3, #2097152
+ 2214 0164 013083E3 		orr	r3, r3, #1
+  70:../Modules/adc.c ****     AD1CR = ( 0x01 << 0 ) | 	// SEL=1,select channel 0, 0 to 7 on ADC1
+ 2215              		.loc 1 70 0
+ 2216 0168 003084E5 		str	r3, [r4, #0]
+  77:../Modules/adc.c **** 	( 0 << 27 );		/* EDGE = 0 (CAP/MAT singal falling,trigger A/D
+  78:../Modules/adc.c **** 				conversion) */
+  79:../Modules/adc.c ****     /* If POLLING, no need to do the following */
+  80:../Modules/adc.c ****     return (TRUE);
+ 2217              		.loc 1 80 0
+ 2218 016c 0130A0E3 		mov	r3, #1
+  81:../Modules/adc.c **** }
+ 2219              		.loc 1 81 0
+ 2220 0170 0300A0E1 		mov	r0, r3
+ 2221 0174 08D04BE2 		sub	sp, fp, #8
+ 2222 0178 1048BDE8 		ldmfd	sp!, {r4, fp, lr}
+ 2223 017c 1EFF2FE1 		bx	lr
+ 2224              		.cfi_endproc
+ 2225              	.LFE0:
+ 2227              		.align	2
+ 2228              		.global	ADC0Read
+ 2230              	ADC0Read:
+ 2231              	.LFB1:
+  82:../Modules/adc.c **** 
+  83:../Modules/adc.c **** /*****************************************************************************
+  84:../Modules/adc.c **** ** Function name:		ADC0Read
+  85:../Modules/adc.c **** **
+  86:../Modules/adc.c **** ** Descriptions:		Read ADC0 channel
+  87:../Modules/adc.c **** **
+  88:../Modules/adc.c **** ** parameters:			Channel number
+  89:../Modules/adc.c **** ** Returned value:		Value read, if interrupt driven, return channel #
+  90:../Modules/adc.c **** **
+  91:../Modules/adc.c **** *****************************************************************************/
+  92:../Modules/adc.c **** uint32_t ADC0Read( uint8_t channelNum )
+  93:../Modules/adc.c **** {
+ 2232              		.loc 1 93 0
+ 2233              		.cfi_startproc
+ 2234              		@ Function supports interworking.
+ 2235              		@ args = 0, pretend = 0, frame = 16
+ 2236              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2237              		@ link register save eliminated.
+ 2238 0180 04B02DE5 		str	fp, [sp, #-4]!
+ 2239              	.LCFI2:
+ 2240              		.cfi_def_cfa_offset 4
+ 2241 0184 00B08DE2 		add	fp, sp, #0
+ 2242              		.cfi_offset 11, -4
+ 2243              	.LCFI3:
+ 2244              		.cfi_def_cfa_register 11
+ 2245 0188 14D04DE2 		sub	sp, sp, #20
+ 2246 018c 0030A0E1 		mov	r3, r0
+ 2247 0190 0D304BE5 		strb	r3, [fp, #-13]
+  94:../Modules/adc.c **** #if !ADC_INTERRUPT_FLAG
+  95:../Modules/adc.c ****     uint32_t regVal, ADC_Data;
+  96:../Modules/adc.c **** #endif
+  97:../Modules/adc.c **** 
+  98:../Modules/adc.c ****     /* channel number is 0 through 7 */
+  99:../Modules/adc.c ****     if ( channelNum >= ADC_NUM )
+ 2248              		.loc 1 99 0
+ 2249 0194 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2250 0198 070053E3 		cmp	r3, #7
+ 2251 019c 0100009A 		bls	.L3
+ 100:../Modules/adc.c ****     {
+ 101:../Modules/adc.c **** 	channelNum = 0;		/* reset channel number to 0 */
+ 2252              		.loc 1 101 0
+ 2253 01a0 0030A0E3 		mov	r3, #0
+ 2254 01a4 0D304BE5 		strb	r3, [fp, #-13]
+ 2255              	.L3:
+ 102:../Modules/adc.c ****     }
+ 103:../Modules/adc.c ****     AD0CR &= 0xFFFFFF00;
+ 2256              		.loc 1 103 0
+ 2257 01a8 0E32A0E3 		mov	r3, #-536870912
+ 2258 01ac 0D3983E2 		add	r3, r3, #212992
+ 2259 01b0 0E22A0E3 		mov	r2, #-536870912
+ 2260 01b4 0D2982E2 		add	r2, r2, #212992
+ 2261 01b8 002092E5 		ldr	r2, [r2, #0]
+ 2262 01bc FF20C2E3 		bic	r2, r2, #255
+ 2263 01c0 002083E5 		str	r2, [r3, #0]
+ 104:../Modules/adc.c ****     AD0CR |= (1 << 24) | (1 << channelNum);
+ 2264              		.loc 1 104 0
+ 2265 01c4 0E32A0E3 		mov	r3, #-536870912
+ 2266 01c8 0D3983E2 		add	r3, r3, #212992
+ 2267 01cc 0E22A0E3 		mov	r2, #-536870912
+ 2268 01d0 0D2982E2 		add	r2, r2, #212992
+ 2269 01d4 001092E5 		ldr	r1, [r2, #0]
+ 2270 01d8 0D205BE5 		ldrb	r2, [fp, #-13]	@ zero_extendqisi2
+ 2271 01dc 0100A0E3 		mov	r0, #1
+ 2272 01e0 1022A0E1 		mov	r2, r0, asl r2
+ 2273 01e4 022081E1 		orr	r2, r1, r2
+ 2274 01e8 012482E3 		orr	r2, r2, #16777216
+ 2275 01ec 002083E5 		str	r2, [r3, #0]
+ 2276 01f0 000000EA 		b	.L7
+ 2277              	.L10:
+ 105:../Modules/adc.c **** 				/* switch channel,start A/D convert */
+ 106:../Modules/adc.c **** #if !ADC_INTERRUPT_FLAG
+ 107:../Modules/adc.c ****     while ( 1 )			/* wait until end of A/D convert */
+ 108:../Modules/adc.c ****     {
+ 109:../Modules/adc.c ****     	regVal = *(volatile unsigned long *)(AD0_BASE_ADDR
+ 110:../Modules/adc.c **** 			+ ADC_OFFSET + ADC_INDEX * channelNum);
+ 111:../Modules/adc.c **** 				/* read result of A/D conversion */
+ 112:../Modules/adc.c ****     	if ( regVal & ADC_DONE )
+ 113:../Modules/adc.c ****     	{
+ 114:../Modules/adc.c ****     		break;
+ 115:../Modules/adc.c ****     	}
+ 116:../Modules/adc.c ****     }
+ 2278              		.loc 1 116 0
+ 2279 01f4 0000A0E1 		mov	r0, r0	@ nop
+ 2280              	.L7:
+ 110:../Modules/adc.c **** 			+ ADC_OFFSET + ADC_INDEX * channelNum);
+ 2281              		.loc 1 110 0
+ 2282 01f8 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2283 01fc 0E3383E2 		add	r3, r3, #939524096
+ 2284 0200 0D3A83E2 		add	r3, r3, #53248
+ 2285 0204 043083E2 		add	r3, r3, #4
+ 2286 0208 0331A0E1 		mov	r3, r3, asl #2
+ 109:../Modules/adc.c ****     	regVal = *(volatile unsigned long *)(AD0_BASE_ADDR
+ 2287              		.loc 1 109 0
+ 2288 020c 003093E5 		ldr	r3, [r3, #0]
+ 2289 0210 08300BE5 		str	r3, [fp, #-8]
+ 112:../Modules/adc.c ****     	if ( regVal & ADC_DONE )
+ 2290              		.loc 1 112 0
+ 2291 0214 08301BE5 		ldr	r3, [fp, #-8]
+ 2292 0218 000053E3 		cmp	r3, #0
+ 2293 021c F4FFFFAA 		bge	.L10
+ 117:../Modules/adc.c **** 
+ 118:../Modules/adc.c ****     AD0CR &= 0xF8FFFFFF;	/* stop ADC now */
+ 2294              		.loc 1 118 0
+ 2295 0220 0E32A0E3 		mov	r3, #-536870912
+ 2296 0224 0D3983E2 		add	r3, r3, #212992
+ 2297 0228 0E22A0E3 		mov	r2, #-536870912
+ 2298 022c 0D2982E2 		add	r2, r2, #212992
+ 2299 0230 002092E5 		ldr	r2, [r2, #0]
+ 2300 0234 0724C2E3 		bic	r2, r2, #117440512
+ 2301 0238 002083E5 		str	r2, [r3, #0]
+ 119:../Modules/adc.c ****     if ( regVal & ADC_OVERRUN )	/* save data when it's not overrun otherwise, return zero */{
+ 2302              		.loc 1 119 0
+ 2303 023c 08301BE5 		ldr	r3, [fp, #-8]
+ 2304 0240 013103E2 		and	r3, r3, #1073741824
+ 2305 0244 000053E3 		cmp	r3, #0
+ 2306 0248 0100000A 		beq	.L9
+ 2307              	.L5:
+ 120:../Modules/adc.c ****     	return ( 0 );
+ 2308              		.loc 1 120 0
+ 2309 024c 0030A0E3 		mov	r3, #0
+ 2310 0250 050000EA 		b	.L8
+ 2311              	.L9:
+ 121:../Modules/adc.c ****     }
+ 122:../Modules/adc.c **** 
+ 123:../Modules/adc.c ****     ADC_Data = ( regVal >> 6 ) & 0x3FF;
+ 2312              		.loc 1 123 0
+ 2313 0254 08301BE5 		ldr	r3, [fp, #-8]
+ 2314 0258 2333A0E1 		mov	r3, r3, lsr #6
+ 2315 025c 033BA0E1 		mov	r3, r3, asl #22
+ 2316 0260 233BA0E1 		mov	r3, r3, lsr #22
+ 2317 0264 0C300BE5 		str	r3, [fp, #-12]
+ 124:../Modules/adc.c ****     return ( ADC_Data );	/* return A/D conversion value */
+ 2318              		.loc 1 124 0
+ 2319 0268 0C301BE5 		ldr	r3, [fp, #-12]
+ 2320              	.L8:
+ 125:../Modules/adc.c **** 
+ 126:../Modules/adc.c **** #else
+ 127:../Modules/adc.c ****     return ( channelNum );	/* if it's interrupt driven, the
+ 128:../Modules/adc.c **** 				ADC reading is done inside the handler.
+ 129:../Modules/adc.c **** 				so, return channel number */
+ 130:../Modules/adc.c **** #endif
+ 131:../Modules/adc.c **** }
+ 2321              		.loc 1 131 0
+ 2322 026c 0300A0E1 		mov	r0, r3
+ 2323 0270 00D08BE2 		add	sp, fp, #0
+ 2324 0274 0008BDE8 		ldmfd	sp!, {fp}
+ 2325 0278 1EFF2FE1 		bx	lr
+ 2326              		.cfi_endproc
+ 2327              	.LFE1:
+ 2329              		.align	2
+ 2330              		.global	ADC1Read
+ 2332              	ADC1Read:
+ 2333              	.LFB2:
+ 132:../Modules/adc.c **** 
+ 133:../Modules/adc.c **** /*****************************************************************************
+ 134:../Modules/adc.c **** ** Function name:		ADC1Read
+ 135:../Modules/adc.c **** **
+ 136:../Modules/adc.c **** ** Descriptions:		Read ADC1 channel
+ 137:../Modules/adc.c **** **
+ 138:../Modules/adc.c **** ** parameters:			Channel number
+ 139:../Modules/adc.c **** ** Returned value:		Value read, if interrupt driven, return channel #
+ 140:../Modules/adc.c **** **
+ 141:../Modules/adc.c **** *****************************************************************************/
+ 142:../Modules/adc.c **** uint32_t ADC1Read( uint8_t channelNum )
+ 143:../Modules/adc.c **** {
+ 2334              		.loc 1 143 0
+ 2335              		.cfi_startproc
+ 2336              		@ Function supports interworking.
+ 2337              		@ args = 0, pretend = 0, frame = 16
+ 2338              		@ frame_needed = 1, uses_anonymous_args = 0
+ 2339              		@ link register save eliminated.
+ 2340 027c 04B02DE5 		str	fp, [sp, #-4]!
+ 2341              	.LCFI4:
+ 2342              		.cfi_def_cfa_offset 4
+ 2343 0280 00B08DE2 		add	fp, sp, #0
+ 2344              		.cfi_offset 11, -4
+ 2345              	.LCFI5:
+ 2346              		.cfi_def_cfa_register 11
+ 2347 0284 14D04DE2 		sub	sp, sp, #20
+ 2348 0288 0030A0E1 		mov	r3, r0
+ 2349 028c 0D304BE5 		strb	r3, [fp, #-13]
+ 144:../Modules/adc.c **** #if !ADC_INTERRUPT_FLAG
+ 145:../Modules/adc.c ****     uint32_t regVal;
+ 146:../Modules/adc.c ****     uint32_t ADC_Data;
+ 147:../Modules/adc.c **** #endif
+ 148:../Modules/adc.c **** 
+ 149:../Modules/adc.c ****     /* channel number is 0 through 7 */
+ 150:../Modules/adc.c ****     if ( channelNum >= ADC_NUM )
+ 2350              		.loc 1 150 0
+ 2351 0290 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2352 0294 070053E3 		cmp	r3, #7
+ 2353 0298 0100009A 		bls	.L12
+ 151:../Modules/adc.c ****     {
+ 152:../Modules/adc.c **** 	channelNum = 0;		/* reset channel number to 0 */
+ 2354              		.loc 1 152 0
+ 2355 029c 0030A0E3 		mov	r3, #0
+ 2356 02a0 0D304BE5 		strb	r3, [fp, #-13]
+ 2357              	.L12:
+ 153:../Modules/adc.c ****     }
+ 154:../Modules/adc.c ****     AD1CR &= 0xFFFFFF00;
+ 2358              		.loc 1 154 0
+ 2359 02a4 0E32A0E3 		mov	r3, #-536870912
+ 2360 02a8 063883E2 		add	r3, r3, #393216
+ 2361 02ac 0E22A0E3 		mov	r2, #-536870912
+ 2362 02b0 062882E2 		add	r2, r2, #393216
+ 2363 02b4 002092E5 		ldr	r2, [r2, #0]
+ 2364 02b8 FF20C2E3 		bic	r2, r2, #255
+ 2365 02bc 002083E5 		str	r2, [r3, #0]
+ 155:../Modules/adc.c ****     AD1CR |= (1 << 24) | (1 << channelNum);
+ 2366              		.loc 1 155 0
+ 2367 02c0 0E32A0E3 		mov	r3, #-536870912
+ 2368 02c4 063883E2 		add	r3, r3, #393216
+ 2369 02c8 0E22A0E3 		mov	r2, #-536870912
+ 2370 02cc 062882E2 		add	r2, r2, #393216
+ 2371 02d0 001092E5 		ldr	r1, [r2, #0]
+ 2372 02d4 0D205BE5 		ldrb	r2, [fp, #-13]	@ zero_extendqisi2
+ 2373 02d8 0100A0E3 		mov	r0, #1
+ 2374 02dc 1022A0E1 		mov	r2, r0, asl r2
+ 2375 02e0 022081E1 		orr	r2, r1, r2
+ 2376 02e4 012482E3 		orr	r2, r2, #16777216
+ 2377 02e8 002083E5 		str	r2, [r3, #0]
+ 2378 02ec 000000EA 		b	.L16
+ 2379              	.L19:
+ 156:../Modules/adc.c **** 				/* switch channel,start A/D convert */
+ 157:../Modules/adc.c **** #if !ADC_INTERRUPT_FLAG
+ 158:../Modules/adc.c ****     while ( 1 )			/* wait until end of A/D convert */
+ 159:../Modules/adc.c ****     {
+ 160:../Modules/adc.c **** 	regVal = *(volatile unsigned long *)(AD1_BASE_ADDR
+ 161:../Modules/adc.c **** 			+ ADC_OFFSET + ADC_INDEX * channelNum);
+ 162:../Modules/adc.c **** 				/* read result of A/D conversion */
+ 163:../Modules/adc.c **** 	if ( regVal & ADC_DONE )
+ 164:../Modules/adc.c **** 	{
+ 165:../Modules/adc.c **** 	    break;
+ 166:../Modules/adc.c **** 	}
+ 167:../Modules/adc.c ****     }
+ 2380              		.loc 1 167 0
+ 2381 02f0 0000A0E1 		mov	r0, r0	@ nop
+ 2382              	.L16:
+ 161:../Modules/adc.c **** 			+ ADC_OFFSET + ADC_INDEX * channelNum);
+ 2383              		.loc 1 161 0
+ 2384 02f4 0D305BE5 		ldrb	r3, [fp, #-13]	@ zero_extendqisi2
+ 2385 02f8 0E3383E2 		add	r3, r3, #939524096
+ 2386 02fc 063983E2 		add	r3, r3, #98304
+ 2387 0300 043083E2 		add	r3, r3, #4
+ 2388 0304 0331A0E1 		mov	r3, r3, asl #2
+ 160:../Modules/adc.c **** 	regVal = *(volatile unsigned long *)(AD1_BASE_ADDR
+ 2389              		.loc 1 160 0
+ 2390 0308 003093E5 		ldr	r3, [r3, #0]
+ 2391 030c 08300BE5 		str	r3, [fp, #-8]
+ 163:../Modules/adc.c **** 	if ( regVal & ADC_DONE )
+ 2392              		.loc 1 163 0
+ 2393 0310 08301BE5 		ldr	r3, [fp, #-8]
+ 2394 0314 000053E3 		cmp	r3, #0
+ 2395 0318 F4FFFFAA 		bge	.L19
+ 168:../Modules/adc.c **** 
+ 169:../Modules/adc.c ****     AD1CR &= 0xF8FFFFFF;	/* stop ADC now */
+ 2396              		.loc 1 169 0
+ 2397 031c 0E32A0E3 		mov	r3, #-536870912
+ 2398 0320 063883E2 		add	r3, r3, #393216
+ 2399 0324 0E22A0E3 		mov	r2, #-536870912
+ 2400 0328 062882E2 		add	r2, r2, #393216
+ 2401 032c 002092E5 		ldr	r2, [r2, #0]
+ 2402 0330 0724C2E3 		bic	r2, r2, #117440512
+ 2403 0334 002083E5 		str	r2, [r3, #0]
+ 170:../Modules/adc.c ****     if ( regVal & ADC_OVERRUN )	/* save data when it's not overrun
+ 2404              		.loc 1 170 0
+ 2405 0338 08301BE5 		ldr	r3, [fp, #-8]
+ 2406 033c 013103E2 		and	r3, r3, #1073741824
+ 2407 0340 000053E3 		cmp	r3, #0
+ 2408 0344 0100000A 		beq	.L18
+ 2409              	.L14:
+ 171:../Modules/adc.c **** 				otherwise, return zero */
+ 172:../Modules/adc.c ****     {
+ 173:../Modules/adc.c **** 	return ( 0 );
+ 2410              		.loc 1 173 0
+ 2411 0348 0030A0E3 		mov	r3, #0
+ 2412 034c 050000EA 		b	.L17
+ 2413              	.L18:
+ 174:../Modules/adc.c ****     }
+ 175:../Modules/adc.c **** 
+ 176:../Modules/adc.c ****     ADC_Data = ( regVal >> 6 ) & 0x3FF;
+ 2414              		.loc 1 176 0
+ 2415 0350 08301BE5 		ldr	r3, [fp, #-8]
+ 2416 0354 2333A0E1 		mov	r3, r3, lsr #6
+ 2417 0358 033BA0E1 		mov	r3, r3, asl #22
+ 2418 035c 233BA0E1 		mov	r3, r3, lsr #22
+ 2419 0360 0C300BE5 		str	r3, [fp, #-12]
+ 177:../Modules/adc.c ****     return ( ADC_Data );	/* return A/D conversion value */
+ 2420              		.loc 1 177 0
+ 2421 0364 0C301BE5 		ldr	r3, [fp, #-12]
+ 2422              	.L17:
+ 178:../Modules/adc.c **** #else
+ 179:../Modules/adc.c ****     return ( channelNum );
+ 180:../Modules/adc.c **** #endif
+ 181:../Modules/adc.c **** }
+ 2423              		.loc 1 181 0
+ 2424 0368 0300A0E1 		mov	r0, r3
+ 2425 036c 00D08BE2 		add	sp, fp, #0
+ 2426 0370 0008BDE8 		ldmfd	sp!, {fp}
+ 2427 0374 1EFF2FE1 		bx	lr
+ 2428              		.cfi_endproc
+ 2429              	.LFE2:
+ 2431              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 adc.c
+                            *COM*:00000020 ADC0Value
+                            *COM*:00000020 ADC1Value
+C:\Users\ufu\AppData\Local\Temp\ccsHj4vX.s:2082   .bss:00000000 ADC0IntDone
+C:\Users\ufu\AppData\Local\Temp\ccsHj4vX.s:2079   .bss:00000000 $d
+C:\Users\ufu\AppData\Local\Temp\ccsHj4vX.s:2088   .bss:00000004 ADC1IntDone
+C:\Users\ufu\AppData\Local\Temp\ccsHj4vX.s:2092   .text:00000000 $a
+C:\Users\ufu\AppData\Local\Temp\ccsHj4vX.s:2095   .text:00000000 ADCInit
+C:\Users\ufu\AppData\Local\Temp\ccsHj4vX.s:2230   .text:00000180 ADC0Read
+C:\Users\ufu\AppData\Local\Temp\ccsHj4vX.s:2332   .text:0000027c ADC1Read
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_uidiv

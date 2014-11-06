@@ -1,0 +1,36 @@
+
+**** Build of configuration Debug for project MA2000_ADC_PWM ****
+
+make all 
+Building file: ../ma2000main.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\Dropbox\ARM\PROGRAMAS\LPC2148\MA2000_ADC_PWM" -O0 -Wall -Wa,-adhlns="ma2000main.o.lst" -c -fmessage-length=0 -MMD -MP -MF"ma2000main.d" -MT"ma2000main.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"ma2000main.o" "../ma2000main.c"
+../ma2000main.c: In function 'main':
+../ma2000main.c:73:3: warning: implicit declaration of function 'iprintf'
+../ma2000main.c:46:6: warning: unused variable 'j'
+Finished building: ../ma2000main.c
+ 
+Building file: ../uart.c
+Invoking: ARM Yagarto Windows GCC C Compiler
+arm-none-eabi-gcc -I"C:\Dropbox\ARM\PROGRAMAS\LPC2148\MA2000_ADC_PWM" -O0 -Wall -Wa,-adhlns="uart.o.lst" -c -fmessage-length=0 -MMD -MP -MF"uart.d" -MT"uart.d" -mcpu=arm7tdmi -g3 -gdwarf-2 -o"uart.o" "../uart.c"
+Finished building: ../uart.c
+ 
+Building target: MA2000_ADC_PWM.elf
+Invoking: ARM Yagarto Windows GCC C Linker
+arm-none-eabi-gcc -T"C:\Dropbox\ARM\PROGRAMAS\LPC2148\MA2000_ADC_PWM\lpc2148_rom.ld" -nostartfiles -Wl,-Map,MA2000_ADC_PWM.map -mcpu=arm7tdmi -g3 -gdwarf-2 -o"MA2000_ADC_PWM.elf"  ./adc.o ./cpu_init.o ./low_level_init.o ./ma2000main.o ./pwm.o ./startup.o ./uart.o   
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libg.a(lib_a-sbrkr.o): In function `_sbrk_r':
+C:\msys\1.0\home\yagarto\newlib-build\arm-none-eabi\newlib\libc\reent/../../../../../newlib-1.18.0/newlib/libc/reent/sbrkr.c:60: undefined reference to `_sbrk'
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libg.a(lib_a-writer.o): In function `_write_r':
+C:\msys\1.0\home\yagarto\newlib-build\arm-none-eabi\newlib\libc\reent/../../../../../newlib-1.18.0/newlib/libc/reent/writer.c:58: undefined reference to `_write'
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libg.a(lib_a-closer.o): In function `_close_r':
+C:\msys\1.0\home\yagarto\newlib-build\arm-none-eabi\newlib\libc\reent/../../../../../newlib-1.18.0/newlib/libc/reent/closer.c:53: undefined reference to `_close'
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libg.a(lib_a-fstatr.o): In function `_fstat_r':
+C:\msys\1.0\home\yagarto\newlib-build\arm-none-eabi\newlib\libc\reent/../../../../../newlib-1.18.0/newlib/libc/reent/fstatr.c:62: undefined reference to `_fstat'
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libg.a(lib_a-isattyr.o): In function `_isatty_r':
+C:\msys\1.0\home\yagarto\newlib-build\arm-none-eabi\newlib\libc\reent/../../../../../newlib-1.18.0/newlib/libc/reent/isattyr.c:58: undefined reference to `_isatty'
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libg.a(lib_a-lseekr.o): In function `_lseek_r':
+C:\msys\1.0\home\yagarto\newlib-build\arm-none-eabi\newlib\libc\reent/../../../../../newlib-1.18.0/newlib/libc/reent/lseekr.c:58: undefined reference to `_lseek'
+c:/arm/yagarto/bin/../lib/gcc/arm-none-eabi/4.5.1/../../../../arm-none-eabi/lib\libg.a(lib_a-readr.o): In function `_read_r':
+C:\msys\1.0\home\yagarto\newlib-build\arm-none-eabi\newlib\libc\reent/../../../../../newlib-1.18.0/newlib/libc/reent/readr.c:58: undefined reference to `_read'
+collect2: ld returned 1 exit status
+make: *** [MA2000_ADC_PWM.elf] Error 1
